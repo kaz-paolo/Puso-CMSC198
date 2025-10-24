@@ -6,7 +6,7 @@ Description
 
 ## Other Links
 
-- **Figma Mockup**: [View Design File](https://figma.com/your-design-link-here)
+- **Figma Mockup**: [View Design File](https://www.figma.com/design/FvVDrJhLVxRPhs8Tk7Y3RC/Mockup-Draft?node-id=0-1&t=4THzSBLInwln5jKt-1)
 - **Overleaf Latex**: 
 
 ## Getting Started
