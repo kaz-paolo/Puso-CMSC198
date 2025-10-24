@@ -7,6 +7,7 @@ Description
 ## Other Links
 
 - **Figma Mockup**: [View Design File](https://figma.com/your-design-link-here)
+- **Overleaf Latex**: 
 
 ## Getting Started
 
@@ -34,7 +35,7 @@ npm run dev
 
 4. Open [http://localhost:5173](http://localhost:5173)
 
-## 🛠️ Available Scripts
+## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
