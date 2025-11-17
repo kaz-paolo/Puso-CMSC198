@@ -10,15 +10,16 @@ import App from './App.jsx'
 //ColorSchemeScript: manages light/dark mode preferences for serverside rendering
 import { MantineProvider, ColorSchemeScript } from '@mantine/core'
 import '@mantine/core/styles.css'
+import { ThemeProvider } from './theme/ThemeProvider.jsx'
 
 // Main Entry Point
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ColorSchemeScript defaultColorScheme='auto' />
-    <MantineProvider defaultColorScheme='auto'>
+    <ThemeProvider>
       <BrowserRouter>
         <App /> 
       </BrowserRouter>
-    </MantineProvider>
+    </ThemeProvider>
   </StrictMode>,
 )

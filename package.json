@@ -33,6 +33,7 @@
     "embla-carousel-react": "^8.5.2",
     "firebase": "^12.5.0",
     "react": "^19.1.1",
+    "react-color": "^2.19.3",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.5",
     "recharts": "^3.4.1"

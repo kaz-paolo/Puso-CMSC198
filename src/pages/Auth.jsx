@@ -3,23 +3,16 @@ import { Container, Paper, TextInput, PasswordInput, Button, Title, Text, Anchor
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconBrandGoogle } from '@tabler/icons-react';
 
 function Auth() {
-    // toggle between login and signup
   const [isLogin, setIsLogin] = useState(true);
-  // input field
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // error loading states
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // navigation hook
   const navigate = useNavigate();
 
-  // email password authentication
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError('');
@@ -39,7 +32,6 @@ function Auth() {
     }
   };
 
-  // google authentication
   const handleGoogleAuth = async () => {
     setError('');
     setLoading(true);
@@ -55,7 +47,6 @@ function Auth() {
     }
   };
 
-
   return (
     <Container size="xs" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
       <Paper shadow="md" p="xl" radius="md" style={{ width: '100%' }}>
@@ -64,7 +55,7 @@ function Auth() {
             {isLogin ? 'Login' : 'Create Account'}
           </Title>
           <Text size="sm" c="dimmed" ta="center">
-            {isLogin ? 'Sign in' : 'Sign up'}
+            {isLogin ? 'Sign in to your account' : 'Sign up for a new account'}
           </Text>
 
           {error && (
@@ -91,24 +82,31 @@ function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              <Button type="submit" fullWidth loading={loading}>
+              <Button type="submit" fullWidth loading={loading} color="brand">
                 {isLogin ? 'SIGN IN' : 'SIGN UP'}
               </Button>
             </Stack>
           </form>
 
+          <Divider label="OR" labelPosition="center" />
+
           <Button
             fullWidth
             onClick={handleGoogleAuth}
             loading={loading}
+            variant="outline"
+            color="brand"
+            leftSection={<IconBrandGoogle size={18} />}
           >
             Continue with Google
           </Button>
 
           <Text size="sm" ta="center">
+            {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <Anchor
               component="button"
               type="button"
+              c="brand"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError('');
