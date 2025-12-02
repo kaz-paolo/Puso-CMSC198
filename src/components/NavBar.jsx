@@ -1,12 +1,32 @@
-import { Stack, NavLink, Text, Avatar, Group, Divider, useMantineTheme, useMantineColorScheme } from '@mantine/core';
+import { Stack, NavLink, Text, Avatar, Group, Divider, useMantineTheme, useMantineColorScheme, Button } from '@mantine/core';
 import { IconHome, IconCalendar, IconUsers, IconBook, IconMessageCircle, IconSettings, IconChevronRight } from '@tabler/icons-react';
-import { auth } from '../../firebase/firebase';
+import { db, auth } from '../../firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 function NavBar() {
   const userEmail = auth.currentUser?.email || '';
   const userName = auth.currentUser?.displayName || 'No Name';
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
+  const navigate = useNavigate();
+  const [needsVolunteerForm, setNeedsVolunteerForm] = useState(false);
+
+  // Check if user has answered volunteer form
+  useEffect(() => {
+    async function checkVolunteerForm() {
+      const user = auth.currentUser;
+      if (!user) {
+        setNeedsVolunteerForm(false);
+        return;
+      }
+      const docRef = doc(db, 'volunteerForms', user.uid);
+      const docSnap = await getDoc(docRef);
+      setNeedsVolunteerForm(!docSnap.exists());
+    }
+    checkVolunteerForm();
+  }, [userEmail]);
 
   return (
     <Stack 
@@ -78,6 +98,19 @@ function NavBar() {
           color="brand"
         />
       </Stack>
+
+      {/* Volunteer Form Prompt */}
+      {needsVolunteerForm && (
+        <Group p="md" style={{ borderTop: `1px solid ${colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}` }}>
+          <Button
+            color="yellow"
+            fullWidth
+            onClick={() => navigate('/volunteer-form')}
+          >
+            Fill out personal data
+          </Button>
+        </Group>
+      )}
 
       {/* User Profile at Bottom */}
       <Group 

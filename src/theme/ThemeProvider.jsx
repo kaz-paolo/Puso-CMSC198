@@ -64,7 +64,7 @@ export function ThemeProvider({ children }) {
     setPrimaryColor(color);
   };
 
-  const currentColors = themeColors[primaryColor];
+  const currentColors = themeColors[primaryColor] || themeColors.ocean;
 
   // Mantine theme configuration
   const theme = createTheme({
