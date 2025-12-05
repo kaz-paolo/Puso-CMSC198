@@ -15,10 +15,12 @@ function App() {
       {/* Page Routing */}
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      {/* <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> */}
       <Route path="/dashboard" element={<Dashboard />} />
 
-      <Route path="/volunteer-form" element={<ProtectedRoute><VolunteerForm /></ProtectedRoute>} />
+      {/* <Route path="/volunteer-form" element={<ProtectedRoute><VolunteerForm /></ProtectedRoute>} /> */}
+            <Route path="/volunteer-form" element={<VolunteerForm />} />
+
       {/* undefined url */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

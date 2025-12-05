@@ -7,7 +7,7 @@ import { Center, Loader } from "@mantine/core";
 // If user is not logged in when accessing pages, redirect to /auth
 
 function ProtectRoute({ children }) {
-  const [user, setUser] = useState(true);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // useEffect(() => {
@@ -19,13 +19,13 @@ function ProtectRoute({ children }) {
   //   return () => unsubscribe();
   // }, []);
 
-  // if (loading) {
-  //   return (
-  //     <Center style={{ minHeight: "100vh" }}>
-  //       <Loader size="lg" />
-  //     </Center>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <Center style={{ minHeight: "100vh" }}>
+        <Loader size="lg" />
+      </Center>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/auth" replace />;
