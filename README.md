@@ -20,16 +20,28 @@ Description
 1. Clone the repository
 ```bash
 git clone <repository-url>
-cd cmsc198
+cd filedirectory
 ```
 
-2. Install dependencies
+2. Install dependencies (seperate for backend and front end)
 ```bash
+cd backend
+npm install
+
+cd ../frontend
 npm install
 ```
 
 3. Start development server
+**Terminal 1 - Run Backend Server:**
 ```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 - Run Frontend Development Server:**
+```bash
+cd frontend
 npm run dev
 ```
 
