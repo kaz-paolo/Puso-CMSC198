@@ -25,11 +25,13 @@ import { useStackApp } from "@stackframe/react";
 function NavBar() {
   const stackApp = useStackApp();
   const user = stackApp.useUser();
-  
+
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
   const [needsVolunteerForm, setNeedsVolunteerForm] = useState(false);
+
+  const [activeLink, setActiveLink] = useState();
 
   // Check if user has answered volunteer form
   // useEffect(() => {
@@ -43,9 +45,13 @@ function NavBar() {
   //   checkVolunteerForm();
   // }, [user]);
 
-  const userEmail = user?.primaryEmail || '';
-  const userName = user?.displayName || 'No Name';
-  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+  const userEmail = user?.primaryEmail || "";
+  const userName = user?.displayName || "No Name";
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <Stack
@@ -73,6 +79,11 @@ function NavBar() {
           label="Events"
           leftSection={<IconCalendar size={20} />}
           color="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            // setActiveLink(link);
+            navigate("/events");
+          }}
         />
         <NavLink
           label="Committee"
@@ -149,7 +160,9 @@ function NavBar() {
           p="md"
           style={{
             borderTop: `1px solid ${
-              colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+              colorScheme === "dark"
+                ? theme.colors.dark[4]
+                : theme.colors.gray[3]
             }`,
             cursor: "pointer",
             flexShrink: 0,

@@ -5,10 +5,10 @@ export async function initDb() {
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES auth.users(id),
         student_id VARCHAR(50) NOT NULL UNIQUE,
+      
         name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        password TEXT NOT NULL,
         role VARCHAR(50) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

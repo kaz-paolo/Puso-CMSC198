@@ -73,11 +73,10 @@ function VolunteerForm() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    email: "",
     firstName: "",
     middleName: "",
     lastName: "",
-    fullName: "",
+    studentNumber: "",
     idPicture: null,
     nickname: "",
     sex: "",
@@ -162,12 +161,6 @@ function VolunteerForm() {
       label: "Personal Info",
       content: (
         <Stack gap="md">
-          <TextInput
-            label="Email Address"
-            required
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-          />
           <Group grow>
             <TextInput
               label="First Name"
@@ -194,11 +187,11 @@ function VolunteerForm() {
             />
           </Group>
           <TextInput
-            label="Full Name"
+            label="Student Number"
             required
-            value={form.fullName}
+            value={form.studentNumber}
             onChange={(e) =>
-              setForm((f) => ({ ...f, fullName: e.target.value }))
+              setForm((f) => ({ ...f, studentNumber: e.target.value }))
             }
           />
           <FileInput
@@ -496,9 +489,12 @@ function VolunteerForm() {
           <Title order={4}>Preview</Title>
           <Paper p="md" shadow="xs">
             <Text size="sm">
-              <strong>Name:</strong> {form.fullName}
+              <strong>Name:</strong>{" "}
+              {`${form.lastName.toUpperCase()}, ${form.firstName} ${
+                form.middleName
+              }`}
               <br />
-              <strong>Email:</strong> {form.email}
+              {/* <strong>Email:</strong> {form.email} */}
               <br />
               <strong>Degree:</strong> {form.degree}
               <br />
@@ -509,6 +505,36 @@ function VolunteerForm() {
     },
   ];
 
+  function validateStep() {
+    switch (step) {
+      case 0:
+        if (
+          !form.firstName ||
+          !form.lastName ||
+          !form.studentNumber ||
+          !form.sex ||
+          !form.idPicture ||
+          !form.birthDate
+        )
+          return false;
+        break;
+      case 1:
+        if (!form.mobile || !form.classification) return false;
+        break;
+      // Add more cases for other steps
+      default:
+        return true;
+    }
+    return true;
+  }
+
+  function handleNext() {
+    if (!validateStep()) {
+      alert("Please fill all required fields before continuing.");
+      return;
+    }
+    setStep(step + 1);
+  }
   // const handleSubmit = async () => {
   //   const user = auth.currentUser;
   //   if (!user) return;
@@ -565,12 +591,12 @@ function VolunteerForm() {
                     Back
                   </Button>
                   {step < steps.length - 1 ? (
-                    <Button onClick={() => setStep((s) => s + 1)}>Next</Button>
+                    <Button onClick={handleNext}>Next</Button>
                   ) : (
                     <Button
                       color="green"
                       disabled={!form.consent}
-                      onClick={console.log("submit button")}
+                      onClick={() => console.log("USER INFO: ", form)}
                     >
                       Submit
                     </Button>

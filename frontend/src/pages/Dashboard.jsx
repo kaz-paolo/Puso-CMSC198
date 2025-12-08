@@ -1,4 +1,12 @@
-import { Container, Paper, Title, Text, Button, Stack } from "@mantine/core";
+import {
+  Container,
+  Paper,
+  Title,
+  Text,
+  Button,
+  Stack,
+  Group,
+} from "@mantine/core";
 import { useUser, useStackApp } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -16,41 +24,46 @@ function Dashboard() {
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, navigate]);
 
   const handleSignOut = async () => {
     await stackApp.signOut();
-    navigate('/auth');
+    navigate("/auth");
   };
 
   if (!user) {
-    return null; 
+    return null;
   }
 
   return (
-    <Container size="md" style={{ minHeight: "100vh", paddingTop: "2rem" }}>
+    <Container size="md">
       <Header onThemeClick={() => setThemeOpened(true)} />
-      <NavBar />
-      <ThemeSettings opened={themeOpened} onClose={() => setThemeOpened(false)} />
+      <Group>
+        <NavBar />
+        <ThemeSettings
+          opened={themeOpened}
+          onClose={() => setThemeOpened(false)}
+        />
 
-      <Paper shadow="md" p="xl" radius="md">
-        <Stack gap="md">
-          <Title order={1}>Dashboard</Title>
-          <Text size="lg">Welcome, {user.primaryEmail}!</Text>
-          <Text c="dimmed">User ID: {user.id}</Text>
-          
-          <Button 
-            onClick={handleSignOut} 
-            color="red" 
-            variant="outline"
-            style={{ marginTop: "1rem" }}
-          >
-            Sign Out
-          </Button>
-        </Stack>
-      </Paper>
+        <Paper shadow="md" p="xl" radius="md">
+          <Stack gap="md">
+            <Title order={1}>Dashboard</Title>
+            <Text size="lg">Welcome, {user.primaryEmail}!</Text>
+            <Text c="dimmed">User ID: {user.id}</Text>
+
+            <Button
+              onClick={handleSignOut}
+              color="red"
+              variant="outline"
+              style={{ marginTop: "1rem" }}
+            >
+              Sign Out
+            </Button>
+          </Stack>
+        </Paper>
+      </Group>
     </Container>
   );
 }
