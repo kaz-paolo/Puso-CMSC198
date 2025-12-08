@@ -22,6 +22,7 @@ import data from "../assets/philippine_provinces_cities_municipalities_and_baran
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import { ThemeSettings } from "../components/ThemeSettings";
+import { useStackApp, useUser } from "@stackframe/react";
 
 const degreeOptions = [
   "BA (Communication & Media Studies)",
@@ -68,6 +69,8 @@ const civilStatusOptions = ["Single", "Married", "Divorced", "Widowed"];
 const consentText = `I hereby consent to participate in UP Visayas Ugnayan ng Pahinungód/Oblation Corps (UPV UP/OC) activities as a volunteer. ... [full text as provided above] ... Thus, I hereby declare the information provided as true and correct.`;
 
 function VolunteerForm() {
+  const stackApp = useStackApp();
+  const user = stackApp.useUser();
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
@@ -161,6 +164,7 @@ function VolunteerForm() {
       label: "Personal Info",
       content: (
         <Stack gap="md">
+          <TextInput label="Email" value={user.primaryEmail} disabled />
           <Group grow>
             <TextInput
               label="First Name"
@@ -494,7 +498,7 @@ function VolunteerForm() {
                 form.middleName
               }`}
               <br />
-              {/* <strong>Email:</strong> {form.email} */}
+              <strong>Email:</strong> {form.email}
               <br />
               <strong>Degree:</strong> {form.degree}
               <br />
@@ -535,17 +539,30 @@ function VolunteerForm() {
     }
     setStep(step + 1);
   }
-  // const handleSubmit = async () => {
-  //   const user = auth.currentUser;
-  //   if (!user) return;
-  //   try {
-  //     await setDoc(doc(db, 'volunteerForms', user.uid), form);
-  //     localStorage.setItem('volunteerFormFilled', 'true');
-  //     navigate('/dashboard');
-  //   } catch (error) {
-  //     alert('Error saving form: ' + error.message);
-  //   }
-  // };
+
+  const handleSubmit = async () => {
+    try {
+      const displayName = `${form.firstName} ${form.middleName} ${form.lastName}`;
+
+      // Update Neon Auth display_name
+      const response = await fetch("/api/users/update-displayname", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, displayName }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      console.log("Display name updated:", data.user);
+
+      // TODO: Call your backend to save additional volunteer info
+      // await saveVolunteerInfo(form);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update display name");
+    }
+  };
 
   return (
     <div
@@ -596,7 +613,7 @@ function VolunteerForm() {
                     <Button
                       color="green"
                       disabled={!form.consent}
-                      onClick={() => console.log("USER INFO: ", form)}
+                      onClick={handleSubmit}
                     >
                       Submit
                     </Button>

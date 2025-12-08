@@ -33,13 +33,13 @@ function Auth() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -53,10 +53,11 @@ function Auth() {
           email,
           password,
         });
+        console.log("User signed up");
       }
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(err.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
