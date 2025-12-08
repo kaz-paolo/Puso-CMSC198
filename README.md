@@ -7,39 +7,44 @@ Description
 ## Other Links
 
 - **Figma Mockup**: [View Design File](https://www.figma.com/design/FvVDrJhLVxRPhs8Tk7Y3RC/Mockup-Draft?node-id=0-1&t=4THzSBLInwln5jKt-1)
-- **Overleaf Latex**: 
+- **Overleaf Latex**:
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn package manager
 
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone <repository-url>
 cd filedirectory
 ```
 
 2. Install dependencies (seperate for backend and front end)
+
 ```bash
-cd backend
+cd (to the root folder)
 npm install
 
-cd ../frontend
+cd ./frontend
 npm install
 ```
 
 3. Start development server
-**Terminal 1 - Run Backend Server:**
+   **Terminal 1 - Run Backend Server:**
+
 ```bash
-cd backend
+cd (to the root folder)
 npm run dev
 ```
 
 **Terminal 2 - Run Frontend Development Server:**
+
 ```bash
 cd frontend
 npm run dev
