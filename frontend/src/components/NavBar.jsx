@@ -18,14 +18,14 @@ import {
   IconSettings,
   IconChevronRight,
 } from "@tabler/icons-react";
-// import { db, auth } from '../../firebase/firebase';
-// import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useStackApp } from "@stackframe/react";
 
 function NavBar() {
-  // const userEmail = auth.currentUser?.email || '';
-  // const userName = auth.currentUser?.displayName || 'No Name';
+  const stackApp = useStackApp();
+  const user = stackApp.useUser();
+  
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
@@ -34,17 +34,18 @@ function NavBar() {
   // Check if user has answered volunteer form
   // useEffect(() => {
   //   async function checkVolunteerForm() {
-  //     const user = auth.currentUser;
   //     if (!user) {
   //       setNeedsVolunteerForm(false);
   //       return;
   //     }
-  //     const docRef = doc(db, 'volunteerForms', user.uid);
-  //     const docSnap = await getDoc(docRef);
-  //     setNeedsVolunteerForm(!docSnap.exists());
+
   //   }
   //   checkVolunteerForm();
-  // }, [userEmail]);
+  // }, [user]);
+
+  const userEmail = user?.primaryEmail || '';
+  const userName = user?.displayName || 'No Name';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
 
   return (
     <Stack
@@ -143,29 +144,31 @@ function NavBar() {
       )}
 
       {/* User Profile at Bottom */}
-      <Group
-        p="md"
-        style={{
-          borderTop: `1px solid ${
-            colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
-          }`,
-          cursor: "pointer",
-          flexShrink: 0,
-        }}
-      >
-        <Avatar radius="xl" size="md" color="brand">
-          {"testaccount"}
-        </Avatar>
-        <Stack gap={0} style={{ flex: 1 }}>
-          <Text size="sm" fw={500}>
-            {"Lester Magnolia"}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {"lala@gmail.com"}
-          </Text>
-        </Stack>
-        <IconChevronRight size={16} stroke={1.5} />
-      </Group>
+      {user && (
+        <Group
+          p="md"
+          style={{
+            borderTop: `1px solid ${
+              colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+            }`,
+            cursor: "pointer",
+            flexShrink: 0,
+          }}
+        >
+          <Avatar radius="xl" size="md" color="brand">
+            {userInitials}
+          </Avatar>
+          <Stack gap={0} style={{ flex: 1 }}>
+            <Text size="sm" fw={500}>
+              {userName}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {userEmail}
+            </Text>
+          </Stack>
+          <IconChevronRight size={16} stroke={1.5} />
+        </Group>
+      )}
     </Stack>
   );
 }

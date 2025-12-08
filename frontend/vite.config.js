@@ -4,6 +4,8 @@
     import { VitePWA } from 'vite-plugin-pwa';
 
     export default defineConfig({
+
+      envDir: '../',
       plugins: [
         react(),
         VitePWA({

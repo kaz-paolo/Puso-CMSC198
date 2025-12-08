@@ -1,64 +1,57 @@
-import { Container, Title, Text, Button, Paper, Stack } from "@mantine/core";
+import { Container, Paper, Title, Text, Button, Stack } from "@mantine/core";
+import { useUser, useStackApp } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
-// import { auth } from '../../firebase/firebase';
-// import { signOut } from 'firebase/auth';
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import { ThemeSettings } from "../components/ThemeSettings";
 
-// Main home page dashboard
 function Dashboard() {
+  const user = useUser();
+  const stackApp = useStackApp();
   const navigate = useNavigate();
-  // const userEmail = auth.currentUser?.email || '';
   const [themeOpened, setThemeOpened] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      // await signOut(auth);
-      navigate("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
     }
+  }, [user, navigate]);
+
+  const handleSignOut = async () => {
+    await stackApp.signOut();
+    navigate('/auth');
   };
 
+  if (!user) {
+    return null; 
+  }
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
+    <Container size="md" style={{ minHeight: "100vh", paddingTop: "2rem" }}>
       <Header onThemeClick={() => setThemeOpened(true)} />
+      <NavBar />
+      <ThemeSettings opened={themeOpened} onClose={() => setThemeOpened(false)} />
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <NavBar />
-
-        <div style={{ flex: 1, overflow: "auto", padding: "2rem" }}>
-          <ThemeSettings
-            opened={themeOpened}
-            onClose={() => setThemeOpened(false)}
-          />
-
-          <Container size="sm">
-            <Paper shadow="md" p="xl" radius="md">
-              <Stack align="center" gap="xl">
-                <Title order={1}>Welcome!</Title>
-                <Text size="lg" c="dimmed" ta="center">
-                  {"asdf@gmail.com"}
-                </Text>
-
-                <Button onClick={handleLogout} color="red" variant="outline">
-                  Logout
-                </Button>
-              </Stack>
-            </Paper>
-          </Container>
-        </div>
-      </div>
-    </div>
+      <Paper shadow="md" p="xl" radius="md">
+        <Stack gap="md">
+          <Title order={1}>Dashboard</Title>
+          <Text size="lg">Welcome, {user.primaryEmail}!</Text>
+          <Text c="dimmed">User ID: {user.id}</Text>
+          
+          <Button 
+            onClick={handleSignOut} 
+            color="red" 
+            variant="outline"
+            style={{ marginTop: "1rem" }}
+          >
+            Sign Out
+          </Button>
+        </Stack>
+      </Paper>
+    </Container>
   );
 }
 

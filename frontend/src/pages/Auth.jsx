@@ -9,13 +9,13 @@ import {
   Text,
   Anchor,
   Stack,
-  Divider,
   Alert,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
-// import { auth } from '../../firebase/firebase';
-// import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { IconAlertCircle, IconBrandGoogle } from "@tabler/icons-react";
+// Authentication Hook, staackapp authentation, and useUser (info)
+import { useStackApp, useUser } from "@stackframe/react";
+import { IconAlertCircle } from "@tabler/icons-react";
+import { useEffect } from "react";
 
 function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,39 +25,42 @@ function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // const handleEmailAuth = async (e) => {
-  //   e.preventDefault();
-  //   setError('');
-  //   setLoading(true);
+  // hook for authentication
+  const stackApp = useStackApp();
+  // hook for user info
+  const user = useUser();
 
-  //   try {
-  //     if (isLogin) {
-  //       await signInWithEmailAndPassword(auth, email, password);
-  //     } else {
-  //       await createUserWithEmailAndPassword(auth, email, password);
-  //     }
-  //     navigate('/dashboard');
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
-  // const handleGoogleAuth = async () => {
-  //   setError('');
-  //   setLoading(true);
-  //   const provider = new GoogleAuthProvider();
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  //   try {
-  //     await signInWithPopup(auth, provider);
-  //     navigate('/dashboard');
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    try {
+      if (isLogin) {
+        await stackApp.signInWithCredential({
+          email,
+          password,
+        });
+      } else {
+        await stackApp.signUpWithCredential({
+          email,
+          password,
+        });
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Container
@@ -83,8 +86,7 @@ function Auth() {
             </Alert>
           )}
 
-          {/* <form onSubmit={handleEmailAuth}> */}
-          <form>
+          <form onSubmit={handleEmailAuth}>
             <Stack gap="md">
               <TextInput
                 label="Email"
@@ -107,19 +109,6 @@ function Auth() {
               </Button>
             </Stack>
           </form>
-
-          <Divider label="OR" labelPosition="center" />
-
-          <Button
-            fullWidth
-            onClick={console.log("clicking button")}
-            loading={loading}
-            variant="outline"
-            color="brand"
-            leftSection={<IconBrandGoogle size={18} />}
-          >
-            Continue with Google
-          </Button>
 
           <Text size="sm" ta="center">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
