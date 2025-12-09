@@ -1,3 +1,5 @@
+import { sql } from "../config/db.js";
+
 export const getAllUsers = async (req, res) => {
   res.send("Get all users");
 };
@@ -6,36 +8,39 @@ export const createUser = async (req, res) => {
   res.send("Create new user");
 };
 
-export const updateDisplayName = async (req, res) => {
-  const { userId, displayName } = req.body;
-  res.send("update name");
-
-  if (!userId || !displayName) {
-    return res.status(400).json({ error: "Missing userId or displayName" });
-  }
-
+export const completeProfile = async (req, res) => {
   try {
-    const response = await fetch(
-      `${process.env.NEON_AUTH_URL}/admin/users/${userId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEON_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ display_name: displayName }),
-      }
-    );
+    const { authUserId, fullName, dob, mobile } = req.body;
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update display name");
+    if (!authUserId) {
+      return res.status(400).json({ error: "authUserId is required" });
     }
 
-    res.json({ success: true, user: data });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    const [userExists] = await sql`
+      SELECT id FROM neon_auth.users_sync WHERE id = ${authUserId};
+    `;
+
+    if (!userExists) {
+      return res.status(404).json({ error: "User not found in Neon Auth" });
+    }
+
+    const result = await sql`
+      INSERT INTO user_info (auth_user_id, full_name, dob, mobile)
+      VALUES (${authUserId}, ${fullName}, ${dob}, ${mobile})
+      ON CONFLICT (auth_user_id)
+      DO UPDATE SET 
+        full_name = EXCLUDED.full_name,
+        dob = EXCLUDED.dob,
+        mobile = EXCLUDED.mobile
+      RETURNING *;
+    `;
+
+    res.status(200).json({
+      success: true,
+      data: result[0],
+    });
+  } catch (error) {
+    console.error("completeProfile error", error);
+    res.status(500).json({ error: "Server error" });
   }
 };

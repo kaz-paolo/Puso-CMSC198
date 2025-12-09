@@ -3,16 +3,25 @@ import { sql } from "./db.js";
 export async function initDb() {
   try {
     await sql`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS user_info (
         id SERIAL PRIMARY KEY,
-        user_id UUID NOT NULL REFERENCES auth.users(id),
-        student_id VARCHAR(50) NOT NULL UNIQUE,
-      
-        name VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        auth_user_id TEXT NOT NULL UNIQUE REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+        full_name TEXT,
+        dob DATE,
+        mobile TEXT
       );
     `;
+
+    // await sql`
+    //   CREATE TABLE IF NOT EXISTS users (
+    //     id SERIAL PRIMARY KEY,
+    //     user_id UUID NOT NULL REFERENCES auth.users(id),
+    //     student_id VARCHAR(50) NOT NULL UNIQUE,
+    //     name VARCHAR(255) NOT NULL,
+    //     role VARCHAR(50) NOT NULL,
+    //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    //   );
+    // `;
 
     await sql`
       CREATE TABLE IF NOT EXISTS events (
