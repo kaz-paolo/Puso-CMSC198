@@ -313,6 +313,7 @@ function VolunteerForm() {
           <Select
             label="Degree Program"
             data={degreeOptions}
+            required
             value={form.degree}
             onChange={(v) => setForm((f) => ({ ...f, degree: v }))}
           />
@@ -498,7 +499,7 @@ function VolunteerForm() {
                 form.middleName
               }`}
               <br />
-              <strong>Email:</strong> {form.email}
+              <strong>Email:</strong> {user.primaryEmail}
               <br />
               <strong>Degree:</strong> {form.degree}
               <br />
@@ -540,27 +541,36 @@ function VolunteerForm() {
     setStep(step + 1);
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const displayName = `${form.firstName} ${form.middleName} ${form.lastName}`;
-
-      // Update Neon Auth display_name
-      const response = await fetch("/api/users/update-displayname", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, displayName }),
-      });
+      const fullName = `${form.firstName} ${form.middleName} ${form.lastName}`;
+      const response = await fetch(
+        "http://localhost:3000/api/users/complete-profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            authUserId: user.id,
+            fullName,
+            dob: form.birthDate,
+            mobile: form.mobile,
+          }),
+        }
+      );
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) {
+        console.error("Backend error:", data);
+        alert("Failed to save profile: " + data.error);
+        return;
+      }
 
-      console.log("Display name updated:", data.user);
-
-      // TODO: Call your backend to save additional volunteer info
-      // await saveVolunteerInfo(form);
+      console.log("Profile saved successfully:", data.data);
+      alert("Profile saved successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to update display name");
+      alert("Failed to update information");
     }
   };
 
