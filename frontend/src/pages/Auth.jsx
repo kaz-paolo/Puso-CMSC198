@@ -32,7 +32,13 @@ function Auth() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    const justSignedUp = localStorage.getItem("justSignedUp");
+
+    if (justSignedUp) {
+      navigate("/volunteer-form");
+    } else {
       navigate("/dashboard");
     }
   }, [user, navigate]);
@@ -48,14 +54,16 @@ function Auth() {
           email,
           password,
         });
+        localStorage.setItem("justSignedUp", "false");
       } else {
         await stackApp.signUpWithCredential({
           email,
           password,
         });
-        console.log("User signed up");
       }
-      navigate("/dashboard");
+
+      localStorage.setItem("justSignedUp", "true");
+      // navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Authentication failed. Please try again.");
     } finally {

@@ -568,6 +568,7 @@ function VolunteerForm() {
 
       console.log("Profile saved successfully:", data.data);
       alert("Profile saved successfully!");
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Failed to update information");

@@ -32,6 +32,7 @@ function NavBar() {
   const [needsVolunteerForm, setNeedsVolunteerForm] = useState(false);
 
   const [activeLink, setActiveLink] = useState();
+  const [userProfile, setUserProfile] = useState();
 
   // Check if user has answered volunteer form
   // useEffect(() => {
@@ -45,8 +46,28 @@ function NavBar() {
   //   checkVolunteerForm();
   // }, [user]);
 
+  useEffect(() => {
+    async function fetchProfile() {
+      console.log("is it first");
+      if (!user) return;
+
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/users/basic-info/${user.id}`
+        );
+        const data = await res.json();
+
+        if (data.success) setUserProfile(data.data);
+      } catch (err) {
+        console.error("Network error:", err);
+      }
+    }
+
+    fetchProfile();
+  }, [user]);
+
   const userEmail = user?.primaryEmail || "";
-  const userName = user?.displayName || "No Name";
+  const userName = userProfile?.full_name || "No Name";
   const userInitials = userName
     .split(" ")
     .map((n) => n[0])
