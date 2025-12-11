@@ -5,7 +5,6 @@ import {
   Text,
   Button,
   Stack,
-  Group,
 } from "@mantine/core";
 import { useUser, useStackApp } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
@@ -38,9 +37,16 @@ function Dashboard() {
   }
 
   return (
-    <Container size="md">
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
       <Header onThemeClick={() => setThemeOpened(true)} />
-      <Group>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)' }}>
         <NavBar />
         <ThemeSettings
           opened={themeOpened}
@@ -63,8 +69,8 @@ function Dashboard() {
             </Button>
           </Stack>
         </Paper>
-      </Group>
-    </Container>
+      </div>
+    </div>
   );
 }
 
