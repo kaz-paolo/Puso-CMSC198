@@ -1,5 +1,17 @@
-import { Card, Text, Stack, Group, Badge, useMantineTheme } from '@mantine/core';
-import { IconCalendar, IconMapPin, IconUsers, IconClock } from '@tabler/icons-react';
+import {
+  Card,
+  Text,
+  Stack,
+  Group,
+  Badge,
+  useMantineTheme,
+} from "@mantine/core";
+import {
+  IconCalendar,
+  IconMapPin,
+  IconUsers,
+  IconClock,
+} from "@tabler/icons-react";
 
 function EventInfo({ event }) {
   const theme = useMantineTheme();
@@ -13,9 +25,9 @@ function EventInfo({ event }) {
   }
 
   const statusColors = {
-    upcoming: 'blue',
-    ongoing: 'green',
-    completed: 'gray',
+    upcoming: "blue",
+    ongoing: "green",
+    completed: "gray",
   };
 
   return (
@@ -40,11 +52,11 @@ function EventInfo({ event }) {
           <Group gap="xs">
             <IconCalendar size={18} color={theme.colors.gray[6]} />
             <Text size="sm">
-              {new Date(event.date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+              {new Date(event.date).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </Text>
           </Group>
@@ -56,13 +68,14 @@ function EventInfo({ event }) {
 
           <Group gap="xs">
             <IconMapPin size={18} color={theme.colors.gray[6]} />
-            <Text size="sm">{event.location}</Text>
+            <Text size="sm">{event.venue}</Text>
           </Group>
 
           <Group gap="xs">
             <IconUsers size={18} color={theme.colors.gray[6]} />
             <Text size="sm">
-              {event.volunteerCount || 0} {event.volunteerCount === 1 ? 'Volunteer' : 'Volunteers'}
+              {event.volunteerCount || 0}{" "}
+              {event.volunteerCount === 1 ? "Volunteer" : "Volunteers"}
             </Text>
           </Group>
         </Stack>

@@ -12,3 +12,29 @@ export async function getAllEvents(req, res) {
     res.status(500).json({ error: "Failed to fetch events" });
   }
 }
+
+export async function createEvent(req, res) {
+  try {
+    const {
+      event_name,
+      description,
+      date,
+      time,
+      venue,
+      status,
+      volunteer_count,
+    } = req.body;
+
+    const newEvent = await sql`
+      INSERT INTO events
+        (event_name, description, date, time, venue, volunteer_count, status)
+      VALUES
+        (${event_name}, ${description}, ${date}, ${time}, ${venue}, ${volunteer_count}, ${status})
+      RETURNING *;
+    `;
+
+    res.status(200).json({ success: true, data: newEvent[0] });
+  } catch (error) {
+    console.log("Create event error: ", error);
+  }
+}

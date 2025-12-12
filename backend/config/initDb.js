@@ -30,7 +30,7 @@ export async function initDb() {
         description TEXT,
         date DATE NOT NULL,
         time TIME NOT NULL,
-        location VARCHAR(255) NOT NULL,
+        venue VARCHAR(255) NOT NULL,
         status VARCHAR(50) NOT NULL
       );
     `;

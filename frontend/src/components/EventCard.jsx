@@ -13,19 +13,23 @@ import {
   IconUsers,
   IconClock,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EventDetailsModal from "../components/modal/ViewEventDetailModal";
+import { useUser } from "@stackframe/react";
 
 function EventCard({ event }) {
+  const user = useUser();
   const theme = useMantineTheme();
+  const [userProfile, setUserProfile] = useState();
+
   const {
     id,
     event_name,
     description,
     date,
     time,
-    location,
-    volunteerCount,
+    venue,
+    volunteer_count,
     status,
   } = event;
   const [detailsOpened, setDetailsOpened] = useState(false);
@@ -35,6 +39,25 @@ function EventCard({ event }) {
     ongoing: "green",
     completed: "gray",
   };
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user) return;
+
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/users/basic-info/${user.id}`
+        );
+        const data = await res.json();
+
+        if (data.success) setUserProfile(data.data);
+      } catch (err) {
+        console.error("Network error:", err);
+      }
+    }
+
+    fetchProfile();
+  }, [user]);
 
   // cut characters to show
   const truncateDescription = (text, maxLength = 80) => {
@@ -81,14 +104,14 @@ function EventCard({ event }) {
 
             <Group gap="xs">
               <IconMapPin size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{location}</Text>
+              <Text size="sm">{venue}</Text>
             </Group>
 
             <Group gap="xs">
               <IconUsers size={16} color={theme.colors.gray[6]} />
               <Text size="sm">
-                {volunteerCount}{" "}
-                {volunteerCount === 1 ? "Volunteer" : "Volunteers"}
+                {volunteer_count}{" "}
+                {volunteer_count === 1 ? "Volunteer" : "Volunteers"}
               </Text>
             </Group>
           </Stack>
@@ -101,7 +124,7 @@ function EventCard({ event }) {
             >
               View Details
             </Button>
-            {status === "upcoming" && (
+            {status === "upcoming" && userProfile?.role !== "admin" && (
               <Button fullWidth onClick={() => setDetailsOpened(true)}>
                 Volunteer
               </Button>

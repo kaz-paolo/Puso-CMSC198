@@ -48,7 +48,6 @@ function NavBar() {
 
   useEffect(() => {
     async function fetchProfile() {
-      console.log("is it first");
       if (!user) return;
 
       try {

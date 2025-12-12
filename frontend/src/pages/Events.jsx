@@ -18,8 +18,10 @@ import NavBar from "../components/NavBar";
 import { ThemeSettings } from "../components/ThemeSettings";
 import EventCard from "../components/EventCard";
 import AddEventModal from "../components/modal/AddEventModal";
+import { useUser } from "@stackframe/react";
 
 function Events() {
+  const user = useUser();
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const [themeOpened, setThemeOpened] = useState(false);
@@ -27,21 +29,90 @@ function Events() {
   const [activeTab, setActiveTab] = useState("all");
   const [addEventOpened, setAddEventOpened] = useState(false);
   const [events, setEvents] = useState([]);
+  const [userProfile, setUserProfile] = useState();
 
   useEffect(() => {
-    async function fetchEvents() {
+    async function fetchProfile() {
+      if (!user) return;
+
       try {
-        const res = await fetch("/api/events");
+        const res = await fetch(
+          `http://localhost:3000/api/users/basic-info/${user.id}`
+        );
         const data = await res.json();
-        setEvents(data);
+
+        if (data.success) setUserProfile(data.data);
       } catch (err) {
-        console.error("Error:", err);
+        console.error("Network error:", err);
       }
     }
 
+    fetchProfile();
+  }, [user]);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/events`);
+      const data = await res.json();
+      if (data.success) setEvents(data.data);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchEvents();
   }, []);
-  
+
+  // TODO: Replace with actual API call to fetch events from database
+  // Example: useEffect(() => { fetch('/api/events').then(res => res.json()).then(setEvents) }, [])
+  // const sampleEvents = [
+  //   {
+  //     id: 1,
+  //     event_name: "Community Outreach Program",
+  //     description:
+  //       "Join us in this meaningful community outreach program where we will distribute goods and provide assistance to families in need.",
+  //     date: "2024-02-15",
+  //     time: "09:00 AM",
+  //     location: "Miagao Town Plaza",
+  //     volunteerCount: 5,
+  //     status: "upcoming",
+  //   },
+  //   {
+  //     id: 3,
+  //     event_name: "Tree Planting Activity",
+  //     description:
+  //       "Help us plant trees and contribute to environmental conservation. We will be planting native species across the campus grounds.",
+  //     date: "2024-01-30",
+  //     time: "07:00 AM",
+  //     location: "UP Visayas Campus",
+  //     volunteerCount: 30,
+  //     status: "completed",
+  //   },
+  //   {
+  //     id: 4,
+  //     event_name: "Educational Workshop",
+  //     description:
+  //       "An interactive workshop focused on teaching basic computer literacy and digital skills to community members of all ages.",
+  //     date: "2024-02-10",
+  //     time: "02:00 PM",
+  //     location: "UPV CAS Building",
+  //     volunteerCount: 20,
+  //     status: "ongoing",
+  //   },
+  //   {
+  //     id: 5,
+  //     event_name: "Educational Workshop",
+  //     description:
+  //       "An interactive workshop focused on teaching basic computer literacy and digital skills to community members of all ages.",
+  //     date: "2024-02-10",
+  //     time: "02:00 PM",
+  //     location: "UPV CAS Building",
+  //     volunteerCount: 20,
+  //     status: "ongoing",
+  //   },
+  // ];
+
   const filterEvents = (events, tab) => {
     let filtered = events;
 
@@ -53,7 +124,7 @@ function Events() {
       filtered = filtered.filter(
         (event) =>
           event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
           event.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -61,7 +132,7 @@ function Events() {
     return filtered;
   };
 
-  const filteredEvents = filterEvents(sampleEvents, activeTab);
+  const filteredEvents = filterEvents(events, activeTab);
 
   // function to add event to databse
 
@@ -105,12 +176,14 @@ function Events() {
                     Browse and register for volunteer events
                   </Text>
                 </div>
-                <Button
-                  leftSection={<IconPlus size={18} />}
-                  onClick={() => setAddEventOpened(true)}
-                >
-                  Create Event
-                </Button>
+                {userProfile?.role === "admin" && (
+                  <Button
+                    leftSection={<IconPlus size={18} />}
+                    onClick={() => setAddEventOpened(true)}
+                  >
+                    Create Event
+                  </Button>
+                )}
               </Group>
 
               {/* Search Bar */}
@@ -154,6 +227,7 @@ function Events() {
       <AddEventModal
         opened={addEventOpened}
         onClose={() => setAddEventOpened(false)}
+        onEventCreated={fetchEvents}
       />
     </div>
   );
