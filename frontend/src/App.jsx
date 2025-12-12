@@ -16,6 +16,7 @@ import VolunteerForm from "./pages/VolunteerForm.jsx";
 
 import "./App.css";
 import Events from "./pages/Events.jsx";
+import EventDashboard from "./pages/EventDashboard";
 
 function HandlerRoutes() {
   const location = useLocation();
@@ -26,6 +27,7 @@ function HandlerRoutes() {
 
 function App() {
   return (
+    <BrowserRouter>
     <Suspense fallback={null}>
       <StackProvider app={stackClientApp}>
         <StackTheme>
@@ -36,12 +38,15 @@ function App() {
             <Route path="/volunteer-form" element={<VolunteerForm />} />
             <Route path="/events" element={<Events />} />
 
+                          {/* Replace with events/eventid */}
+            <Route path="/eventdashboard" element={<EventDashboard />} />
             {/* Invalid URL Redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </StackTheme>
       </StackProvider>
     </Suspense>
+    </BrowserRouter>
   );
 }
 

@@ -40,3 +40,9 @@ h1 {
     overflow-y: auto !important;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
