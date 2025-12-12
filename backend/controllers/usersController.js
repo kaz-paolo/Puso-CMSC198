@@ -20,10 +20,6 @@ export const getBasicInfo = async (req, res) => {
   }
 };
 
-export const createUser = async (req, res) => {
-  res.send("Create new user");
-};
-
 export const completeProfile = async (req, res) => {
   try {
     const { authUserId, fullName, dob, mobile } = req.body;

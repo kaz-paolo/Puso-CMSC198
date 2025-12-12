@@ -1,23 +1,47 @@
-import { Card, Text, Badge, Group, Stack, Button, useMantineTheme } from '@mantine/core';
-import { IconCalendar, IconMapPin, IconUsers, IconClock } from '@tabler/icons-react';
-import { useState } from 'react';
-import EventDetailsModal from '../components/modal/ViewEventDetailModal';
+import {
+  Card,
+  Text,
+  Badge,
+  Group,
+  Stack,
+  Button,
+  useMantineTheme,
+} from "@mantine/core";
+import {
+  IconCalendar,
+  IconMapPin,
+  IconUsers,
+  IconClock,
+} from "@tabler/icons-react";
+import { useState } from "react";
+import EventDetailsModal from "../components/modal/ViewEventDetailModal";
 
 function EventCard({ event }) {
   const theme = useMantineTheme();
-  const { id, name, date, venue, volunteerCount, status } = event;
+  const {
+    id,
+    event_name,
+    description,
+    date,
+    time,
+    location,
+    volunteerCount,
+    status,
+  } = event;
   const [detailsOpened, setDetailsOpened] = useState(false);
 
   const statusColors = {
-    upcoming: 'blue',
-    ongoing: 'green',
-    completed: 'gray',
+    upcoming: "blue",
+    ongoing: "green",
+    completed: "gray",
   };
 
   // cut characters to show
   const truncateDescription = (text, maxLength = 80) => {
-    if (!text) return '';
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    if (!text) return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
 
   return (
@@ -26,7 +50,7 @@ function EventCard({ event }) {
         <Stack gap="md">
           <Group justify="space-between">
             <Text fw={600} size="lg">
-              {name}
+              {event_name}
             </Text>
             <Badge color={statusColors[status]} variant="light">
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -34,43 +58,50 @@ function EventCard({ event }) {
           </Group>
 
           <Text size="sm" c="dimmed" lineClamp={2}>
-            {truncateDescription(event.description)}
+            {truncateDescription(description)}
           </Text>
 
           <Stack gap="xs">
             <Group gap="xs">
               <IconCalendar size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{new Date(date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}</Text>
+              <Text size="sm">
+                {new Date(date).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </Text>
             </Group>
 
             <Group gap="xs">
               <IconClock size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{event.time}</Text>
+              <Text size="sm">{time}</Text>
             </Group>
 
             <Group gap="xs">
               <IconMapPin size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{venue}</Text>
+              <Text size="sm">{location}</Text>
             </Group>
 
             <Group gap="xs">
               <IconUsers size={16} color={theme.colors.gray[6]} />
               <Text size="sm">
-                {volunteerCount} {volunteerCount === 1 ? 'Volunteer' : 'Volunteers'}
+                {volunteerCount}{" "}
+                {volunteerCount === 1 ? "Volunteer" : "Volunteers"}
               </Text>
             </Group>
           </Stack>
 
           <Group gap="xs" mt="md">
-            <Button variant="light" fullWidth onClick={() => setDetailsOpened(true)}>
+            <Button
+              variant="light"
+              fullWidth
+              onClick={() => setDetailsOpened(true)}
+            >
               View Details
             </Button>
-            {status === 'upcoming' && (
+            {status === "upcoming" && (
               <Button fullWidth onClick={() => setDetailsOpened(true)}>
                 Volunteer
               </Button>

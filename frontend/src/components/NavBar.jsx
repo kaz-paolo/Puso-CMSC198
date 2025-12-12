@@ -95,6 +95,10 @@ function NavBar() {
           label="Home"
           leftSection={<IconHome size={20} />}
           color="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/dashboard");
+          }}
         />
         <NavLink
           label="Events"

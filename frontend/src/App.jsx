@@ -35,7 +35,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/volunteer-form" element={<VolunteerForm />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/events" element={<Events />} />
 
             {/* Invalid URL Redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
