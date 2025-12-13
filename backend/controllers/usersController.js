@@ -8,7 +8,7 @@ export const getBasicInfo = async (req, res) => {
   try {
     const { id } = req.params;
     const result =
-      await sql`SELECT full_name, role FROM user_info WHERE auth_user_id = ${id}`;
+      await sql`SELECT full_name, first_name, last_name, dob, mobile, present_address, student_number, degree, role FROM user_info WHERE auth_user_id = ${id}`;
 
     if (result.length === 0)
       return res.status(404).json({ error: "User not found" });

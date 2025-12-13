@@ -2,6 +2,8 @@ import { sql } from "./db.js";
 
 export async function initDb() {
   try {
+    // UPDATE TABLE
+    // ADD ID IMAGES
     await sql`
       CREATE TABLE IF NOT EXISTS user_info (
         id SERIAL PRIMARY KEY,

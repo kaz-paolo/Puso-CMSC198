@@ -524,7 +524,7 @@ function VolunteerForm() {
           return false;
         break;
       case 1:
-        if (!form.mobile || !form.classification) return false;
+        if (!form.mobile || !form.classification || !form.degree) return false;
         break;
       // Add more cases for other steps
       default:
