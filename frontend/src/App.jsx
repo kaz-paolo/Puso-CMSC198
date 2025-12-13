@@ -13,6 +13,7 @@ import Home from "./pages/Home.jsx";
 import Auth from "./pages/Auth.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import VolunteerForm from "./pages/VolunteerForm.jsx";
+import Profile from "./pages/Profile.jsx";
 
 import "./App.css";
 import Events from "./pages/Events.jsx";
@@ -37,6 +38,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/volunteer-form" element={<VolunteerForm />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/profile" element={<Profile />} />
 
                           {/* Replace with events/eventid */}
             <Route path="/eventdashboard" element={<EventDashboard />} />
