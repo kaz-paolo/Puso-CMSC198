@@ -2,6 +2,15 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { themeColors } from './colors';
 
+const platformFonts = {
+  system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  default: 'Open Sans, system-ui, Avenir, Helvetica, Arial, sans-serif',
+  windows: 'Segoe UI, Arial, sans-serif',
+  ios: '-apple-system, BlinkMacSystemFont, "San Francisco", Arial, sans-serif',
+  android: 'Roboto, Arial, sans-serif',
+  macos: '-apple-system, BlinkMacSystemFont, "San Francisco", Arial, sans-serif',
+};
+
 const ThemeContext = createContext();
 
 export const useTheme = () => {
@@ -48,6 +57,10 @@ export function ThemeProvider({ children }) {
     return localStorage.getItem('primaryColor') || 'ocean';
   });
 
+  const [platform, setPlatform] = useState(() => {
+    return localStorage.getItem('platform') || 'default';
+  });
+
   useEffect(() => {
     localStorage.setItem('colorScheme', colorScheme);
   }, [colorScheme]);
@@ -55,6 +68,10 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('primaryColor', primaryColor);
   }, [primaryColor]);
+
+  useEffect(() => {
+    localStorage.setItem('platform', platform);
+  }, [platform]);
 
   const toggleColorScheme = (value) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
@@ -73,7 +90,7 @@ export function ThemeProvider({ children }) {
       brand: generateColorShades(currentColors.primary),
     },
     defaultRadius: 'md',
-    fontFamily: 'system-ui, Avenir, Helvetica, Arial, sans-serif',
+    fontFamily: platformFonts[platform] || platformFonts.default,
     components: {
       Button: {
         defaultProps: {
@@ -99,6 +116,8 @@ export function ThemeProvider({ children }) {
     toggleColorScheme,
     changePrimaryColor,
     currentColors,
+    platform,
+    setPlatform,
   };
 
   return (

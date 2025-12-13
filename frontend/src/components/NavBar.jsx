@@ -191,6 +191,7 @@ function NavBar() {
             cursor: "pointer",
             flexShrink: 0,
           }}
+          onClick={() => navigate("/profile")}
         >
           <Avatar radius="xl" size="md" color="brand">
             {userInitials}
