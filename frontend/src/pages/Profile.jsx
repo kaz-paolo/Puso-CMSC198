@@ -123,27 +123,31 @@ function Profile() {
   }
 
   const InfoItem = ({ icon: Icon, label, value, name }) => (
-    <Group wrap="nowrap" align="flex-start">
-      <Icon size={20} style={{ marginTop: 4, opacity: 0.7 }} />
-      <div style={{ flex: 1 }}>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
-          {label}
+    <Group wrap="nowrap" align="center" gap={8} style={{ width: "100%" }}>
+      <Icon size={20} style={{ opacity: 0.7 }} />
+      <Text
+        size="xs"
+        c="dimmed"
+        tt="uppercase"
+        fw={700}
+        style={{ minWidth: 90 }}
+      >
+        {label}
+      </Text>
+      {isEditing ? (
+        <TextInput
+          value={profileData[name]}
+          onChange={(e) =>
+            setProfileData({ ...profileData, [name]: e.target.value })
+          }
+          size="xs"
+          style={{ flex: 1 }}
+        />
+      ) : (
+        <Text size="sm" style={{ flex: 1 }}>
+          {value || "Not set"}
         </Text>
-        {isEditing ? (
-          <TextInput
-            value={profileData[name]}
-            onChange={(e) =>
-              setProfileData({ ...profileData, [name]: e.target.value })
-            }
-            size="xs"
-            mt={4}
-          />
-        ) : (
-          <Text size="sm" mt={2}>
-            {value || "Not set"}
-          </Text>
-        )}
-      </div>
+      )}
     </Group>
   );
 
@@ -207,19 +211,25 @@ function Profile() {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 120,
+                  height: 60, // Reduced height
                   background: `linear-gradient(45deg, ${theme.colors.brand[6]}, ${theme.colors.brand[4]})`,
                   zIndex: 0,
                 }}
               />
 
               <Group
-                align="flex-end"
-                style={{ position: "relative", zIndex: 1, marginTop: 40 }}
+                align="center"
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  marginTop: 20,
+                  marginLeft: 20,
+                  gap: 24,
+                }}
               >
                 <Avatar
-                  size={120}
-                  radius={120}
+                  size={100}
+                  radius={100}
                   src={null}
                   color="brand"
                   style={{
@@ -228,24 +238,24 @@ function Profile() {
                         ? theme.colors.dark[7]
                         : theme.white
                     }`,
+                    fontSize: 36,
+                    fontWeight: 700,
                   }}
                 >
-                  {profileData.first_name[0]}
-                  {profileData.last_name[0]}
+                  {`${profileData.first_name || ""} ${profileData.last_name || ""}`
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
                 </Avatar>
-                <div style={{ paddingBottom: 10, flex: 1 }}>
-                  <Title order={2}>
+                <div style={{ flex: 1 }}>
+                  <Title order={2} style={{ textAlign: "left", marginBottom: 4 }}>
                     {profileData.first_name} {profileData.last_name}
                   </Title>
-                  <Text c="dimmed">{user?.primaryEmail}</Text>
-                  <Group mt={8}>
-                    <Badge variant="light" color="blue">
-                      {profileData.classification}
-                    </Badge>
-                    <Badge variant="outline" color="gray">
-                      {profileData.college}
-                    </Badge>
-                  </Group>
+                  <Text c="dimmed" style={{ textAlign: "left" }}>
+                    {user?.primaryEmail}
+                  </Text>
                 </div>
               </Group>
             </Paper>
@@ -425,11 +435,6 @@ function Profile() {
                     <Tabs.Panel value="settings">
                       <Stack p="sm" gap="lg">
                         <Group justify="space-between">
-                          <Switch
-                            checked={colorScheme === "dark"}
-                            onChange={() => toggleColorScheme()}
-                            color="brand"
-                          />
                         </Group>
                         <Divider />
                         <Group justify="space-between">

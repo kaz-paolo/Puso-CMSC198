@@ -15,7 +15,7 @@ function Header({ onThemeClick }) {
       }}
     >
       <Group>
-        <Text size="xl" fw={700}>🅿️ Puso</Text>
+        <Text size="xl" fw={700}>PUSO</Text>
       </Group>
       
       <Group gap="sm">

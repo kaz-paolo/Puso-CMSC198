@@ -124,12 +124,12 @@ function NavBar() {
         </Text>
 
         <NavLink
-          label="EventName One"
+          label="EventName"
           leftSection={<IconCalendar size={20} />}
           color="brand"
         />
         <NavLink
-          label="Another Event"
+          label="EventName"
           leftSection={<IconCalendar size={20} />}
           color="brand"
         />

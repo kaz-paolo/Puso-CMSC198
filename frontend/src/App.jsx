@@ -14,7 +14,7 @@ import Auth from "./pages/Auth.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import VolunteerForm from "./pages/VolunteerForm.jsx";
 import Profile from "./pages/Profile.jsx";
-
+import '@mantine/dates/styles.css'
 import "./App.css";
 import Events from "./pages/Events.jsx";
 import EventDashboard from "./pages/EventDashboard";

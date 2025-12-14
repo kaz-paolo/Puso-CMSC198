@@ -82,7 +82,7 @@ function EventCard({ event }) {
             </Badge>
           </Group>
 
-          <Text size="sm" c="dimmed" lineClamp={2}>
+          <Text size="sm" c="dimmed" lineClamp={2} align="left">
             {truncateDescription(description)}
           </Text>
 
