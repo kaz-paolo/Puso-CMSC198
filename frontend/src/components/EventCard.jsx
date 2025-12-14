@@ -127,10 +127,7 @@ function EventCard({ event }) {
               View Details
             </Button>
             {status === "upcoming" && userProfile?.role !== "admin" && (
-              <Button
-                fullWidth
-                onClick={() => navigate(`/eventdashboard/${id}`)}
-              >
+              <Button fullWidth onClick={() => navigate(`/events/${id}`)}>
                 Volunteer
               </Button>
             )}

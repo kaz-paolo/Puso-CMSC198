@@ -36,7 +36,7 @@ function EventInfo({ event }) {
         <Group justify="space-between">
           <Stack gap={4}>
             <Text fw={700} size="xl">
-              {event.name}
+              {event.event_name}
             </Text>
           </Stack>
           <Badge color={statusColors[event.status]} variant="light" size="lg">
@@ -74,8 +74,8 @@ function EventInfo({ event }) {
           <Group gap="xs">
             <IconUsers size={18} color={theme.colors.gray[6]} />
             <Text size="sm">
-              {event.volunteerCount || 0}{" "}
-              {event.volunteerCount === 1 ? "Volunteer" : "Volunteers"}
+              {event.volunteer_count || 0}{" "}
+              {event.volunteer_count === 1 ? "Volunteer" : "Volunteers"}
             </Text>
           </Group>
         </Stack>

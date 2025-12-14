@@ -96,7 +96,8 @@ function Home() {
     {
       title: "Volunteer Meeting",
       date: "Feb 9, 2024",
-      content: "All volunteers are required to attend the pre-event meeting at 3 PM.",
+      content:
+        "All volunteers are required to attend the pre-event meeting at 3 PM.",
     },
   ];
 
@@ -192,11 +193,7 @@ function Home() {
                   <Text fw={600} size="md" mb={-8}>
                     Upcoming Events
                   </Text>
-                  <Stack
-                    gap="md"
-                    mt="sm"
-                    style={{ overflowY: "auto" }}
-                  >
+                  <Stack gap="md" mt="sm" style={{ overflowY: "auto" }}>
                     {eventCards.length === 0 ? (
                       <Text c="dimmed" ta="center">
                         No upcoming events
@@ -239,9 +236,7 @@ function Home() {
                             variant="light"
                             color="brand"
                             fullWidth
-                            onClick={() =>
-                              navigate(`/eventdashboard/${event.id}`)
-                            }
+                            onClick={() => navigate(`/events/${event.id}`)}
                           >
                             View Details
                           </Button>
@@ -264,7 +259,13 @@ function Home() {
                   </Text>
                   <Stack gap="md" mt="sm">
                     {announcements.map((a, idx) => (
-                      <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
+                      <Paper
+                        key={idx}
+                        shadow="xs"
+                        radius="md"
+                        p="md"
+                        withBorder
+                      >
                         <Group gap="xs" mb={4}>
                           <Badge color="yellow" variant="light" size="sm">
                             Announcement

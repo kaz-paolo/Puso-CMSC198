@@ -14,7 +14,7 @@ import Auth from "./pages/Auth.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import VolunteerForm from "./pages/VolunteerForm.jsx";
 import Profile from "./pages/Profile.jsx";
-import '@mantine/dates/styles.css'
+import "@mantine/dates/styles.css";
 import "./App.css";
 import Events from "./pages/Events.jsx";
 import EventDashboard from "./pages/EventDashboard";
@@ -29,25 +29,25 @@ function HandlerRoutes() {
 function App() {
   return (
     <BrowserRouter>
-    <Suspense fallback={null}>
-      <StackProvider app={stackClientApp}>
-        <StackTheme>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/volunteer-form" element={<VolunteerForm />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/profile" element={<Profile />} />
+      <Suspense fallback={null}>
+        <StackProvider app={stackClientApp}>
+          <StackTheme>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/volunteer-form" element={<VolunteerForm />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/profile" element={<Profile />} />
 
-                          {/* Replace with events/eventid */}
-            <Route path="/eventdashboard" element={<EventDashboard />} />
-            {/* Invalid URL Redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </StackTheme>
-      </StackProvider>
-    </Suspense>
+              {/* Replace with events/eventid */}
+              <Route path="/events/:eventId" element={<EventDashboard />} />
+              {/* Invalid URL Redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </StackTheme>
+        </StackProvider>
+      </Suspense>
     </BrowserRouter>
   );
 }
