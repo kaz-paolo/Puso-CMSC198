@@ -38,3 +38,16 @@ export async function createEvent(req, res) {
     console.log("Create event error: ", error);
   }
 }
+
+export async function getEventById(req, res) {
+  try {
+    const { id } = req.params;
+    const events = await sql`SELECT * FROM events WHERE id = ${id}`;
+    if (events.length === 0) {
+      return res.status(404).json({ success: false, error: "Event not found" });
+    }
+    res.status(200).json({ success: true, data: events[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Failed to fetch event" });
+  }
+}

@@ -16,11 +16,13 @@ import {
 import { useEffect, useState } from "react";
 import EventDetailsModal from "../components/modal/ViewEventDetailModal";
 import { useUser } from "@stackframe/react";
+import { useNavigate } from "react-router-dom";
 
 function EventCard({ event }) {
   const user = useUser();
   const theme = useMantineTheme();
   const [userProfile, setUserProfile] = useState();
+  const navigate = useNavigate();
 
   const {
     id,
@@ -125,7 +127,10 @@ function EventCard({ event }) {
               View Details
             </Button>
             {status === "upcoming" && userProfile?.role !== "admin" && (
-              <Button fullWidth onClick={() => setDetailsOpened(true)}>
+              <Button
+                fullWidth
+                onClick={() => navigate(`/eventdashboard/${id}`)}
+              >
                 Volunteer
               </Button>
             )}

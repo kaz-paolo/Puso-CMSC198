@@ -15,23 +15,18 @@ function EventDetailsModal({ opened, onClose, eventId }) {
 
   const fetchEventDetail = async () => {
     setLoading(true);
-    
-    // get event from database
-
-    // simulation
-    setTimeout(() => {
-      setEvent({
-        id: eventId,
-        name: 'Event Name',
-        description: 'Asjkdljaskldjadkla detail akldj;sakldj kdl;asdk;ladaopdjaso9dnak asoipdiaj dasd ;alksdja ;d;l j;aldd d',
-        date: '2025-10-10',
-        time: '10:00 AM',
-        venue: 'Name Center',
-        volunteerCount: 25,
-        status: 'upcoming',
-      });
-      setLoading(false);
-    }, 500);
+    try {
+      const res = await fetch(`http://localhost:3000/api/events/${eventId}`);
+      const data = await res.json();
+      if (data.success) {
+        setEvent(data.data);
+      } else {
+        setEvent(null);
+      }
+    } catch (err) {
+      setEvent(null);
+    }
+    setLoading(false);
   };
   const statusColors = {
     upcoming: 'blue',
@@ -66,7 +61,7 @@ function EventDetailsModal({ opened, onClose, eventId }) {
       <Stack gap="lg">
         <Group justify="space-between">
           <Text fw={700} size="xl">
-            {event.name}
+            {event.event_name}
           </Text>
           <Badge color={statusColors[event.status]} variant="light" size="lg">
             {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
