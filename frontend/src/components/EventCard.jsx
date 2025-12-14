@@ -127,7 +127,38 @@ function EventCard({ event }) {
               View Details
             </Button>
             {status === "upcoming" && userProfile?.role !== "admin" && (
-              <Button fullWidth onClick={() => navigate(`/events/${id}`)}>
+              <Button
+                fullWidth
+                onClick={async () => {
+                  try {
+                    const res = await fetch(
+                      `http://localhost:3000/api/events/${id}/join`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          userId: user.id,
+                        }),
+                      }
+                    );
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                      alert(data.error);
+                      return;
+                    }
+
+                    navigate(`/events/${id}`);
+                    alert("Successfully joined the event!");
+                  } catch (err) {
+                    console.error("Join event failed:", err);
+                    alert("Failed to join event");
+                  }
+                }}
+              >
                 Volunteer
               </Button>
             )}

@@ -174,7 +174,24 @@ function EventDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchVolunteers();
   }, [eventId]);
+
+  const fetchVolunteers = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/events/${eventId}/volunteers`
+      );
+      const data = await res.json();
+      if (data.success) {
+        setVolunteers(data.data);
+      } else {
+        setVolunteers([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch volunteers:", err);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
