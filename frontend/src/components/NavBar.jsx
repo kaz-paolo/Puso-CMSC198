@@ -75,6 +75,11 @@ function NavBar() {
       ? userProfile.first_name[0] + userProfile.last_name[0]
       : "";
 
+  const handleLogout = async () => {
+    await stackApp.signOut();
+    navigate("/auth");
+  };
+
   return (
     <Stack
       gap={0}
@@ -182,32 +187,47 @@ function NavBar() {
 
       {/* User Profile at Bottom */}
       {user && (
-        <Group
-          p="md"
-          style={{
-            borderTop: `1px solid ${
-              colorScheme === "dark"
-                ? theme.colors.dark[4]
-                : theme.colors.gray[3]
-            }`,
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
-          onClick={() => navigate("/profile")}
-        >
-          <Avatar radius="xl" size="md" color="brand">
-            {userInitials}
-          </Avatar>
-          <Stack gap={0} style={{ flex: 1 }}>
-            <Text size="sm" fw={500}>
-              {userName}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {userEmail}
-            </Text>
-          </Stack>
-          <IconChevronRight size={16} stroke={1.5} />
-        </Group>
+        <>
+          <Group
+            p="md"
+            style={{
+              borderTop: `1px solid ${
+                colorScheme === "dark"
+                  ? theme.colors.dark[4]
+                  : theme.colors.gray[3]
+              }`,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            onClick={() => navigate("/profile")}
+          >
+            <Avatar radius="xl" size="md" color="brand">
+              {userInitials}
+            </Avatar>
+            <Stack gap={0} style={{ flex: 1 }}>
+              <Text size="sm" fw={500}>
+                {userName}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {userEmail}
+              </Text>
+            </Stack>
+            <IconChevronRight size={16} stroke={1.5} />
+          </Group>
+          <Button
+            color="red"
+            variant="light"
+            fullWidth
+            style={{
+              borderTop: `1px solid ${
+                colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+              }`,
+            }}
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </>
       )}
     </Stack>
   );
