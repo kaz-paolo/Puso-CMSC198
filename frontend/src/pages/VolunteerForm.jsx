@@ -544,7 +544,6 @@ function VolunteerForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const fullName = `${form.firstName} ${form.middleName} ${form.lastName}`;
       const response = await fetch(
         "http://localhost:3000/api/users/complete-profile",
         {
@@ -552,9 +551,45 @@ function VolunteerForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             authUserId: user.id,
-            fullName,
-            dob: form.birthDate,
+            firstName: form.firstName,
+            middleName: form.middleName,
+            lastName: form.lastName,
+            studentNumber: form.studentNumber,
+            nickname: form.nickname,
+            sex: form.sex,
+            civilStatus: form.civilStatus,
+            birthDate: form.birthDate,
+            birthPlace: form.birthPlace,
+            height: form.height,
+            weight: form.weight,
+            bloodType: form.bloodType,
+            languages: form.languages,
             mobile: form.mobile,
+            hometown: form.hometown,
+            presentAddress: form.presentAddress,
+            classification: form.classification,
+            college: form.college,
+            degree: form.degree,
+            yearLevel: form.yearLevel,
+            yearGraduated: form.yearGraduated,
+            campus: form.campus,
+            designation: form.designation,
+            organization: form.organization,
+            organizations: form.organizations,
+            illness: form.illness,
+            arukahikJoinDate: form.arukahikJoinDate,
+            hobbies: form.hobbies,
+            skills: form.skills,
+            expertise: form.expertise,
+            software: form.software,
+            committee1: form.committee1,
+            whyCommittee1: form.whyCommittee1,
+            committee2: form.committee2,
+            whyCommittee2: form.whyCommittee2,
+            committee3: form.committee3,
+            whyCommittee3: form.whyCommittee3,
+            strengths: form.strengths,
+            facebook: form.facebook,
           }),
         }
       );

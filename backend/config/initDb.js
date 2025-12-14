@@ -8,7 +8,6 @@ export async function initDb() {
       CREATE TABLE IF NOT EXISTS user_info (
         id SERIAL PRIMARY KEY,
         auth_user_id TEXT NOT NULL UNIQUE REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
-        full_name TEXT,
         dob DATE,
         mobile TEXT
       );

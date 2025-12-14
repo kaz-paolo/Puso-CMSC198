@@ -66,12 +66,9 @@ function NavBar() {
   }, [user]);
 
   const userEmail = user?.primaryEmail || "";
-  const userName = userProfile?.full_name || "No Name";
-  const userInitials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const userName =
+    `${userProfile?.first_name} ${userProfile?.last_name}` || "No Name";
+  const userInitials = userProfile?.first_name[0] + userProfile?.last_name[0];
 
   return (
     <Stack
