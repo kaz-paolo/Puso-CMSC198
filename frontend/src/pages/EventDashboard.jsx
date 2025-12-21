@@ -7,7 +7,6 @@ import {
   Stack,
   SimpleGrid,
   useMantineTheme,
-  useMantineColorScheme,
   Paper,
   Group,
   Loader,
@@ -19,9 +18,6 @@ import {
   IconClipboardList,
   IconClipboardCheck,
 } from "@tabler/icons-react";
-import Header from "../components/Header";
-import NavBar from "../components/NavBar";
-import { ThemeSettings } from "../components/ThemeSettings";
 import AnnouncementResourcesReminders from "../components/AnnouncementResourcesReminders";
 import EventCalendar from "../components/Calendar";
 import VolunteerList from "../components/VolunteerList";
@@ -158,8 +154,6 @@ const PLACEHOLDER_DATA = {
 function EventDashboard() {
   const { eventId } = useParams();
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
-  const [themeOpened, setThemeOpened] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Dashboard data state
@@ -241,265 +235,193 @@ function EventDashboard() {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <Header onThemeClick={() => setThemeOpened(true)} />
+    <Container size="xl">
+      <Stack gap="xl">
+        {/* Event Info at the top */}
+        <EventInfo event={eventDetails} />
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <NavBar />
+        {/* Tabs for dashboard sections */}
+        <Tabs defaultValue="members" color="brand" variant="outline">
+          <Tabs.List mb="md">
+            <Tabs.Tab value="members">Members</Tabs.Tab>
+            <Tabs.Tab value="calendar">Calendar</Tabs.Tab>
+            <Tabs.Tab value="tasks">Tasks</Tabs.Tab>
+            <Tabs.Tab value="announcements">Announcements</Tabs.Tab>
+            <Tabs.Tab value="resources">Resources</Tabs.Tab>
+            <Tabs.Tab value="reminders">Reminders</Tabs.Tab>
+          </Tabs.List>
 
-        <div
-          style={{
-            flex: 1,
-            overflow: "auto",
-            padding: "2rem",
-            backgroundColor:
-              colorScheme === "dark"
-                ? theme.colors.dark[7]
-                : theme.colors.gray[0],
-          }}
-        >
-          <ThemeSettings
-            opened={themeOpened}
-            onClose={() => setThemeOpened(false)}
-          />
+          <Tabs.Panel value="members" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  MEMBERS
+                </Title>
+                <Stack gap="md">
+                  {/* Header: icon, label, number grouped left */}
+                  <Group
+                    gap="xs"
+                    align="center"
+                    style={{ width: "fit-content" }}
+                  >
+                    <IconUsers size={24} color={theme.colors.brand[6]} />
+                    <Text size="xs" c="dimmed">
+                      Total Volunteers
+                    </Text>
+                    <Text size="xl" fw={700}>
+                      {volunteers.length}
+                    </Text>
+                  </Group>
+                  <VolunteerList volunteers={volunteers} compact />
+                </Stack>
+              </Paper>
+            </Stack>
+          </Tabs.Panel>
 
-          <Container size="xl">
-            <Stack gap="xl">
-              {/* Event Info at the top */}
-              <EventInfo event={eventDetails} />
+          <Tabs.Panel value="calendar" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  CALENDAR
+                </Title>
+                <EventCalendar markedDates={markedDates} compact />
+              </Paper>
+            </Stack>
+          </Tabs.Panel>
 
-              {/* Tabs for dashboard sections */}
-              <Tabs defaultValue="members" color="brand" variant="outline">
-                <Tabs.List mb="md">
-                  <Tabs.Tab value="members">Members</Tabs.Tab>
-                  <Tabs.Tab value="calendar">Calendar</Tabs.Tab>
-                  <Tabs.Tab value="tasks">Tasks</Tabs.Tab>
-                  <Tabs.Tab value="announcements">Announcements</Tabs.Tab>
-                  <Tabs.Tab value="resources">Resources</Tabs.Tab>
-                  <Tabs.Tab value="reminders">Reminders</Tabs.Tab>
-                </Tabs.List>
+          {/* Combined Tasks Tab */}
+          <Tabs.Panel value="tasks" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  TASKS
+                </Title>
+                <Stack gap="md">
+                  <Paper p="sm" withBorder>
+                    <Group gap="sm" wrap="nowrap">
+                      <IconClipboardCheck
+                        size={24}
+                        color={theme.colors.brand[6]}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <Text size="xs" c="dimmed">
+                          Assigned Tasks
+                        </Text>
+                        <Text size="lg" fw={700}>
+                          {assignedTasks.length}
+                        </Text>
+                      </div>
+                    </Group>
+                  </Paper>
+                  <TasksList
+                    assignedTasks={assignedTasks}
+                    pendingTasks={pendingTasks}
+                    compact
+                    showAssigned
+                    showPending
+                  />
+                </Stack>
+              </Paper>
+            </Stack>
+          </Tabs.Panel>
 
-                <Tabs.Panel value="members" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        MEMBERS
-                      </Title>
-                      <Stack gap="md">
-                        {/* Header: icon, label, number grouped left */}
-                        <Group
-                          gap="xs"
-                          align="center"
-                          style={{ width: "fit-content" }}
-                        >
-                          <IconUsers size={24} color={theme.colors.brand[6]} />
+          <Tabs.Panel value="announcements" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  ANNOUNCEMENTS
+                </Title>
+                <Stack gap="md">
+                  {announcements.map((announcement) => (
+                    <Paper key={announcement.id} p="sm" withBorder>
+                      <Stack gap="xs">
+                        <Group justify="space-between">
+                          <Group gap="xs">
+                            {announcement.pinned && (
+                              <span
+                                style={{
+                                  color: "#fab005",
+                                  fontWeight: 700,
+                                }}
+                              >
+                                📌
+                              </span>
+                            )}
+                            <Text fw={500}>{announcement.title}</Text>
+                          </Group>
                           <Text size="xs" c="dimmed">
-                            Total Volunteers
-                          </Text>
-                          <Text size="xl" fw={700}>
-                            {volunteers.length}
+                            {new Date(announcement.date).toLocaleDateString()}
                           </Text>
                         </Group>
-                        <VolunteerList volunteers={volunteers} compact />
+                        <Text size="sm" c="dimmed">
+                          {announcement.content}
+                        </Text>
                       </Stack>
                     </Paper>
-                  </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="calendar" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        CALENDAR
-                      </Title>
-                      <EventCalendar markedDates={markedDates} compact />
-                    </Paper>
-                  </Stack>
-                </Tabs.Panel>
-
-                {/* Combined Tasks Tab */}
-                <Tabs.Panel value="tasks" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        TASKS
-                      </Title>
-                      <Stack gap="md">
-                        <Paper p="sm" withBorder>
-                          <Group gap="sm" wrap="nowrap">
-                            <IconClipboardCheck
-                              size={24}
-                              color={theme.colors.brand[6]}
-                            />
-                            <div style={{ flex: 1 }}>
-                              <Text size="xs" c="dimmed">
-                                Assigned Tasks
-                              </Text>
-                              <Text size="lg" fw={700}>
-                                {assignedTasks.length}
-                              </Text>
-                            </div>
-                          </Group>
-                        </Paper>
-                        <TasksList
-                          assignedTasks={assignedTasks}
-                          pendingTasks={pendingTasks}
-                          compact
-                          showAssigned
-                          showPending
-                        />
-                      </Stack>
-                    </Paper>
-                  </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="announcements" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        ANNOUNCEMENTS
-                      </Title>
-                      <Stack gap="md">
-                        {announcements.map((announcement) => (
-                          <Paper key={announcement.id} p="sm" withBorder>
-                            <Stack gap="xs">
-                              <Group justify="space-between">
-                                <Group gap="xs">
-                                  {announcement.pinned && (
-                                    <span
-                                      style={{
-                                        color: "#fab005",
-                                        fontWeight: 700,
-                                      }}
-                                    >
-                                      📌
-                                    </span>
-                                  )}
-                                  <Text fw={500}>{announcement.title}</Text>
-                                </Group>
-                                <Text size="xs" c="dimmed">
-                                  {new Date(
-                                    announcement.date
-                                  ).toLocaleDateString()}
-                                </Text>
-                              </Group>
-                              <Text size="sm" c="dimmed">
-                                {announcement.content}
-                              </Text>
-                            </Stack>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Paper>
-                  </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="resources" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        RESOURCES
-                      </Title>
-                      {/* Render resources directly */}
-                      <Stack gap="sm">
-                        {resources.map((resource) => (
-                          <Paper key={resource.id} p="sm" withBorder>
-                            <Group gap="xs">
-                              <a
-                                href={resource.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ fontWeight: 500 }}
-                              >
-                                {resource.title}
-                              </a>
-                              <Text size="xs" c="dimmed">
-                                {resource.description}
-                              </Text>
-                            </Group>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Paper>
-                  </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="reminders" pt="md">
-                  <Stack gap="lg">
-                    <Paper shadow="sm" p="md" withBorder>
-                      <Title
-                        order={5}
-                        mb="md"
-                        ta="center"
-                        c={theme.colors.brand[6]}
-                      >
-                        REMINDERS
-                      </Title>
-                      {/* Render reminders directly */}
-                      <Stack gap="xs">
-                        {reminders.map((reminder) => (
-                          <Paper
-                            key={reminder.id}
-                            p="sm"
-                            withBorder
-                            bg="yellow.0"
-                          >
-                            <Group justify="space-between">
-                              <Text size="sm">{reminder.message}</Text>
-                              <Text size="xs" c="yellow">
-                                {new Date(reminder.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )}
-                              </Text>
-                            </Group>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Paper>
-                  </Stack>
-                </Tabs.Panel>
-              </Tabs>
+                  ))}
+                </Stack>
+              </Paper>
             </Stack>
-          </Container>
-        </div>
-      </div>
-    </div>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="resources" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  RESOURCES
+                </Title>
+                {/* Render resources directly */}
+                <Stack gap="sm">
+                  {resources.map((resource) => (
+                    <Paper key={resource.id} p="sm" withBorder>
+                      <Group gap="xs">
+                        <a
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontWeight: 500 }}
+                        >
+                          {resource.title}
+                        </a>
+                        <Text size="xs" c="dimmed">
+                          {resource.description}
+                        </Text>
+                      </Group>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Paper>
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="reminders" pt="md">
+            <Stack gap="lg">
+              <Paper shadow="sm" p="md" withBorder>
+                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                  REMINDERS
+                </Title>
+                {/* Render reminders directly */}
+                <Stack gap="xs">
+                  {reminders.map((reminder) => (
+                    <Paper key={reminder.id} p="sm" withBorder bg="yellow.0">
+                      <Group justify="space-between">
+                        <Text size="sm">{reminder.message}</Text>
+                        <Text size="xs" c="yellow">
+                          {new Date(reminder.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </Text>
+                      </Group>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Paper>
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Stack>
+    </Container>
   );
 }
 

@@ -167,360 +167,317 @@ function Profile() {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <Header onThemeClick={() => setThemeOpened(true)} />
-
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <NavBar />
-
+    <Container size="lg">
+      {/* Header Card */}
+      <Paper
+        shadow="sm"
+        radius="md"
+        p="xl"
+        mb="lg"
+        style={{ position: "relative", overflow: "hidden" }}
+      >
         <div
           style={{
-            flex: 1,
-            overflow: "auto",
-            padding: "2rem",
-            backgroundColor:
-              colorScheme === "dark"
-                ? theme.colors.dark[8]
-                : theme.colors.gray[0],
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 60, // Reduced height
+            background: `linear-gradient(45deg, ${theme.colors.brand[6]}, ${theme.colors.brand[4]})`,
+            zIndex: 0,
+          }}
+        />
+
+        <Group
+          align="center"
+          style={{
+            position: "relative",
+            zIndex: 1,
+            marginTop: 20,
+            marginLeft: 20,
+            gap: 24,
           }}
         >
-          <ThemeSettings
-            opened={themeOpened}
-            onClose={() => setThemeOpened(false)}
-          />
+          <Avatar
+            size={100}
+            radius={100}
+            src={null}
+            color="brand"
+            style={{
+              border: `4px solid ${
+                colorScheme === "dark" ? theme.colors.dark[7] : theme.white
+              }`,
+              fontSize: 36,
+              fontWeight: 700,
+            }}
+          >
+            {`${profileData.first_name || ""} ${profileData.last_name || ""}`
+              .split(" ")
+              .filter(Boolean)
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()}
+          </Avatar>
+          <div style={{ flex: 1 }}>
+            <Title order={2} style={{ textAlign: "left", marginBottom: 4 }}>
+              {profileData.first_name} {profileData.last_name}
+            </Title>
+            <Text c="dimmed" style={{ textAlign: "left" }}>
+              {user?.primaryEmail}
+            </Text>
+          </div>
+        </Group>
+      </Paper>
 
-          <Container size="lg">
-            {/* Header Card */}
-            <Paper
-              shadow="sm"
-              radius="md"
-              p="xl"
-              mb="lg"
-              style={{ position: "relative", overflow: "hidden" }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 60, // Reduced height
-                  background: `linear-gradient(45deg, ${theme.colors.brand[6]}, ${theme.colors.brand[4]})`,
-                  zIndex: 0,
-                }}
-              />
-
-              <Group
-                align="center"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  marginTop: 20,
-                  marginLeft: 20,
-                  gap: 24,
-                }}
-              >
-                <Avatar
-                  size={100}
-                  radius={100}
-                  src={null}
-                  color="brand"
-                  style={{
-                    border: `4px solid ${
-                      colorScheme === "dark"
-                        ? theme.colors.dark[7]
-                        : theme.white
-                    }`,
-                    fontSize: 36,
-                    fontWeight: 700,
-                  }}
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <Paper shadow="sm" radius="md" p="md" style={{ minHeight: 400 }}>
+            <Tabs value={activeTab} onChange={setActiveTab} color="brand">
+              <Tabs.List mb="md">
+                <Tabs.Tab value="details" leftSection={<IconUser size={18} />}>
+                  Details
+                </Tabs.Tab>
+                <Tabs.Tab
+                  value="history"
+                  leftSection={<IconHistory size={18} />}
                 >
-                  {`${profileData.first_name || ""} ${profileData.last_name || ""}`
-                    .split(" ")
-                    .filter(Boolean)
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </Avatar>
-                <div style={{ flex: 1 }}>
-                  <Title order={2} style={{ textAlign: "left", marginBottom: 4 }}>
-                    {profileData.first_name} {profileData.last_name}
-                  </Title>
-                  <Text c="dimmed" style={{ textAlign: "left" }}>
-                    {user?.primaryEmail}
-                  </Text>
-                </div>
-              </Group>
-            </Paper>
-
-            <Grid>
-              <Grid.Col span={{ base: 12, md: 8 }}>
-                <Paper
-                  shadow="sm"
-                  radius="md"
-                  p="md"
-                  style={{ minHeight: 400 }}
+                  History
+                </Tabs.Tab>
+                <Tabs.Tab
+                  value="settings"
+                  leftSection={<IconSettings size={18} />}
                 >
-                  <Tabs value={activeTab} onChange={setActiveTab} color="brand">
-                    <Tabs.List mb="md">
-                      <Tabs.Tab
-                        value="details"
-                        leftSection={<IconUser size={18} />}
-                      >
-                        Details
-                      </Tabs.Tab>
-                      <Tabs.Tab
-                        value="history"
-                        leftSection={<IconHistory size={18} />}
-                      >
-                        History
-                      </Tabs.Tab>
-                      <Tabs.Tab
-                        value="settings"
-                        leftSection={<IconSettings size={18} />}
-                      >
-                        Settings
-                      </Tabs.Tab>
-                    </Tabs.List>
+                  Settings
+                </Tabs.Tab>
+              </Tabs.List>
 
-                    <Tabs.Panel value="details">
-                      <Stack gap="xl" p="sm">
-                        <div>
-                          <Text fz="sm" fw={700} c="dimmed" mb="md">
-                            PERSONAL INFORMATION
-                          </Text>
-                          <Grid>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconUser}
-                                label="First Name"
-                                value={profileData.first_name}
-                                name="firstName"
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconUser}
-                                label="Last Name"
-                                value={profileData.last_name}
-                                name="lastName"
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconUser}
-                                label="Date of Birth"
-                                value={formatDate(profileData.dob)}
-                                name="dob"
-                              />
-                            </Grid.Col>
-                          </Grid>
-                        </div>
-
-                        <Divider />
-
-                        <div>
-                          <Text fz="sm" fw={700} c="dimmed" mb="md">
-                            CONTACT & ADDRESS
-                          </Text>
-                          <Grid>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconPhone}
-                                label="Mobile Number"
-                                value={profileData.mobile}
-                                name="mobile"
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconMapPin}
-                                label="Address"
-                                value={profileData.present_address}
-                                name="address"
-                              />
-                            </Grid.Col>
-                          </Grid>
-                        </div>
-
-                        <Divider />
-
-                        <div>
-                          <Text fz="sm" fw={700} c="dimmed" mb="md">
-                            ACADEMIC
-                          </Text>
-                          <Grid>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconSchool}
-                                label="Student Number"
-                                value={profileData.student_number}
-                                name="studentNumber"
-                              />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
-                              <InfoItem
-                                icon={IconBriefcase}
-                                label="Degree Program"
-                                value={profileData.degree}
-                                name="degree"
-                              />
-                            </Grid.Col>
-                          </Grid>
-                        </div>
-
-                        <Group mt="md">
-                          <Button
-                            variant={isEditing ? "filled" : "light"}
-                            color={isEditing ? "green" : "brand"}
-                            leftSection={
-                              isEditing ? (
-                                <IconCheck size={18} />
-                              ) : (
-                                <IconPencil size={18} />
-                              )
-                            }
-                            onClick={
-                              isEditing ? handleSave : () => setIsEditing(true)
-                            }
-                          >
-                            {isEditing ? "Save Changes" : "Edit Profile"}
-                          </Button>
-                          {isEditing && (
-                            <ActionIcon
-                              variant="subtle"
-                              color="red"
-                              size="lg"
-                              onClick={() => setIsEditing(false)}
-                            >
-                              <IconX size={24} />
-                            </ActionIcon>
-                          )}
-                        </Group>
-                      </Stack>
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="history">
-                      <Stack p="sm">
-                        {PLACEHOLDER_HISTORY.map((item) => (
-                          <Paper key={item.id} withBorder p="sm" radius="md">
-                            <Group justify="space-between">
-                              <div>
-                                <Text fw={600}>{item.event}</Text>
-                                <Text size="xs" c="dimmed">
-                                  {item.role} • {item.date}
-                                </Text>
-                              </div>
-                              <div style={{ textAlign: "right" }}>
-                                <Badge color="green" variant="light">
-                                  {item.status}
-                                </Badge>
-                                <Text size="xs" mt={4}>
-                                  {item.hours} Hours
-                                </Text>
-                              </div>
-                            </Group>
-                          </Paper>
-                        ))}
-                      </Stack>
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="settings">
-                      <Stack p="sm" gap="lg">
-                        <Group justify="space-between">
-                        </Group>
-                        <Divider />
-                        <Group justify="space-between">
-                          <div>
-                            <Text fw={500}>Email Notifications</Text>
-                            <Text size="xs" c="dimmed">
-                              Receive updates about upcoming events
-                            </Text>
-                          </div>
-                          <Switch defaultChecked color="brand" />
-                        </Group>
-                        <Group justify="space-between">
-                          <div>
-                            <Text fw={500}>Profile Visibility</Text>
-                            <Text size="xs" c="dimmed">
-                              Allow other committee members to see your profile
-                            </Text>
-                          </div>
-                          <Switch defaultChecked color="brand" />
-                        </Group>
-                      </Stack>
-                    </Tabs.Panel>
-                  </Tabs>
-                </Paper>
-              </Grid.Col>
-
-              {/* Sidebar Stats / Summary */}
-              <Grid.Col span={{ base: 12, md: 4 }}>
-                <Stack>
-                  <Paper shadow="sm" radius="md" p="md">
-                    <Text fz="sm" fw={700} c="dimmed" mb="md" tt="uppercase">
-                      Contribution Summary
+              <Tabs.Panel value="details">
+                <Stack gap="xl" p="sm">
+                  <div>
+                    <Text fz="sm" fw={700} c="dimmed" mb="md">
+                      PERSONAL INFORMATION
                     </Text>
                     <Grid>
                       <Grid.Col span={6}>
-                        <Stack gap={0} align="center">
-                          <Text fz="xl" fw={700} c="brand">
-                            18
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            Total Hours
-                          </Text>
-                        </Stack>
+                        <InfoItem
+                          icon={IconUser}
+                          label="First Name"
+                          value={profileData.first_name}
+                          name="firstName"
+                        />
                       </Grid.Col>
                       <Grid.Col span={6}>
-                        <Stack gap={0} align="center">
-                          <Text fz="xl" fw={700} c="brand">
-                            3
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            Events
-                          </Text>
-                        </Stack>
+                        <InfoItem
+                          icon={IconUser}
+                          label="Last Name"
+                          value={profileData.last_name}
+                          name="lastName"
+                        />
+                      </Grid.Col>
+                      <Grid.Col span={6}>
+                        <InfoItem
+                          icon={IconUser}
+                          label="Date of Birth"
+                          value={formatDate(profileData.dob)}
+                          name="dob"
+                        />
                       </Grid.Col>
                     </Grid>
-                  </Paper>
+                  </div>
 
-                  <Paper shadow="sm" radius="md" p="md">
-                    <Text fz="sm" fw={700} c="dimmed" mb="md" tt="uppercase">
-                      Committee
+                  <Divider />
+
+                  <div>
+                    <Text fz="sm" fw={700} c="dimmed" mb="md">
+                      CONTACT & ADDRESS
                     </Text>
-                    <Group mb="sm">
-                      <Avatar color="orange" radius="xl">
-                        L
-                      </Avatar>
-                      <div>
-                        {/* HARDCODED */}
-                        <Text size="sm" fw={500}>
-                          Logistics
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          Member
-                        </Text>
-                      </div>
-                    </Group>
-                    <Button variant="light" fullWidth size="xs">
-                      View Committee
+                    <Grid>
+                      <Grid.Col span={6}>
+                        <InfoItem
+                          icon={IconPhone}
+                          label="Mobile Number"
+                          value={profileData.mobile}
+                          name="mobile"
+                        />
+                      </Grid.Col>
+                      <Grid.Col span={6}>
+                        <InfoItem
+                          icon={IconMapPin}
+                          label="Address"
+                          value={profileData.present_address}
+                          name="address"
+                        />
+                      </Grid.Col>
+                    </Grid>
+                  </div>
+
+                  <Divider />
+
+                  <div>
+                    <Text fz="sm" fw={700} c="dimmed" mb="md">
+                      ACADEMIC
+                    </Text>
+                    <Grid>
+                      <Grid.Col span={6}>
+                        <InfoItem
+                          icon={IconSchool}
+                          label="Student Number"
+                          value={profileData.student_number}
+                          name="studentNumber"
+                        />
+                      </Grid.Col>
+                      <Grid.Col span={6}>
+                        <InfoItem
+                          icon={IconBriefcase}
+                          label="Degree Program"
+                          value={profileData.degree}
+                          name="degree"
+                        />
+                      </Grid.Col>
+                    </Grid>
+                  </div>
+
+                  <Group mt="md">
+                    <Button
+                      variant={isEditing ? "filled" : "light"}
+                      color={isEditing ? "green" : "brand"}
+                      leftSection={
+                        isEditing ? (
+                          <IconCheck size={18} />
+                        ) : (
+                          <IconPencil size={18} />
+                        )
+                      }
+                      onClick={
+                        isEditing ? handleSave : () => setIsEditing(true)
+                      }
+                    >
+                      {isEditing ? "Save Changes" : "Edit Profile"}
                     </Button>
-                  </Paper>
+                    {isEditing && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        size="lg"
+                        onClick={() => setIsEditing(false)}
+                      >
+                        <IconX size={24} />
+                      </ActionIcon>
+                    )}
+                  </Group>
                 </Stack>
-              </Grid.Col>
-            </Grid>
-          </Container>
-        </div>
-      </div>
-    </div>
+              </Tabs.Panel>
+
+              <Tabs.Panel value="history">
+                <Stack p="sm">
+                  {PLACEHOLDER_HISTORY.map((item) => (
+                    <Paper key={item.id} withBorder p="sm" radius="md">
+                      <Group justify="space-between">
+                        <div>
+                          <Text fw={600}>{item.event}</Text>
+                          <Text size="xs" c="dimmed">
+                            {item.role} • {item.date}
+                          </Text>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <Badge color="green" variant="light">
+                            {item.status}
+                          </Badge>
+                          <Text size="xs" mt={4}>
+                            {item.hours} Hours
+                          </Text>
+                        </div>
+                      </Group>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Tabs.Panel>
+
+              <Tabs.Panel value="settings">
+                <Stack p="sm" gap="lg">
+                  <Group justify="space-between"></Group>
+                  <Divider />
+                  <Group justify="space-between">
+                    <div>
+                      <Text fw={500}>Email Notifications</Text>
+                      <Text size="xs" c="dimmed">
+                        Receive updates about upcoming events
+                      </Text>
+                    </div>
+                    <Switch defaultChecked color="brand" />
+                  </Group>
+                  <Group justify="space-between">
+                    <div>
+                      <Text fw={500}>Profile Visibility</Text>
+                      <Text size="xs" c="dimmed">
+                        Allow other committee members to see your profile
+                      </Text>
+                    </div>
+                    <Switch defaultChecked color="brand" />
+                  </Group>
+                </Stack>
+              </Tabs.Panel>
+            </Tabs>
+          </Paper>
+        </Grid.Col>
+
+        {/* Sidebar Stats / Summary */}
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Stack>
+            <Paper shadow="sm" radius="md" p="md">
+              <Text fz="sm" fw={700} c="dimmed" mb="md" tt="uppercase">
+                Contribution Summary
+              </Text>
+              <Grid>
+                <Grid.Col span={6}>
+                  <Stack gap={0} align="center">
+                    <Text fz="xl" fw={700} c="brand">
+                      18
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Total Hours
+                    </Text>
+                  </Stack>
+                </Grid.Col>
+                <Grid.Col span={6}>
+                  <Stack gap={0} align="center">
+                    <Text fz="xl" fw={700} c="brand">
+                      3
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Events
+                    </Text>
+                  </Stack>
+                </Grid.Col>
+              </Grid>
+            </Paper>
+
+            <Paper shadow="sm" radius="md" p="md">
+              <Text fz="sm" fw={700} c="dimmed" mb="md" tt="uppercase">
+                Committee
+              </Text>
+              <Group mb="sm">
+                <Avatar color="orange" radius="xl">
+                  L
+                </Avatar>
+                <div>
+                  {/* HARDCODED */}
+                  <Text size="sm" fw={500}>
+                    Logistics
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Member
+                  </Text>
+                </div>
+              </Group>
+              <Button variant="light" fullWidth size="xs">
+                View Committee
+              </Button>
+            </Paper>
+          </Stack>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 }
 

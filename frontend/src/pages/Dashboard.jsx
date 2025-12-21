@@ -11,23 +11,16 @@ import {
   Button,
   useMantineTheme,
   Skeleton,
-  useMantineColorScheme, // <-- add this import
 } from "@mantine/core";
 import { IconCalendar, IconBell, IconActivity } from "@tabler/icons-react";
-import { ThemeSettings } from "../components/ThemeSettings";
 import { useEffect, useState } from "react";
-import Header from "../components/Header";
-import NavBar from "../components/NavBar";
-import { useUser, useStackApp } from "@stackframe/react";
+import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import EventCalendar from "../components/Calendar";
 
 function Home() {
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme(); // <-- add this line
-  const [themeOpened, setThemeOpened] = useState(false);
   const user = useUser();
-  const stackApp = useStackApp();
   const navigate = useNavigate();
 
   // Example infoData definition
@@ -60,6 +53,7 @@ function Home() {
           setEventCards(upcoming);
         }
       } catch (err) {
+        console.error(err);
         setEventCards([]);
       }
     }
@@ -72,15 +66,6 @@ function Home() {
       navigate("/auth");
     }
   }, [user, navigate]);
-
-  const handleSignOut = async () => {
-    await stackApp.signOut();
-    navigate("/auth");
-  };
-
-  const handleGetStarted = () => {
-    navigate("/auth");
-  };
 
   if (!user) {
     return null;
@@ -102,206 +87,169 @@ function Home() {
   ];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
-      <Header onThemeClick={() => setThemeOpened(true)} />
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <NavBar />
-        <div
-          style={{
-            flex: 1,
-            overflow: "auto",
-            padding: "2rem",
-            backgroundColor:
-              colorScheme === "dark"
-                ? theme.colors.dark[7]
-                : theme.colors.gray[0],
-          }}
-        >
-          <ThemeSettings
-            opened={themeOpened}
-            onClose={() => setThemeOpened(false)}
-          />
-          <Container size="xl">
-            <Stack gap="xl">
-              {/* Top Row: Welcome and Quick Stats */}
-              <Group align="flex-start" gap="xl">
-                <Paper
-                  shadow="sm"
-                  radius="md"
-                  p="xl"
-                  style={{ flex: 2, minWidth: 0 }}
-                >
-                  <Title order={2}>Welcome to PUSO</Title>
-                  <Text c="dimmed" mt="sm">
-                    Pahinungod Unified System for Operations.
-                  </Text>
-                </Paper>
-                <Paper
-                  shadow="sm"
-                  radius="md"
-                  p="xl"
-                  style={{ flex: 1, minWidth: 0 }}
-                >
-                  <Group gap="md" align="center" justify="center">
-                    <IconBell
-                      size={32}
-                      color={theme.colors.brand?.[6] || theme.primaryColor}
-                    />
-                    <Text fw={600} size="lg">
-                      Notifications
-                    </Text>
-                  </Group>
-                  <Divider my="sm" />
-                  <Text size="sm" c="dimmed">
-                    No new notifications.
-                  </Text>
-                </Paper>
-              </Group>
+    <Container size="xl">
+      <Stack gap="xl">
+        {/* Top Row: Welcome and Quick Stats */}
+        <Group align="flex-start" gap="xl">
+          <Paper
+            shadow="sm"
+            radius="md"
+            p="xl"
+            style={{ flex: 2, minWidth: 0 }}
+          >
+            <Title order={2}>Welcome to PUSO</Title>
+            <Text c="dimmed" mt="sm">
+              Pahinungod Unified System for Operations.
+            </Text>
+          </Paper>
+          <Paper
+            shadow="sm"
+            radius="md"
+            p="xl"
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            <Group gap="md" align="center" justify="center">
+              <IconBell
+                size={32}
+                color={theme.colors.brand?.[6] || theme.primaryColor}
+              />
+              <Text fw={600} size="lg">
+                Notifications
+              </Text>
+            </Group>
+            <Divider my="sm" />
+            <Text size="sm" c="dimmed">
+              No new notifications.
+            </Text>
+          </Paper>
+        </Group>
 
-              {/* Info Data Cards */}
-              <Group gap="md" grow>
-                {infoData.map((info, idx) => (
-                  <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
-                    <Text size="xs" c="dimmed" fw={500} mb={4}>
-                      {info.label}
+        {/* Info Data Cards */}
+        <Group gap="md" grow>
+          {infoData.map((info, idx) => (
+            <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
+              <Text size="xs" c="dimmed" fw={500} mb={4}>
+                {info.label}
+              </Text>
+              <Text fw={700} size="xl">
+                {info.value}
+              </Text>
+            </Paper>
+          ))}
+        </Group>
+
+        {/* Main Grid: Events, Announcements, Calendar */}
+        <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
+          {/* Events Column */}
+          <div
+            style={{
+              minHeight: 340,
+              maxHeight: 500,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Text fw={600} size="md" mb={-8}>
+              Upcoming Events
+            </Text>
+            <Stack gap="md" mt="sm" style={{ overflowY: "auto" }}>
+              {eventCards.length === 0 ? (
+                <Text c="dimmed" ta="center">
+                  No upcoming events
+                </Text>
+              ) : (
+                eventCards.map((event, idx) => (
+                  <Paper
+                    key={event.id || idx}
+                    shadow="xs"
+                    radius="md"
+                    p="md"
+                    withBorder
+                    style={{
+                      maxHeight: 140,
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Group gap="xs">
+                      <IconCalendar
+                        size={18}
+                        color={theme.colors.brand?.[6] || theme.primaryColor}
+                      />
+                      <Text fw={500}>{event.event_name}</Text>
+                    </Group>
+                    <Text size="xs" c="dimmed" mt={4}>
+                      {new Date(event.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </Text>
-                    <Text fw={700} size="xl">
-                      {info.value}
-                    </Text>
+                    <Button
+                      mt="md"
+                      size="xs"
+                      variant="light"
+                      color="brand"
+                      fullWidth
+                      onClick={() => navigate(`/events/${event.id}`)}
+                    >
+                      View Details
+                    </Button>
                   </Paper>
-                ))}
-              </Group>
-
-              {/* Main Grid: Events, Announcements, Calendar */}
-              <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
-                {/* Events Column */}
-                <div
-                  style={{
-                    minHeight: 340,
-                    maxHeight: 500,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Text fw={600} size="md" mb={-8}>
-                    Upcoming Events
-                  </Text>
-                  <Stack gap="md" mt="sm" style={{ overflowY: "auto" }}>
-                    {eventCards.length === 0 ? (
-                      <Text c="dimmed" ta="center">
-                        No upcoming events
-                      </Text>
-                    ) : (
-                      eventCards.map((event, idx) => (
-                        <Paper
-                          key={event.id || idx}
-                          shadow="xs"
-                          radius="md"
-                          p="md"
-                          withBorder
-                          style={{
-                            maxHeight: 140,
-                            overflow: "hidden",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Group gap="xs">
-                            <IconCalendar
-                              size={18}
-                              color={
-                                theme.colors.brand?.[6] || theme.primaryColor
-                              }
-                            />
-                            <Text fw={500}>{event.event_name}</Text>
-                          </Group>
-                          <Text size="xs" c="dimmed" mt={4}>
-                            {new Date(event.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </Text>
-                          <Button
-                            mt="md"
-                            size="xs"
-                            variant="light"
-                            color="brand"
-                            fullWidth
-                            onClick={() => navigate(`/events/${event.id}`)}
-                          >
-                            View Details
-                          </Button>
-                        </Paper>
-                      ))
-                    )}
-                  </Stack>
-                </div>
-
-                {/* Announcements Column */}
-                <div
-                  style={{
-                    minHeight: 340,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Text fw={600} size="md" mb={-8}>
-                    Announcements
-                  </Text>
-                  <Stack gap="md" mt="sm">
-                    {announcements.map((a, idx) => (
-                      <Paper
-                        key={idx}
-                        shadow="xs"
-                        radius="md"
-                        p="md"
-                        withBorder
-                      >
-                        <Group gap="xs" mb={4}>
-                          <Badge color="yellow" variant="light" size="sm">
-                            Announcement
-                          </Badge>
-                          <Text fw={500}>{a.title}</Text>
-                        </Group>
-                        <Text size="xs" c="dimmed" mb={4}>
-                          {a.date}
-                        </Text>
-                        <Text size="sm">{a.content}</Text>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </div>
-
-                {/* Calendar Column */}
-                <div
-                  style={{
-                    minHeight: 340,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Text fw={600} size="md" mb={-8}>
-                    Calendar
-                  </Text>
-                  <div style={{ flex: 1, marginTop: "1rem" }}>
-                    <EventCalendar markedDates={[]} compact />
-                  </div>
-                </div>
-              </SimpleGrid>
+                ))
+              )}
             </Stack>
-          </Container>
-        </div>
-      </div>
-    </div>
+          </div>
+
+          {/* Announcements Column */}
+          <div
+            style={{
+              minHeight: 340,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Text fw={600} size="md" mb={-8}>
+              Announcements
+            </Text>
+            <Stack gap="md" mt="sm">
+              {announcements.map((a, idx) => (
+                <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
+                  <Group gap="xs" mb={4}>
+                    <Badge color="yellow" variant="light" size="sm">
+                      Announcement
+                    </Badge>
+                    <Text fw={500}>{a.title}</Text>
+                  </Group>
+                  <Text size="xs" c="dimmed" mb={4}>
+                    {a.date}
+                  </Text>
+                  <Text size="sm">{a.content}</Text>
+                </Paper>
+              ))}
+            </Stack>
+          </div>
+
+          {/* Calendar Column */}
+          <div
+            style={{
+              minHeight: 340,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Text fw={600} size="md" mb={-8}>
+              Calendar
+            </Text>
+            <div style={{ flex: 1, marginTop: "1rem" }}>
+              <EventCalendar markedDates={[]} compact />
+            </div>
+          </div>
+        </SimpleGrid>
+      </Stack>
+    </Container>
   );
 }
 

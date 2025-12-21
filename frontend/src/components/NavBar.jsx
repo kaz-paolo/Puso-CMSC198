@@ -20,11 +20,11 @@ import {
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useStackApp } from "@stackframe/react";
+import { useStackApp, useUser } from "@stackframe/react";
 
 function NavBar() {
   const stackApp = useStackApp();
-  const user = stackApp.useUser();
+  const user = useUser();
 
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
@@ -66,10 +66,9 @@ function NavBar() {
   }, [user]);
 
   const userEmail = user?.primaryEmail || "";
-  const userName =
-    userProfile
-      ? `${userProfile.first_name || ""} ${userProfile.last_name || ""}`.trim()
-      : "No Name";
+  const userName = userProfile
+    ? `${userProfile.first_name || ""} ${userProfile.last_name || ""}`.trim()
+    : "No Name";
   const userInitials =
     userProfile && userProfile.first_name && userProfile.last_name
       ? userProfile.first_name[0] + userProfile.last_name[0]
@@ -220,7 +219,9 @@ function NavBar() {
             fullWidth
             style={{
               borderTop: `1px solid ${
-                colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+                colorScheme === "dark"
+                  ? theme.colors.dark[4]
+                  : theme.colors.gray[3]
               }`,
             }}
             onClick={handleLogout}

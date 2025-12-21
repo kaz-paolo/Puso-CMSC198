@@ -17,12 +17,7 @@ import {
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 import data from "../assets/philippine_provinces_cities_municipalities_and_barangays_2019v2.json";
-// import { db, auth } from '../../firebase/firebase';
-// import { doc, setDoc } from 'firebase/firestore';
-import Header from "../components/Header";
-import NavBar from "../components/NavBar";
-import { ThemeSettings } from "../components/ThemeSettings";
-import { useStackApp, useUser } from "@stackframe/react";
+import { useUser } from "@stackframe/react";
 
 const degreeOptions = [
   "BA (Communication & Media Studies)",
@@ -69,8 +64,7 @@ const civilStatusOptions = ["Single", "Married", "Divorced", "Widowed"];
 const consentText = `I hereby consent to participate in UP Visayas Ugnayan ng Pahinungód/Oblation Corps (UPV UP/OC) activities as a volunteer. ... [full text as provided above] ... Thus, I hereby declare the information provided as true and correct.`;
 
 function VolunteerForm() {
-  const stackApp = useStackApp();
-  const user = stackApp.useUser();
+  const user = useUser();
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
@@ -124,7 +118,6 @@ function VolunteerForm() {
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedMunicipality, setSelectedMunicipality] = useState("");
   const [selectedBarangay, setSelectedBarangay] = useState("");
-  const [themeOpened, setThemeOpened] = useState(false);
 
   // Options for Address
   const regionOptions = Object.entries(data).map(([key, value]) => ({
@@ -611,66 +604,44 @@ function VolunteerForm() {
   };
 
   return (
-    <div
+    <Container
+      size="sm"
       style={{
+        minHeight: "100vh",
         display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
+        alignItems: "center",
+        backgroundColor:
+          colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
       }}
     >
-      <Header onThemeClick={() => setThemeOpened(true)} />
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <NavBar />
-        <div style={{ flex: 1, overflow: "auto", padding: "2rem" }}>
-          <ThemeSettings
-            opened={themeOpened}
-            onClose={() => setThemeOpened(false)}
-          />
-          <Container
-            size="sm"
-            style={{
-              minHeight: "100vh",
-              display: "flex",
-              alignItems: "center",
-              backgroundColor:
-                colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
-            }}
-          >
-            <Paper shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
-              <Stack gap="xl">
-                <Title order={2} ta="center">
-                  UPV UP/OC Volunteer Form
-                </Title>
-                <Text size="sm" ta="center">
-                  {steps[step].label}
-                </Text>
-                {steps[step].content}
-                <Group justify="apart" mt="md">
-                  <Button
-                    disabled={step === 0}
-                    onClick={() => setStep((s) => s - 1)}
-                  >
-                    Back
-                  </Button>
-                  {step < steps.length - 1 ? (
-                    <Button onClick={handleNext}>Next</Button>
-                  ) : (
-                    <Button
-                      color="green"
-                      disabled={!form.consent}
-                      onClick={handleSubmit}
-                    >
-                      Submit
-                    </Button>
-                  )}
-                </Group>
-              </Stack>
-            </Paper>
-          </Container>
-        </div>
-      </div>
-    </div>
+      <Paper shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
+        <Stack gap="xl">
+          <Title order={2} ta="center">
+            UPV UP/OC Volunteer Form
+          </Title>
+          <Text size="sm" ta="center">
+            {steps[step].label}
+          </Text>
+          {steps[step].content}
+          <Group justify="apart" mt="md">
+            <Button disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
+              Back
+            </Button>
+            {step < steps.length - 1 ? (
+              <Button onClick={handleNext}>Next</Button>
+            ) : (
+              <Button
+                color="green"
+                disabled={!form.consent}
+                onClick={handleSubmit}
+              >
+                Submit
+              </Button>
+            )}
+          </Group>
+        </Stack>
+      </Paper>
+    </Container>
   );
 }
 
