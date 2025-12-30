@@ -149,16 +149,27 @@ function NavBar() {
           label="Resources"
           leftSection={<IconBook size={20} />}
           color="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/resources");
+          }}
         />
         <NavLink
           label="Feedback"
           leftSection={<IconMessageCircle size={20} />}
           color="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/feedback");
+          }}
         />
         <NavLink
           label="Settings"
           leftSection={<IconSettings size={20} />}
-          color="brand"
+          color="brand"onClick={(e) => {
+            e.preventDefault();
+            navigate("/settings");
+          }}
         />
       </Stack>
 

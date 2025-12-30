@@ -18,6 +18,9 @@ import "@mantine/dates/styles.css";
 import "./App.css";
 import Events from "./pages/Events.jsx";
 import EventDashboard from "./pages/EventDashboard";
+import Resources from "./pages/Resources.jsx";
+import Feedback from "./pages/Feedback.jsx";
+import Settings from "./pages/Settings.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
 
 function HandlerRoutes() {
@@ -43,6 +46,9 @@ function App() {
                 <Route path="/events" element={<Events />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/events/:eventId" element={<EventDashboard />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
 
               {/* Invalid URL Redirect */}
