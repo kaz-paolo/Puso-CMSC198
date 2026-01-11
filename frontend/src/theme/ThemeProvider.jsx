@@ -61,6 +61,11 @@ export function ThemeProvider({ children }) {
     return localStorage.getItem('platform') || 'default';
   });
 
+  const [fontSize, setFontSize] = useState(() => {
+    const storedFontSize = localStorage.getItem('fontSize');
+    return storedFontSize ? parseInt(storedFontSize, 10) : 16;
+  });
+
   useEffect(() => {
     localStorage.setItem('colorScheme', colorScheme);
   }, [colorScheme]);
@@ -73,12 +78,20 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('platform', platform);
   }, [platform]);
 
+  useEffect(() => {
+    localStorage.setItem('fontSize', fontSize);
+  }, [fontSize]);
+
   const toggleColorScheme = (value) => {
     setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
   };
 
   const changePrimaryColor = (color) => {
     setPrimaryColor(color);
+  };
+
+  const changeFontSize = (size) => {
+    setFontSize(size);
   };
 
   const currentColors = themeColors[primaryColor] || themeColors.ocean;
@@ -91,6 +104,13 @@ export function ThemeProvider({ children }) {
     },
     defaultRadius: 'md',
     fontFamily: platformFonts[platform] || platformFonts.default,
+    fontSizes: {
+      xs: `${fontSize * 0.625}px`,
+      sm: `${fontSize * 0.75}px`,
+      md: `${fontSize * 0.875}px`,
+      lg: `${fontSize}px`,
+      xl: `${fontSize * 1.125}px`,
+    },
     components: {
       Button: {
         defaultProps: {
@@ -118,6 +138,8 @@ export function ThemeProvider({ children }) {
     currentColors,
     platform,
     setPlatform,
+    fontSize,
+    changeFontSize,
   };
 
   return (

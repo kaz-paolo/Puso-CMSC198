@@ -13,6 +13,7 @@ import Home from "./pages/Home.jsx";
 import Auth from "./pages/Auth.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import VolunteerForm from "./pages/VolunteerForm.jsx";
+import FormSectionPage from "./pages/FormSectionPage.jsx";
 import Profile from "./pages/Profile.jsx";
 import "@mantine/dates/styles.css";
 import "./App.css";
@@ -22,6 +23,7 @@ import Resources from "./pages/Resources.jsx";
 import Feedback from "./pages/Feedback.jsx";
 import Settings from "./pages/Settings.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
+
 
 function HandlerRoutes() {
   const location = useLocation();
@@ -33,7 +35,7 @@ function HandlerRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
+        <Suspense fallback={null}>
         <StackProvider app={stackClientApp}>
           <StackTheme>
             <Routes>
@@ -42,10 +44,14 @@ function App() {
 
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/volunteer-form" element={<VolunteerForm />} />
+                {/* Updated Route for the form */}
+                <Route path="/volunteer-form" element={<VolunteerForm />}>
+                  <Route path=":sectionKey" element={<FormSectionPage />} />
+                </Route>
                 <Route path="/events" element={<Events />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/events/:eventId" element={<EventDashboard />} />
+
                 <Route path="/resources" element={<Resources />} />
                 <Route path="/feedback" element={<Feedback />} />
                 <Route path="/settings" element={<Settings />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Container,
   Paper,
@@ -12,637 +12,301 @@ import {
   FileInput,
   Checkbox,
   Alert,
-  useMantineTheme,
-  useMantineColorScheme,
+  Grid,
+  Textarea,
+  Card,
+  RingProgress,
+  SimpleGrid,
+  Anchor,
 } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
-import data from "../assets/philippine_provinces_cities_municipalities_and_barangays_2019v2.json";
+import {
+  IconUser,
+  IconHome,
+  IconBriefcase,
+  IconListCheck,
+  IconShieldCheck,
+  IconExclamationCircle,
+  IconCheck,
+  IconSchool,
+  IconHeartHandshake,
+  IconTools,
+  IconHealthRecognition,
+} from "@tabler/icons-react";
+import { useNavigate, Link, Outlet } from "react-router-dom";
 import { useUser } from "@stackframe/react";
 
-const degreeOptions = [
-  "BA (Communication & Media Studies)",
-  "BA (Community Development)",
-  "BA (History)",
-  "BA (Sociology)",
-  "BA in Communication and Media Studies",
-  "BA in Literature",
-  "BA in Political Science",
-  "BA in Psychology",
-  "BS (Biology)",
-  "BS Accountancy (4.5 yrs)",
-  "BS Applied Mathematics",
-  "BS Business Administration (Marketing)",
-  "BS Chemical Engineering",
-  "BS Chemistry",
-  "BS Computer Science",
-  "BS Economics",
-  "BS Fisheries",
-  "BS Food Technology",
-  "BS Management",
-  "BS Public Health",
-  "BS Statistics",
-  "HUMSS",
-  "GAS",
-  "ABM",
-  "STEM",
-  "TVL",
-  "BA (CommDev-Psych)",
+const SECTIONS = [
+  {
+    key: "personal",
+    title: "Personal Details",
+    description: "Basic information about you.",
+    icon: IconUser,
+    required: ["firstName", "lastName", "sex", "birthDate"],
+    fields: [
+      { span: 4, name: "firstName", label: "First Name", component: TextInput, required: true },
+      { span: 4, name: "middleName", label: "Middle Name", component: TextInput },
+      { span: 4, name: "lastName", label: "Last Name", component: TextInput, required: true },
+      { span: 4, name: "nickname", label: "Nickname", component: TextInput },
+      { span: 4, name: "sex", label: "Sex Assigned at Birth", component: Select, data: ["Male", "Female", "Other"], required: true },
+      { span: 4, name: "civilStatus", label: "Civil Status", component: Select, data: ["Single", "Married", "Divorced", "Widowed"] },
+      { span: 4, name: "birthDate", label: "Date of Birth", component: TextInput, type: "date", required: true },
+      { span: 8, name: "birthPlace", label: "Place of Birth", component: TextInput },
+      { span: 4, name: "height", label: "Height (cm)", component: TextInput },
+      { span: 4, name: "weight", label: "Weight (kg)", component: TextInput },
+      { span: 4, name: "bloodType", label: "Blood Type", component: TextInput },
+      { span: 12, name: "idPicture", label: "ID Picture (Optional)", component: FileInput },
+    ],
+  },
+  {
+    key: "contact",
+    title: "Contact & Address",
+    description: "How to reach you.",
+    icon: IconHome,
+    required: ["mobile", "presentAddress"],
+    fields: [
+        { span: 6, name: "mobile", label: "Mobile Number", component: TextInput, required: true },
+        { span: 6, name: "email", label: "Email", component: TextInput, isStatic: true }, // Special case for email
+        { span: 12, name: "hometown", label: "Hometown/Permanent Address", component: Textarea },
+        { span: 12, name: "presentAddress", label: "Present Address", component: Textarea, required: true },
+        { span: 12, name: "facebook", label: "Facebook Account Name (Optional)", component: TextInput },
+    ]
+  },
+  {
+      key: "academics",
+      title: "Academic Information",
+      description: "Your UPV affiliation.",
+      icon: IconSchool,
+      required: ["classification", "degree"],
+      fields: [
+        { span: 6, name: "classification", label: "Classification", component: Select, data: ["Student", "Staff", "Faculty", "Alumni", "Kaibigan ng Pahinungod (non UPV)"], required: true },
+        { span: 6, name: "studentNumber", label: "Student Number (if applicable)", component: TextInput },
+        { span: 6, name: "campus", label: "Campus Affiliated", component: Select, data: ["Miagao", "Iloilo City"] },
+        { span: 6, name: "college", label: "College", component: Select, data: ["CAS", "CFOS", "CM", "SoTech", "SHS"] },
+        { span: 6, name: "degree", label: "Degree Program", component: Select, data: degreeOptions(), searchable: true, required: true },
+        { span: 6, name: "yearLevel", label: "Year Level", component: TextInput },
+        { span: 6, name: "yearGraduated", label: "Year Graduated (if alumni)", component: TextInput },
+      ]
+  },
+  {
+    key: "experience",
+    title: "Affiliations & Experience",
+    description: "Your work and organizations.",
+    icon: IconBriefcase,
+    required: [], // 
+    fields: [
+        { span: 6, name: "designation", label: "Designation (Work)", component: TextInput },
+        { span: 6, name: "organization", label: "Office/Company", component: TextInput },
+        { span: 12, name: "organizations", label: "Other Organization Memberships", component: Textarea, description: "List all other organizations you are a member of." },
+    ]
+  },
+  {
+    key: "skills",
+    title: "Skills & Interests",
+    description: "What you're good at and enjoy.",
+    icon: IconTools,
+    required: [], //
+    fields: [
+        { span: 12, name: "languages", label: "Languages/Dialects Spoken", component: Textarea },
+        { span: 12, name: "hobbies", label: "Talents or Hobbies", component: Textarea },
+        { span: 12, name: "skills", label: "Technical and Digital Skills", component: Textarea },
+        { span: 12, name: "expertise", label: "Areas of Expertise", component: Textarea },
+        { span: 12, name: "software", label: "Software or Tools", component: Textarea },
+    ]
+  },
+  {
+    key: "committees",
+    title: "Committee Preferences",
+    description: "Where you'd like to contribute.",
+    icon: IconHeartHandshake,
+    required: [], // 
+    fields: [
+        { span: 6, name: "committee1", label: "1st Committee Choice", component: Select, data: [], searchable: true },
+        { span: 6, name: "whyCommittee1", label: "Reason for 1st choice", component: Textarea },
+        { span: 6, name: "committee2", label: "2nd Committee Choice", component: Select, data: [], searchable: true },
+        { span: 6, name: "whyCommittee2", label: "Reason for 2nd choice", component: Textarea },
+        { span: 6, name: "committee3", label: "3rd Committee Choice", component: Select, data: [], searchable: true },
+        { span: 6, name: "whyCommittee3", label: "Reason for 3rd choice", component: Textarea },
+        { span: 12, name: "strengths", label: "What are your strengths as a volunteer?", component: Textarea },
+    ]
+  },
+  {
+      key: 'health',
+      title: 'Health Information',
+      description: 'Private medical information.',
+      icon: IconHealthRecognition,
+      required: [],
+      fields: [
+          { span: 12, name: "illness", label: "Physical/Psychological Illness or Disability", component: Textarea, description: "This information is confidential and for emergency purposes. If none, leave blank." },
+      ]
+  }
 ];
 
-const collegeOptions = ["CAS", "SOTCH", "CFOS", "CM"];
-const campusOptions = ["Miagao", "City"];
-const participantTypes = [
-  "Student",
-  "Staff",
-  "Faculty",
-  "Alumni",
-  "Kaibigan ng Pahinungod (non UPV)",
-];
-const sexOptions = ["Male", "Female", "Other"];
-const civilStatusOptions = ["Single", "Married", "Divorced", "Widowed"];
+function degreeOptions() {
+    return [
+      "BA (Communication & Media Studies)", "BA (Community Development)", "BA (History)", "BA (Sociology)",
+      "BA in Communication and Media Studies", "BA in Literature", "BA in Political Science", "BA in Psychology",
+      "BS (Biology)", "BS Accountancy (4.5 yrs)", "BS Applied Mathematics", "BS Business Administration (Marketing)",
+      "BS Chemical Engineering", "BS Chemistry", "BS Computer Science", "BS Economics", "BS Fisheries",
+      "BS Food Technology", "BS Management", "BS Public Health", "BS Statistics", "SHS - HUMSS", "SHS - GAS", "SHS - ABM", "SHS - STEM",
+    ];
+}
+const consentText = `I hereby consent to participate in UP Visayas Ugnayan ng Pahinungód/Oblation Corps (UPV UP/OC) activities as a volunteer. I understand that volunteering entails service which may be physically and mentally demanding. I also acknowledge the inherent risks, including but not limited to, physical injury, illness, and emotional distress. I voluntarily assume these risks. I release and hold harmless UPV UP/OC, its officers, and affiliates from any liability, claims, and demands arising from my participation. I grant permission for the use of my name, likeness, and photographic images for official purposes. Thus, I hereby declare the information provided as true and correct.`;
 
-const consentText = `I hereby consent to participate in UP Visayas Ugnayan ng Pahinungód/Oblation Corps (UPV UP/OC) activities as a volunteer. ... [full text as provided above] ... Thus, I hereby declare the information provided as true and correct.`;
 
 function VolunteerForm() {
   const user = useUser();
-  const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [form, setForm] = useState({
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    studentNumber: "",
-    idPicture: null,
-    nickname: "",
-    sex: "",
-    civilStatus: "",
-    birthDate: "",
-    birthPlace: "",
-    height: "",
-    weight: "",
-    bloodType: "",
-    languages: "",
-    mobile: "",
-    hometown: "",
-    presentAddress: "",
-    classification: "",
-    college: "",
-    degree: "",
-    yearLevel: "",
-    yearGraduated: "",
-    campus: "",
-    designation: "",
-    organization: "",
-    organizations: "",
-    illness: "",
-    arukahikJoinDate: "",
-    hobbies: "",
-    skills: "",
-    expertise: "",
-    software: "",
-    committee1: "",
-    whyCommittee1: "",
-    committee2: "",
-    whyCommittee2: "",
-    committee3: "",
-    whyCommittee3: "",
-    strengths: "",
-    committeeCount: "",
-    facebook: "",
+    email: user?.primaryEmail || "",
     consent: false,
   });
 
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedMunicipality, setSelectedMunicipality] = useState("");
-  const [selectedBarangay, setSelectedBarangay] = useState("");
+  const sectionProgress = useMemo(() => {
+    const progress = {};
+    let allRequiredComplete = true;
 
-  // Options for Address
-  const regionOptions = Object.entries(data).map(([key, value]) => ({
-    value: key,
-    label: value.region_name,
-  }));
-
-  const provinceOptions = selectedRegion
-    ? Object.keys(data[selectedRegion].province_list).map((prov) => ({
-        value: prov,
-        label: prov,
-      }))
-    : [];
-
-  const municipalityOptions =
-    selectedRegion && selectedProvince
-      ? Object.keys(
-          data[selectedRegion].province_list[selectedProvince].municipality_list
-        ).map((mun) => ({
-          value: mun,
-          label: mun,
-        }))
-      : [];
-
-  const barangayOptions =
-    selectedRegion && selectedProvince && selectedMunicipality
-      ? data[selectedRegion].province_list[selectedProvince].municipality_list[
-          selectedMunicipality
-        ].barangay_list.map((brgy) => ({
-          value: brgy,
-          label: brgy,
-        }))
-      : [];
-
-  const steps = [
-    {
-      label: "Personal Info",
-      content: (
-        <Stack gap="md">
-          <TextInput label="Email" value={user.primaryEmail} disabled />
-          <Group grow>
-            <TextInput
-              label="First Name"
-              required
-              value={form.firstName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, firstName: e.target.value }))
-              }
-            />
-            <TextInput
-              label="Middle Name"
-              value={form.middleName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, middleName: e.target.value }))
-              }
-            />
-            <TextInput
-              label="Last Name"
-              required
-              value={form.lastName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lastName: e.target.value }))
-              }
-            />
-          </Group>
-          <TextInput
-            label="Student Number"
-            required
-            value={form.studentNumber}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, studentNumber: e.target.value }))
-            }
-          />
-          <FileInput
-            label="ID Picture"
-            required
-            value={form.idPicture}
-            onChange={(file) => setForm((f) => ({ ...f, idPicture: file }))}
-          />
-          <TextInput
-            label="Nickname"
-            value={form.nickname}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, nickname: e.target.value }))
-            }
-          />
-          <Select
-            label="Sex Assigned at Birth"
-            data={sexOptions}
-            required
-            value={form.sex}
-            onChange={(v) => setForm((f) => ({ ...f, sex: v }))}
-          />
-          <Select
-            label="Civil Status"
-            data={civilStatusOptions}
-            value={form.civilStatus}
-            onChange={(v) => setForm((f) => ({ ...f, civilStatus: v }))}
-          />
-          <TextInput
-            label="Date of Birth"
-            type="date"
-            required
-            value={form.birthDate}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, birthDate: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Place of Birth"
-            value={form.birthPlace}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, birthPlace: e.target.value }))
-            }
-          />
-          <Group grow>
-            <TextInput
-              label="Height"
-              value={form.height}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, height: e.target.value }))
-              }
-            />
-            <TextInput
-              label="Weight"
-              value={form.weight}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, weight: e.target.value }))
-              }
-            />
-            <TextInput
-              label="Blood Type"
-              value={form.bloodType}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, bloodType: e.target.value }))
-              }
-            />
-          </Group>
-          <TextInput
-            label="Languages/Dialect Spoken"
-            value={form.languages}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, languages: e.target.value }))
-            }
-          />
-        </Stack>
-      ),
-    },
-    {
-      label: "Contact & Academic",
-      content: (
-        <Stack gap="md">
-          <TextInput
-            label="Mobile Number"
-            required
-            value={form.mobile}
-            onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))}
-          />
-          <TextInput
-            label="Hometown/Permanent Address"
-            value={form.hometown}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, hometown: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Present Address"
-            value={form.presentAddress}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, presentAddress: e.target.value }))
-            }
-          />
-          <Select
-            label="Classification"
-            data={participantTypes}
-            required
-            value={form.classification}
-            onChange={(v) => setForm((f) => ({ ...f, classification: v }))}
-          />
-          <Select
-            label="College"
-            data={collegeOptions}
-            value={form.college}
-            onChange={(v) => setForm((f) => ({ ...f, college: v }))}
-          />
-          <Select
-            label="Degree Program"
-            data={degreeOptions}
-            required
-            value={form.degree}
-            onChange={(v) => setForm((f) => ({ ...f, degree: v }))}
-          />
-          <TextInput
-            label="Year Level"
-            value={form.yearLevel}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, yearLevel: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Year Graduated"
-            value={form.yearGraduated}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, yearGraduated: e.target.value }))
-            }
-          />
-          <Select
-            label="Campus Affiliated"
-            data={campusOptions}
-            value={form.campus}
-            onChange={(v) => setForm((f) => ({ ...f, campus: v }))}
-          />
-        </Stack>
-      ),
-    },
-    {
-      label: "Work & Health",
-      content: (
-        <Stack gap="md">
-          <TextInput
-            label="Designation"
-            value={form.designation}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, designation: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Organization/Office/Company/Unit/Department"
-            value={form.organization}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, organization: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Organization(s)"
-            value={form.organizations}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, organizations: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Physical/Psychological Illness/Disability"
-            value={form.illness}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, illness: e.target.value }))
-            }
-          />
-          <TextInput
-            label="When did you join the Arukahík?"
-            value={form.arukahikJoinDate}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, arukahikJoinDate: e.target.value }))
-            }
-          />
-        </Stack>
-      ),
-    },
-    {
-      label: "Skills & Committees",
-      content: (
-        <Stack gap="md">
-          <TextInput
-            label="Talent or Hobbies"
-            value={form.hobbies}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, hobbies: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Technical and Digital Skills"
-            value={form.skills}
-            onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))}
-          />
-          <TextInput
-            label="Areas of Expertise"
-            value={form.expertise}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, expertise: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Software or Tools"
-            value={form.software}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, software: e.target.value }))
-            }
-          />
-          <TextInput
-            label="1st Committee Choice"
-            value={form.committee1}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, committee1: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Why is it your first choice?"
-            value={form.whyCommittee1}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, whyCommittee1: e.target.value }))
-            }
-          />
-          <TextInput
-            label="2nd Committee Choice"
-            value={form.committee2}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, committee2: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Why is it your second choice?"
-            value={form.whyCommittee2}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, whyCommittee2: e.target.value }))
-            }
-          />
-          <TextInput
-            label="3rd Committee Choice"
-            value={form.committee3}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, committee3: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Why is it your third choice?"
-            value={form.whyCommittee3}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, whyCommittee3: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Strengths as a Volunteer"
-            value={form.strengths}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, strengths: e.target.value }))
-            }
-          />
-          <TextInput
-            label="How many committees would you like to be a part of?"
-            value={form.committeeCount}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, committeeCount: e.target.value }))
-            }
-          />
-          <TextInput
-            label="Facebook Account Name"
-            value={form.facebook}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, facebook: e.target.value }))
-            }
-          />
-        </Stack>
-      ),
-    },
-    {
-      label: "Consent & Preview",
-      content: (
-        <Stack gap="md">
-          <Alert color="yellow">{consentText}</Alert>
-          <Checkbox
-            label="I agree to the terms and consent above"
-            checked={form.consent}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, consent: e.target.checked }))
-            }
-            required
-          />
-          <Title order={4}>Preview</Title>
-          <Paper p="md" shadow="xs">
-            <Text size="sm">
-              <strong>Name:</strong>{" "}
-              {`${form.lastName.toUpperCase()}, ${form.firstName} ${
-                form.middleName
-              }`}
-              <br />
-              <strong>Email:</strong> {user.primaryEmail}
-              <br />
-              <strong>Degree:</strong> {form.degree}
-              <br />
-            </Text>
-          </Paper>
-        </Stack>
-      ),
-    },
-  ];
-
-  function validateStep() {
-    switch (step) {
-      case 0:
-        if (
-          !form.firstName ||
-          !form.lastName ||
-          !form.studentNumber ||
-          !form.sex ||
-          !form.idPicture ||
-          !form.birthDate
-        )
-          return false;
-        break;
-      case 1:
-        if (!form.mobile || !form.classification || !form.degree) return false;
-        break;
-      // Add more cases for other steps
-      default:
-        return true;
+    for (const section of SECTIONS) {
+      const requiredFields = section.required;
+      // If there are no required fields, progress is not tracked
+      //  show progress based on any field being filled.
+      if (requiredFields.length === 0) {
+        const totalFields = section.fields.length;
+        const filledCount = section.fields.filter(f => form[f.name]).length;
+        progress[section.key] = (filledCount / totalFields) * 100;
+      } else {
+        const filledCount = requiredFields.filter(field => form[field]).length;
+        const sectionP = (filledCount / requiredFields.length) * 100;
+        progress[section.key] = sectionP;
+        if (sectionP < 100) allRequiredComplete = false;
+      }
     }
-    return true;
-  }
+    progress.all = allRequiredComplete;
+    return progress;
+  }, [form]);
 
-  function handleNext() {
-    if (!validateStep()) {
-      alert("Please fill all required fields before continuing.");
+
+  const handleSubmit = async () => {
+    if (!sectionProgress.all || !form.consent) {
+      setError("Please complete all required sections and agree to the consent form before submitting.");
       return;
     }
-    setStep(step + 1);
-  }
+    setLoading(true);
+    setError("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/users/complete-profile",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            authUserId: user.id,
-            firstName: form.firstName,
-            middleName: form.middleName,
-            lastName: form.lastName,
-            studentNumber: form.studentNumber,
-            nickname: form.nickname,
-            sex: form.sex,
-            civilStatus: form.civilStatus,
-            birthDate: form.birthDate,
-            birthPlace: form.birthPlace,
-            height: form.height,
-            weight: form.weight,
-            bloodType: form.bloodType,
-            languages: form.languages,
-            mobile: form.mobile,
-            hometown: form.hometown,
-            presentAddress: form.presentAddress,
-            classification: form.classification,
-            college: form.college,
-            degree: form.degree,
-            yearLevel: form.yearLevel,
-            yearGraduated: form.yearGraduated,
-            campus: form.campus,
-            designation: form.designation,
-            organization: form.organization,
-            organizations: form.organizations,
-            illness: form.illness,
-            arukahikJoinDate: form.arukahikJoinDate,
-            hobbies: form.hobbies,
-            skills: form.skills,
-            expertise: form.expertise,
-            software: form.software,
-            committee1: form.committee1,
-            whyCommittee1: form.whyCommittee1,
-            committee2: form.committee2,
-            whyCommittee2: form.whyCommittee2,
-            committee3: form.committee3,
-            whyCommittee3: form.whyCommittee3,
-            strengths: form.strengths,
-            facebook: form.facebook,
-          }),
-        }
-      );
-
+      const { email, ...formData } = form;
+      const response = await fetch("http://localhost:3000/api/users/complete-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, authUserId: user.id }),
+      });
       const data = await response.json();
-      if (!response.ok) {
-        console.error("Backend error:", data);
-        alert("Failed to save profile: " + data.error);
-        return;
-      }
-
-      console.log("Profile saved successfully:", data.data);
-      alert("Profile saved successfully!");
+      if (!response.ok) throw new Error(data.error || "Failed to save profile.");
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Failed to update information");
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container
-      size="sm"
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        backgroundColor:
-          colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
-      }}
-    >
-      <Paper shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
-        <Stack gap="xl">
-          <Title order={2} ta="center">
-            UPV UP/OC Volunteer Form
-          </Title>
-          <Text size="sm" ta="center">
-            {steps[step].label}
-          </Text>
-          {steps[step].content}
-          <Group justify="apart" mt="md">
-            <Button disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
-              Back
-            </Button>
-            {step < steps.length - 1 ? (
-              <Button onClick={handleNext}>Next</Button>
-            ) : (
-              <Button
-                color="green"
-                disabled={!form.consent}
-                onClick={handleSubmit}
-              >
-                Submit
-              </Button>
-            )}
-          </Group>
-        </Stack>
-      </Paper>
+    <Container size="lg" my="xl">
+        <Outlet context={{ sections: SECTIONS, form, setForm }} />
+
+        {location.pathname === '/volunteer-form' && (
+            <Stack>
+                <Title order={2} ta="center">Volunteer Information Sheet</Title>
+                <Text c="dimmed" size="sm" ta="center" mb="xl">
+                    Complete each section to finalize your application. Your progress is saved as you go.
+                </Text>
+
+                {error && (
+                    <Alert title="Error" color="red" icon={<IconExclamationCircle />} withCloseButton onClose={() => setError("")} mb="md">
+                    {error}
+                    </Alert>
+                )}
+
+                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
+                    {SECTIONS.map((section) => (
+                        <SectionCard
+                            key={section.key}
+                            section={section}
+                            progress={sectionProgress[section.key]}
+                            isRequired={section.required.length > 0}
+                        />
+                    ))}
+                </SimpleGrid>
+
+                <Paper withBorder p="xl" mt="xl" radius="md" shadow="sm">
+                    <Stack>
+                        <Title order={4}>Consent and Finalization</Title>
+                        <Text size="sm" c="dimmed">{consentText}</Text>
+                        <Checkbox
+                            name="consent"
+                            checked={form.consent}
+                            onChange={(e) => setForm(f => ({...f, consent: e.target.checked}))}
+                            label="I have read, understood, and agree to the terms and conditions stated above."
+                            required
+                        />
+                         <Group justify="flex-end" mt="md">
+                            <Button
+                                size="lg"
+                                color="green"
+                                disabled={!sectionProgress.all || !form.consent}
+                                loading={loading}
+                                onClick={handleSubmit}
+                            >
+                                Submit Full Application
+                            </Button>
+                        </Group>
+                    </Stack>
+                </Paper>
+            </Stack>
+        )}
     </Container>
   );
+}
+
+function SectionCard({ section, progress, isRequired }) {
+    const isComplete = progress === 100;
+    const navigate = useNavigate();
+
+    return (
+        <Card withBorder shadow="sm" radius="md" component={Link} to={`/volunteer-form/${section.key}`} td="none">
+            <Stack align="center" gap="md">
+                 <RingProgress
+                    size={80}
+                    thickness={6}
+                    roundCaps
+                    sections={[{ value: progress, color: isComplete ? 'teal' : 'brand' }]}
+                    label={
+                        isComplete ? (
+                            <IconCheck style={{ width: 20, height: 20 }} stroke={2.5} color="var(--mantine-color-teal-7)" />
+                        ) : (
+                            <Text c="dimmed" size="xs" ta="center" fw={700}>
+                                {Math.round(progress)}%
+                            </Text>
+                        )
+                    }
+                />
+                 <Stack align="center" gap={4} mt="xs">
+                     <Text fw={600} ta="center">{section.title}</Text>
+                     <Text size="xs" c="dimmed" ta="center" h={32}>
+                        {section.description}
+                        {isRequired && <Text span c="red" inherit> *Required</Text>}
+                     </Text>
+                </Stack>
+                 <Button variant="light" fullWidth mt="sm" color={isComplete ? 'gray' : 'brand'}>
+                    {isComplete ? 'View / Edit' : 'Start'}
+                </Button>
+            </Stack>
+        </Card>
+    )
 }
 
 export default VolunteerForm;

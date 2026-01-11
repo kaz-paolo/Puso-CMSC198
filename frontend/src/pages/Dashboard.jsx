@@ -97,9 +97,9 @@ function Home() {
             p="xl"
             style={{ flex: 2, minWidth: 0 }}
           >
-            <Title order={2}>Welcome to PUSO</Title>
+            <Title order={2}>Welcome to PULSO</Title>
             <Text c="dimmed" mt="sm">
-              Pahinungod Unified System for Operations.
+              Pahinungod Unified Lingkod System for Operations.
             </Text>
           </Paper>
           <Paper

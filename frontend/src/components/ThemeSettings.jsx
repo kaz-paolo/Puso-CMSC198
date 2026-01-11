@@ -15,7 +15,7 @@ const platformOptions = [
 ];
 
 export function ThemeSettings({ opened, onClose }) {
-  const { primaryColor, changePrimaryColor, currentColors, platform, setPlatform } = useTheme();
+  const { primaryColor, changePrimaryColor, currentColors, platform, setPlatform, fontSize, changeFontSize } = useTheme();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const mantineTheme = useMantineTheme();
 
@@ -49,6 +49,17 @@ export function ThemeSettings({ opened, onClose }) {
           </Group>
         </div>
 
+        <div>
+          <Text size="sm" fw={600} mb="sm">
+            Font Size
+          </Text>
+          <Group>
+            <Button variant={fontSize === 14 ? 'filled' : 'outline'} onClick={() => changeFontSize(14)}>Small</Button>
+            <Button variant={fontSize === 16 ? 'filled' : 'outline'} onClick={() => changeFontSize(16)}>Regular</Button>
+            <Button variant={fontSize === 18 ? 'filled' : 'outline'} onClick={() => changeFontSize(18)}>Large</Button>
+          </Group>
+        </div>
+++++++++++++++
         {/* Color Scheme Section */}
         <div>
           <Text size="sm" fw={600} mb="sm">
