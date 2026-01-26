@@ -52,7 +52,7 @@ function NavBar() {
 
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/basic-info/${user.id}`
+          `http://localhost:3000/api/users/basic-info/${user.id}`,
         );
         const data = await res.json();
 
@@ -166,7 +166,8 @@ function NavBar() {
         <NavLink
           label="Settings"
           leftSection={<IconSettings size={20} />}
-          color="brand"onClick={(e) => {
+          color="brand"
+          onClick={(e) => {
             e.preventDefault();
             navigate("/settings");
           }}

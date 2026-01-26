@@ -1,6 +1,20 @@
-import { Modal, Text, Badge, Group, Stack, Button, Divider, useMantineTheme } from '@mantine/core';
-import { IconCalendar, IconMapPin, IconUsers, IconClock } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import {
+  Modal,
+  Text,
+  Badge,
+  Group,
+  Stack,
+  Button,
+  Divider,
+  useMantineTheme,
+} from "@mantine/core";
+import {
+  IconCalendar,
+  IconMapPin,
+  IconUsers,
+  IconClock,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 function EventDetailsModal({ opened, onClose, eventId }) {
   const theme = useMantineTheme();
@@ -29,14 +43,20 @@ function EventDetailsModal({ opened, onClose, eventId }) {
     setLoading(false);
   };
   const statusColors = {
-    upcoming: 'blue',
-    ongoing: 'green',
-    completed: 'gray',
+    upcoming: "blue",
+    ongoing: "green",
+    completed: "gray",
   };
 
   if (loading) {
     return (
-      <Modal opened={opened} onClose={onClose} title="Event Details" size="lg" centered>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="Event Details"
+        size="lg"
+        centered
+      >
         <Text>Loading...</Text>
       </Modal>
     );
@@ -44,7 +64,13 @@ function EventDetailsModal({ opened, onClose, eventId }) {
 
   if (!event) {
     return (
-      <Modal opened={opened} onClose={onClose} title="Event Details" size="lg" centered>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="Event Details"
+        size="lg"
+        centered
+      >
         <Text>Event not found</Text>
       </Modal>
     );
@@ -71,7 +97,9 @@ function EventDetailsModal({ opened, onClose, eventId }) {
         <Divider />
 
         <Stack gap="sm">
-          <Text fw={600} size="md">Description</Text>
+          <Text fw={600} size="md">
+            Description
+          </Text>
           <Text size="sm" c="dimmed">
             {event.description}
           </Text>
@@ -80,16 +108,18 @@ function EventDetailsModal({ opened, onClose, eventId }) {
         <Divider />
 
         <Stack gap="md">
-          <Text fw={600} size="md">Event Information</Text>
-          
+          <Text fw={600} size="md">
+            Event Information
+          </Text>
+
           <Group gap="xs">
             <IconCalendar size={20} color={theme.colors.gray[6]} />
             <Text size="sm">
-              {new Date(event.date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+              {new Date(event.date).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </Text>
           </Group>
@@ -107,7 +137,8 @@ function EventDetailsModal({ opened, onClose, eventId }) {
           <Group gap="xs">
             <IconUsers size={20} color={theme.colors.gray[6]} />
             <Text size="sm">
-              {event.volunteerCount} {event.volunteerCount === 1 ? 'Volunteer' : 'Volunteers'}
+              {event.volunteer_count}{" "}
+              {event.volunteer_count === 1 ? "Volunteer" : "Volunteers"}
             </Text>
           </Group>
         </Stack>

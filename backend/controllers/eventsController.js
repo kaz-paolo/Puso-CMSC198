@@ -78,7 +78,7 @@ export async function joinEvent(req, res) {
     const userId = users[0].id;
 
     const registration = await sql`
-      INSERT INTO event_registrations (user_id, event_id, registration_status)
+      INSERT INTO event_volunteers (user_id, event_id, volunteer_status)
       VALUES (${userId}, ${eventId}, 'joined')
       ON CONFLICT (user_id, event_id)
       DO NOTHING
@@ -111,7 +111,7 @@ export async function getEventVolunteers(req, res) {
 
     const volunteers = await sql`
       SELECT ui.id, ui.first_name, ui.last_name, ui.role, ui.student_number, ui.degree
-      FROM event_registrations er
+      FROM event_volunteers er
       JOIN user_info ui ON er.user_id = ui.id
       WHERE er.event_id = ${eventId}
     `;

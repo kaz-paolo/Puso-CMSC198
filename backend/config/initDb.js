@@ -36,14 +36,14 @@ export async function initDb() {
       );
     `;
 
-    await sql`
-      CREATE TABLE IF NOT EXISTS event_registrations (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-        registration_status VARCHAR(50) NOT NULL
-      );
-    `;
+    // await sql`
+    //   CREATE TABLE IF NOT EXISTS event_registrations (
+    //     id SERIAL PRIMARY KEY,
+    //     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    //     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    //     registration_status VARCHAR(50) NOT NULL
+    //   );
+    // `;
 
     await sql`
       CREATE TABLE IF NOT EXISTS event_attendance (
@@ -71,14 +71,14 @@ export async function initDb() {
       );
     `;
 
-    await sql`
-      CREATE TABLE IF NOT EXISTS committee_members (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        committee_id INTEGER NOT NULL REFERENCES event_committees(id) ON DELETE CASCADE,
-        role VARCHAR(255) NOT NULL
-      );
-    `;
+    // await sql`
+    //   CREATE TABLE IF NOT EXISTS committee_members (
+    //     id SERIAL PRIMARY KEY,
+    //     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    //     committee_id INTEGER NOT NULL REFERENCES event_committees(id) ON DELETE CASCADE,
+    //     role VARCHAR(255) NOT NULL
+    //   );
+    // `;
 
     console.log("Database initialized successfully.");
   } catch (error) {
