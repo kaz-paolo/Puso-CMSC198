@@ -29,9 +29,10 @@ function Events() {
 
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/basic-info/${user.id}`
+          `http://localhost:3000/api/users/${user.id}/basic-info`,
         );
         const data = await res.json();
+        console.log("events.jsx: fetch basic info");
 
         if (data.success) setUserProfile(data.data);
       } catch (err) {
@@ -68,7 +69,7 @@ function Events() {
         (event) =>
           event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          event.description.toLowerCase().includes(searchQuery.toLowerCase())
+          event.description.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
