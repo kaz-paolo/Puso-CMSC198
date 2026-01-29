@@ -94,7 +94,7 @@ function Profile() {
       setLoading(true);
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/basic-info/${user.id}`,
+          `http://localhost:3000/api/users/${user.id}/basic-info`,
         );
         const data = await res.json();
         console.log("profile.jsx: fetch basic info");
