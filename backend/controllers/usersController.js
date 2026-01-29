@@ -231,3 +231,27 @@ export const getCompleteInfo = async (req, res) => {
     console.error(error);
   }
 };
+
+export async function getUserUpcomingEvents(req, res) {
+  try {
+    const { userId } = req.params;
+
+    const events = await sql`
+      SELECT 
+        e.id,
+        e.event_name,
+        e.date
+      FROM event_volunteers ev
+      JOIN events e ON er.event_id = e.id
+      WHERE ev.user_id = ${userId}
+        AND e.date >= NOW()
+      ORDER BY e.date ASC
+      LIMIT 5
+    `;
+
+    res.json({ success: true, data: events });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Failed to fetch events" });
+  }
+}
