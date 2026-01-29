@@ -131,6 +131,16 @@ function Auth() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Group justify="space-between" align="center">
+            <Anchor
+              component="button"
+              type="button"
+              size="xs"
+              onClick={() => setView("signup")}
+            >
+              Create an account
+            </Anchor>
+          </Group>
           <Button
             type="submit"
             fullWidth
@@ -196,6 +206,61 @@ function Auth() {
     </>
   );
 
+  const renderSignup = () => (
+    <>
+      <Group>
+        <ActionIcon variant="light" onClick={() => setView("login")}>
+          <IconArrowLeft />
+        </ActionIcon>
+        <Title order={3}>Create an Account</Title>
+      </Group>
+      <Text size="sm" c="dimmed">
+        Please enter your details to create an account.
+      </Text>
+
+      {error && (
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          color="red"
+          variant="light"
+          onClose={() => setError("")}
+          withCloseButton
+        >
+          {error}
+        </Alert>
+      )}
+
+      <form onSubmit={handleEmailAuth}>
+        <Stack gap="md">
+          <TextInput
+            label="Email"
+            placeholder="your@email.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+          />
+          <PasswordInput
+            label="Password"
+            placeholder="Your password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            loading={loading}
+            color="primary"
+            size="md"
+          >
+            Sign Up
+          </Button>
+        </Stack>
+      </form>
+    </>
+  );
+
   const renderRecover = () => (
     <>
       <Group>
@@ -255,6 +320,7 @@ function Auth() {
         >
           <Stack gap="md">
             {view === "login" && renderLogin()}
+            {view === "signup" && renderSignup()}
             {view === "recover" && renderRecover()}
           </Stack>
         </Paper>
