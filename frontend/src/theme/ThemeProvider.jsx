@@ -1,14 +1,17 @@
-import { MantineProvider, createTheme } from '@mantine/core';
-import { useState, useEffect, createContext, useContext } from 'react';
-import { themeColors } from './colors';
+import { MantineProvider, createTheme } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
+import { useState, useEffect, createContext, useContext, useMemo } from "react";
+import { themeColors } from "./colors";
 
 const platformFonts = {
-  system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  default: 'Open Sans, system-ui, Avenir, Helvetica, Arial, sans-serif',
-  windows: 'Segoe UI, Arial, sans-serif',
+  system:
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  default: "Open Sans, system-ui, Avenir, Helvetica, Arial, sans-serif",
+  windows: "Segoe UI, Arial, sans-serif",
   ios: '-apple-system, BlinkMacSystemFont, "San Francisco", Arial, sans-serif',
-  android: 'Roboto, Arial, sans-serif',
-  macos: '-apple-system, BlinkMacSystemFont, "San Francisco", Arial, sans-serif',
+  android: "Roboto, Arial, sans-serif",
+  macos:
+    '-apple-system, BlinkMacSystemFont, "San Francisco", Arial, sans-serif',
 };
 
 const ThemeContext = createContext();
@@ -16,74 +19,47 @@ const ThemeContext = createContext();
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    throw new Error("useTheme must be used within ThemeProvider");
   }
   return context;
 };
 
-function generateColorShades(baseColor) {
-  return [
-    lighten(baseColor, 0.9),  //  lightest
-    lighten(baseColor, 0.7),  
-    lighten(baseColor, 0.5),  
-    lighten(baseColor, 0.3),  
-    lighten(baseColor, 0.15), 
-    lighten(baseColor, 0.05), 
-    baseColor,                // base
-    darken(baseColor, 0.1),   
-    darken(baseColor, 0.2), 
-    darken(baseColor, 0.3),   // 9 - darkest
-  ];
-}
-
-function lighten(color, amount) {
-  return '#' + color.replace(/^#/, '').replace(/../g, 
-    color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + Math.round(255 * amount))).toString(16)).substr(-2)
-  );
-}
-
-function darken(color, amount) {
-  return '#' + color.replace(/^#/, '').replace(/../g, 
-    color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) - Math.round(255 * amount))).toString(16)).substr(-2)
-  );
-}
-
 export function ThemeProvider({ children }) {
   const [colorScheme, setColorScheme] = useState(() => {
-    return localStorage.getItem('colorScheme') || 'light';
+    return localStorage.getItem("colorScheme") || "light";
   });
-  
+
   const [primaryColor, setPrimaryColor] = useState(() => {
-    return localStorage.getItem('primaryColor') || 'ocean';
+    return localStorage.getItem("primaryColor") || "maroon";
   });
 
   const [platform, setPlatform] = useState(() => {
-    return localStorage.getItem('platform') || 'default';
+    return localStorage.getItem("platform") || "default";
   });
 
   const [fontSize, setFontSize] = useState(() => {
-    const storedFontSize = localStorage.getItem('fontSize');
+    const storedFontSize = localStorage.getItem("fontSize");
     return storedFontSize ? parseInt(storedFontSize, 10) : 16;
   });
 
   useEffect(() => {
-    localStorage.setItem('colorScheme', colorScheme);
+    localStorage.setItem("colorScheme", colorScheme);
   }, [colorScheme]);
 
   useEffect(() => {
-    localStorage.setItem('primaryColor', primaryColor);
+    localStorage.setItem("primaryColor", primaryColor);
   }, [primaryColor]);
 
   useEffect(() => {
-    localStorage.setItem('platform', platform);
+    localStorage.setItem("platform", platform);
   }, [platform]);
 
   useEffect(() => {
-    localStorage.setItem('fontSize', fontSize);
+    localStorage.setItem("fontSize", fontSize);
   }, [fontSize]);
 
   const toggleColorScheme = (value) => {
-    setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
   };
 
   const changePrimaryColor = (color) => {
@@ -96,39 +72,47 @@ export function ThemeProvider({ children }) {
 
   const currentColors = themeColors[primaryColor] || themeColors.ocean;
 
-  // Mantine theme configuration
-  const theme = createTheme({
-    primaryColor: 'brand',
-    colors: {
-      brand: generateColorShades(currentColors.primary),
-    },
-    defaultRadius: 'md',
-    fontFamily: platformFonts[platform] || platformFonts.default,
-    fontSizes: {
-      xs: `${fontSize * 0.625}px`,
-      sm: `${fontSize * 0.75}px`,
-      md: `${fontSize * 0.875}px`,
-      lg: `${fontSize}px`,
-      xl: `${fontSize * 1.125}px`,
-    },
-    components: {
-      Button: {
-        defaultProps: {
-          color: 'brand',
+  const theme = useMemo(
+    () =>
+      createTheme({
+        primaryColor: "primary",
+        colors: {
+          primary: currentColors.primary,
+          secondary: currentColors.secondary,
+          accent: currentColors.accent,
+          success: currentColors.success,
+          warning: currentColors.warning,
+          error: currentColors.error,
         },
-      },
-      ActionIcon: {
-        defaultProps: {
-          color: 'brand',
+        defaultRadius: "md",
+        fontFamily: platformFonts[platform] || platformFonts.default,
+        fontSizes: {
+          xs: `${fontSize * 0.625}px`,
+          sm: `${fontSize * 0.75}px`,
+          md: `${fontSize * 0.875}px`,
+          lg: `${fontSize}px`,
+          xl: `${fontSize * 1.125}px`,
         },
-      },
-      NavLink: {
-        defaultProps: {
-          color: 'brand',
+        components: {
+          Button: {
+            defaultProps: {
+              color: "primary",
+            },
+          },
+          ActionIcon: {
+            defaultProps: {
+              color: "primary",
+            },
+          },
+          NavLink: {
+            defaultProps: {
+              color: "primary",
+            },
+          },
         },
-      },
-    },
-  });
+      }),
+    [currentColors, platform, fontSize],
+  );
 
   const value = {
     colorScheme,
@@ -145,6 +129,7 @@ export function ThemeProvider({ children }) {
   return (
     <ThemeContext.Provider value={value}>
       <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
+        <Notifications />
         {children}
       </MantineProvider>
     </ThemeContext.Provider>

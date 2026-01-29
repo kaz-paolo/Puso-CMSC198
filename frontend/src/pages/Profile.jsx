@@ -94,7 +94,7 @@ function Profile() {
       setLoading(true);
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/basic-info/${user.id}`
+          `http://localhost:3000/api/users/basic-info/${user.id}`,
         );
         const data = await res.json();
 
@@ -182,8 +182,8 @@ function Profile() {
             top: 0,
             left: 0,
             right: 0,
-            height: 60, // Reduced height
-            background: `linear-gradient(45deg, ${theme.colors.brand[6]}, ${theme.colors.brand[4]})`,
+            height: 60,
+            background: `linear-gradient(45deg, ${theme.colors.primary[6]}, ${theme.colors.primary[4]})`,
             zIndex: 0,
           }}
         />
@@ -202,7 +202,7 @@ function Profile() {
             size={100}
             radius={100}
             src={null}
-            color="brand"
+            color="primary"
             style={{
               border: `4px solid ${
                 colorScheme === "dark" ? theme.colors.dark[7] : theme.white
@@ -232,7 +232,7 @@ function Profile() {
       <Grid>
         <Grid.Col span={{ base: 12, md: 8 }}>
           <Paper shadow="sm" radius="md" p="md" style={{ minHeight: 400 }}>
-            <Tabs value={activeTab} onChange={setActiveTab} color="brand">
+            <Tabs value={activeTab} onChange={setActiveTab} color="primary">
               <Tabs.List mb="md">
                 <Tabs.Tab value="details" leftSection={<IconUser size={18} />}>
                   Details
@@ -340,7 +340,7 @@ function Profile() {
                   <Group mt="md">
                     <Button
                       variant={isEditing ? "filled" : "light"}
-                      color={isEditing ? "green" : "brand"}
+                      color={isEditing ? "green" : "primary"}
                       leftSection={
                         isEditing ? (
                           <IconCheck size={18} />
@@ -404,7 +404,7 @@ function Profile() {
                         Receive updates about upcoming events
                       </Text>
                     </div>
-                    <Switch defaultChecked color="brand" />
+                    <Switch defaultChecked color="primary" />
                   </Group>
                   <Group justify="space-between">
                     <div>
@@ -413,7 +413,7 @@ function Profile() {
                         Allow other committee members to see your profile
                       </Text>
                     </div>
-                    <Switch defaultChecked color="brand" />
+                    <Switch defaultChecked color="primary" />
                   </Group>
                 </Stack>
               </Tabs.Panel>
@@ -431,7 +431,7 @@ function Profile() {
               <Grid>
                 <Grid.Col span={6}>
                   <Stack gap={0} align="center">
-                    <Text fz="xl" fw={700} c="brand">
+                    <Text fz="xl" fw={700} c="primary">
                       18
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -441,7 +441,7 @@ function Profile() {
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <Stack gap={0} align="center">
-                    <Text fz="xl" fw={700} c="brand">
+                    <Text fz="xl" fw={700} c="primary">
                       3
                     </Text>
                     <Text size="xs" c="dimmed">
@@ -461,7 +461,6 @@ function Profile() {
                   L
                 </Avatar>
                 <div>
-                  {/* HARDCODED */}
                   <Text size="sm" fw={500}>
                     Logistics
                   </Text>

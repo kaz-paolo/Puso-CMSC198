@@ -99,7 +99,7 @@ function NavBar() {
         <NavLink
           label="Home"
           leftSection={<IconHome size={20} />}
-          color="brand"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             navigate("/dashboard");
@@ -108,7 +108,7 @@ function NavBar() {
         <NavLink
           label="Events"
           leftSection={<IconCalendar size={20} />}
-          color="brand"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             // setActiveLink(link);
@@ -118,7 +118,7 @@ function NavBar() {
         <NavLink
           label="Committee"
           leftSection={<IconUsers size={20} />}
-          color="brand"
+          color="primary"
         />
 
         <Divider my="md" />
@@ -130,17 +130,17 @@ function NavBar() {
         <NavLink
           label="EventName"
           leftSection={<IconCalendar size={20} />}
-          color="brand"
+          color="primary"
         />
         <NavLink
           label="EventName"
           leftSection={<IconCalendar size={20} />}
-          color="brand"
+          color="primary"
         />
         <NavLink
           label="More"
           leftSection={<IconChevronRight size={20} />}
-          color="brand"
+          color="primary"
         />
 
         <Divider my="md" />
@@ -148,7 +148,7 @@ function NavBar() {
         <NavLink
           label="Resources"
           leftSection={<IconBook size={20} />}
-          color="brand"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             navigate("/resources");
@@ -157,7 +157,7 @@ function NavBar() {
         <NavLink
           label="Feedback"
           leftSection={<IconMessageCircle size={20} />}
-          color="brand"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             navigate("/feedback");
@@ -166,7 +166,7 @@ function NavBar() {
         <NavLink
           label="Settings"
           leftSection={<IconSettings size={20} />}
-          color="brand"
+          color="primary"
           onClick={(e) => {
             e.preventDefault();
             navigate("/settings");
@@ -212,7 +212,7 @@ function NavBar() {
             }}
             onClick={() => navigate("/profile")}
           >
-            <Avatar radius="xl" size="md" color="brand">
+            <Avatar radius="xl" size="md" color="primary">
               {userInitials}
             </Avatar>
             <Stack gap={0} style={{ flex: 1 }}>

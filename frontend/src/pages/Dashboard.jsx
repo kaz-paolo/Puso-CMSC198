@@ -23,7 +23,7 @@ function Home() {
   const user = useUser();
   const navigate = useNavigate();
 
-  // Example infoData definition
+  // Example data
   const infoData = [
     { label: "Total Volunteers", value: 120 },
     { label: "Upcoming Events", value: 4 },
@@ -45,7 +45,7 @@ function Home() {
         const res = await fetch("http://localhost:3000/api/events");
         const data = await res.json();
         if (data.success) {
-          // Only show upcoming events, sort by date, and limit to 3
+          // show upcoming events, sort by date, and limit to 3
           const upcoming = data.data
             .filter((e) => e.status === "upcoming")
             .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -71,7 +71,7 @@ function Home() {
     return null;
   }
 
-  // Example announcements definition
+  // Example announcements
   const announcements = [
     {
       title: "Form Change Notice",
@@ -111,7 +111,7 @@ function Home() {
             <Group gap="md" align="center" justify="center">
               <IconBell
                 size={32}
-                color={theme.colors.brand?.[6] || theme.primaryColor}
+                color={theme.colors.primary?.[6] || theme.primaryColor}
               />
               <Text fw={600} size="lg">
                 Notifications
@@ -176,7 +176,7 @@ function Home() {
                     <Group gap="xs">
                       <IconCalendar
                         size={18}
-                        color={theme.colors.brand?.[6] || theme.primaryColor}
+                        color={theme.colors.primary?.[6] || theme.primaryColor}
                       />
                       <Text fw={500}>{event.event_name}</Text>
                     </Group>
@@ -191,7 +191,7 @@ function Home() {
                       mt="md"
                       size="xs"
                       variant="light"
-                      color="brand"
+                      color="primary"
                       fullWidth
                       onClick={() => navigate(`/events/${event.id}`)}
                     >

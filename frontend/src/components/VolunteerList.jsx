@@ -38,11 +38,14 @@ function VolunteerList({ volunteers }) {
   const filteredVolunteers = (volunteers || [])
     .filter(
       (v) =>
-        (v.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (v.committee || "").toLowerCase().includes(searchQuery.toLowerCase())
+        (v.first_name || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (v.last_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (v.committee || "").toLowerCase().includes(searchQuery.toLowerCase()),
     )
     .filter((v) =>
-      committeeFilter === "All" ? true : v.committee === committeeFilter
+      committeeFilter === "All" ? true : v.committee === committeeFilter,
     )
     .filter((v) => (batchFilter === "All" ? true : v.batch === batchFilter));
 
@@ -110,7 +113,7 @@ function VolunteerList({ volunteers }) {
               <Paper key={volunteer.id} p="sm" withBorder>
                 <Group justify="space-between">
                   <Group gap="sm">
-                    <Avatar color="brand" radius="xl">
+                    <Avatar color="primary" radius="xl">
                       {volunteer.first_name[0]}
                       {volunteer.last_name[0]}
                     </Avatar>

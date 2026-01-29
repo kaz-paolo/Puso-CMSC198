@@ -8,6 +8,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import { stackClientApp } from "./stack/stack.js";
+import "@mantine/dates/styles.css";
+import "./App.css";
 
 import Home from "./pages/Home.jsx";
 import Auth from "./pages/Auth.jsx";
@@ -15,15 +17,13 @@ import Dashboard from "./pages/Dashboard.jsx";
 import VolunteerForm from "./pages/VolunteerForm.jsx";
 import FormSectionPage from "./pages/FormSectionPage.jsx";
 import Profile from "./pages/Profile.jsx";
-import "@mantine/dates/styles.css";
-import "./App.css";
 import Events from "./pages/Events.jsx";
 import EventDashboard from "./pages/EventDashboard";
 import Resources from "./pages/Resources.jsx";
 import Feedback from "./pages/Feedback.jsx";
 import Settings from "./pages/Settings.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
-
+import VolunteerApplication from "./pages/VolunteerApplication.jsx";
 
 function HandlerRoutes() {
   const location = useLocation();
@@ -35,12 +35,16 @@ function HandlerRoutes() {
 function App() {
   return (
     <BrowserRouter>
-        <Suspense fallback={null}>
+      <Suspense fallback={null}>
         <StackProvider app={stackClientApp}>
           <StackTheme>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/volunteerapplication"
+                element={<VolunteerApplication />}
+              />
 
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />

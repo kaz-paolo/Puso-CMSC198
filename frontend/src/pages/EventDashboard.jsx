@@ -12,7 +12,9 @@ import {
   Loader,
   Center,
   Tabs,
+  rgba,
 } from "@mantine/core";
+import { useMantineColorScheme } from "@mantine/core";
 import {
   IconUsers,
   IconClipboardList,
@@ -154,6 +156,7 @@ const PLACEHOLDER_DATA = {
 function EventDashboard() {
   const { eventId } = useParams();
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
   const [loading, setLoading] = useState(true);
 
   // Dashboard data state
@@ -174,7 +177,7 @@ function EventDashboard() {
   const fetchVolunteers = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/events/${eventId}/volunteers`
+        `http://localhost:3000/api/events/${eventId}/volunteers`,
       );
       const data = await res.json();
       if (data.success) {
@@ -241,7 +244,7 @@ function EventDashboard() {
         <EventInfo event={eventDetails} />
 
         {/* Tabs for dashboard sections */}
-        <Tabs defaultValue="members" color="brand" variant="outline">
+        <Tabs defaultValue="members" color="primary" variant="outline">
           <Tabs.List mb="md">
             <Tabs.Tab value="members">Members</Tabs.Tab>
             <Tabs.Tab value="calendar">Calendar</Tabs.Tab>
@@ -254,7 +257,12 @@ function EventDashboard() {
           <Tabs.Panel value="members" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   MEMBERS
                 </Title>
                 <Stack gap="md">
@@ -264,7 +272,7 @@ function EventDashboard() {
                     align="center"
                     style={{ width: "fit-content" }}
                   >
-                    <IconUsers size={24} color={theme.colors.brand[6]} />
+                    <IconUsers size={24} color={theme.colors.primary[6]} />
                     <Text size="xs" c="dimmed">
                       Total Volunteers
                     </Text>
@@ -281,7 +289,12 @@ function EventDashboard() {
           <Tabs.Panel value="calendar" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   CALENDAR
                 </Title>
                 <EventCalendar markedDates={markedDates} compact />
@@ -293,7 +306,12 @@ function EventDashboard() {
           <Tabs.Panel value="tasks" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   TASKS
                 </Title>
                 <Stack gap="md">
@@ -301,7 +319,7 @@ function EventDashboard() {
                     <Group gap="sm" wrap="nowrap">
                       <IconClipboardCheck
                         size={24}
-                        color={theme.colors.brand[6]}
+                        color={theme.colors.primary[6]}
                       />
                       <div style={{ flex: 1 }}>
                         <Text size="xs" c="dimmed">
@@ -328,7 +346,12 @@ function EventDashboard() {
           <Tabs.Panel value="announcements" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   ANNOUNCEMENTS
                 </Title>
                 <Stack gap="md">
@@ -367,7 +390,12 @@ function EventDashboard() {
           <Tabs.Panel value="resources" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   RESOURCES
                 </Title>
                 {/* Render resources directly */}
@@ -397,13 +425,27 @@ function EventDashboard() {
           <Tabs.Panel value="reminders" pt="md">
             <Stack gap="lg">
               <Paper shadow="sm" p="md" withBorder>
-                <Title order={5} mb="md" ta="center" c={theme.colors.brand[6]}>
+                <Title
+                  order={5}
+                  mb="md"
+                  ta="center"
+                  c={theme.colors.primary[6]}
+                >
                   REMINDERS
                 </Title>
                 {/* Render reminders directly */}
                 <Stack gap="xs">
                   {reminders.map((reminder) => (
-                    <Paper key={reminder.id} p="sm" withBorder bg="yellow.0">
+                    <Paper
+                      key={reminder.id}
+                      p="sm"
+                      withBorder
+                      bg={
+                        colorScheme === "dark"
+                          ? rgba(theme.colors.yellow[8], 0.2)
+                          : "yellow.0"
+                      }
+                    >
                       <Group justify="space-between">
                         <Text size="sm">{reminder.message}</Text>
                         <Text size="xs" c="yellow">

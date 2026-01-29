@@ -18,8 +18,8 @@ import {
 import { IconArrowLeft } from "@tabler/icons-react";
 
 function FormSectionPage() {
-  const { sectionKey } = useParams(); 
-  const { sections, form, setForm } = useOutletContext(); 
+  const { sectionKey } = useParams();
+  const { sections, form, setForm } = useOutletContext();
   const navigate = useNavigate();
 
   const section = sections.find((s) => s.key === sectionKey);
@@ -56,13 +56,15 @@ function FormSectionPage() {
           </Anchor>
         </Group>
         <Title order={3}>{section.title}</Title>
-        <Text c="dimmed" size="sm" mb="md">{section.description}</Text>
+        <Text c="dimmed" size="sm" mb="md">
+          {section.description}
+        </Text>
 
         <Grid>
           {section.fields.map((field) => {
             const { component: Component, span, name, ...props } = field;
 
-            if (name === 'email') {
+            if (name === "email") {
               return (
                 <Grid.Col span={span || 12} key="email">
                   <TextInput label="Email" value={form.email} disabled />
@@ -134,7 +136,7 @@ function FormSectionPage() {
           <Button
             onClick={() => navigate("/volunteer-form")}
             variant="gradient"
-            gradient={{ from: 'brand', to: 'teal' }}
+            gradient={{ from: "primary", to: "teal" }}
           >
             Done
           </Button>
