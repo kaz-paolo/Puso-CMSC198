@@ -8,7 +8,7 @@ export const getBasicInfo = async (req, res) => {
   try {
     const { id } = req.params;
     const result =
-      await sql`SELECT first_name, last_name, dob, mobile, present_address, student_number, degree, role FROM user_info WHERE auth_user_id = ${id}`;
+      await sql`SELECT id, first_name, last_name, dob, mobile, present_address, student_number, degree, role FROM user_info WHERE auth_user_id = ${id}`;
 
     if (result.length === 0)
       return res.status(404).json({ error: "User not found" });
@@ -232,26 +232,28 @@ export const getCompleteInfo = async (req, res) => {
   }
 };
 
-export async function getUserUpcomingEvents(req, res) {
+export async function getUserJoinedEvents(req, res) {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
 
     const events = await sql`
       SELECT 
         e.id,
         e.event_name,
-        e.date
+        e.date,
+        e.status
       FROM event_volunteers ev
-      JOIN events e ON er.event_id = e.id
-      WHERE ev.user_id = ${userId}
-        AND e.date >= NOW()
-      ORDER BY e.date ASC
-      LIMIT 5
+      JOIN events e ON ev.event_id = e.id
+      WHERE ev.user_id = ${id}
+        AND e.status IN ('upcoming', 'ongoing')
+
     `;
 
     res.json({ success: true, data: events });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: "Failed to fetch events" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to fetch joined events" });
   }
 }

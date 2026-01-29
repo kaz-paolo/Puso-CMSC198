@@ -4,7 +4,7 @@ import {
   getAllUsers,
   getBasicInfo,
   getCompleteInfo,
-  getUserUpcomingEvents,
+  getUserJoinedEvents,
 } from "../controllers/usersController.js";
 
 const router = express.Router();
@@ -21,6 +21,6 @@ router.get("/:id/complete-info", getCompleteInfo);
 
 router.post("/complete-profile", completeProfile);
 
-router.get("/:id/upcoming-events", getUserUpcomingEvents);
+router.get("/:id/joined-events", getUserJoinedEvents);
 
 export default router;

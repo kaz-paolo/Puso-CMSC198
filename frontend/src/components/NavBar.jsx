@@ -34,6 +34,8 @@ function NavBar() {
   const [activeLink, setActiveLink] = useState();
   const [userProfile, setUserProfile] = useState();
 
+  const [joinedEvents, setJoinedEvents] = useState([]);
+
   // Check if user has answered volunteer form
   // useEffect(() => {
   //   async function checkVolunteerForm() {
@@ -65,6 +67,30 @@ function NavBar() {
 
     fetchProfile();
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchJoinedEvents() {
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
+        );
+        const data = await res.json();
+        console.log(userProfile.id);
+
+        console.log("navbar.jsx: fetch joined events");
+
+        if (data.success) {
+          setJoinedEvents(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch joined events:", err);
+      }
+    }
+
+    fetchJoinedEvents();
+  }, [userProfile]);
 
   const userEmail = user?.primaryEmail || "";
   const userName = userProfile
@@ -125,10 +151,33 @@ function NavBar() {
         <Divider my="md" />
 
         <Text size="xs" c="dimmed" fw={500} mb="xs" tt="uppercase">
-          Your Workspaces
+          Joined Events
         </Text>
 
-        <NavLink
+        {joinedEvents.length === 0 && (
+          <Text size="xs" c="dimmed">
+            No joined events
+          </Text>
+        )}
+
+        {joinedEvents.slice(0, 3).map((event) => (
+          <NavLink
+            key={event.id}
+            label={event.event_name}
+            leftSection={<IconCalendar size={20} />}
+            onClick={() => navigate(`/events/${event.id}`)}
+          />
+        ))}
+
+        {joinedEvents.length > 3 && (
+          <NavLink
+            label="More"
+            leftSection={<IconChevronRight size={20} />}
+            onClick={() => navigate("/events")}
+          />
+        )}
+
+        {/* <NavLink
           label="EventName"
           leftSection={<IconCalendar size={20} />}
           color="primary"
@@ -142,7 +191,7 @@ function NavBar() {
           label="More"
           leftSection={<IconChevronRight size={20} />}
           color="primary"
-        />
+        /> */}
 
         <Divider my="md" />
 
