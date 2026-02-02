@@ -35,6 +35,7 @@ import {
   IconPhone,
   IconMapPin,
   IconPalette,
+  IconHeartHandshake,
 } from "@tabler/icons-react";
 
 import heroBg from "../assets/hero-image.png";
@@ -146,17 +147,20 @@ function Footer() {
   const theme = useMantineTheme();
   return (
     <Box bg={theme.colors.dark[9]} c={theme.white} py={rem(60)} px="xl">
-      <Container size="xl">
-        <Grid>
-          <Grid.Col span={4}>
-            <Title order={3}>PULSO</Title>
+      <Container size="lg">
+        <Grid ta={"start"} justify="center">
+          <Grid.Col span={5}>
+            <Group wrap="nowrap" gap="xs">
+              <IconHeartHandshake size={32} />
+              <Title order={3}>PULSO</Title>
+            </Group>
             <Text c="dimmed" size="sm" mt="md" maw={300}>
               The Pahinungod Unified Lingkod System for Operations. Dedicated to
               fostering a culture of volunteerism and service within the
               university.
             </Text>
           </Grid.Col>
-          <Grid.Col span={2}>
+          <Grid.Col span={"auto"}>
             <Title order={5} c="white">
               QUICK LINKS
             </Title>
@@ -175,7 +179,7 @@ function Footer() {
               </Anchor>
             </Stack>
           </Grid.Col>
-          <Grid.Col span={3}>
+          <Grid.Col span={"auto"}>
             <Title order={5} c="white">
               CONTACT
             </Title>
