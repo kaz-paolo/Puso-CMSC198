@@ -1,22 +1,21 @@
 import {
   Card,
   Text,
-  Badge,
   Group,
   Stack,
   Button,
   useMantineTheme,
+  Image,
+  Divider,
+  Avatar,
+  Box,
 } from "@mantine/core";
-import {
-  IconCalendar,
-  IconMapPin,
-  IconUsers,
-  IconClock,
-} from "@tabler/icons-react";
+import { IconCalendar, IconMapPin } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import EventDetailsModal from "../components/modal/ViewEventDetailModal";
 import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
+import eventImage from "../assets/hero-image.png";
 
 function EventCard({ event }) {
   const user = useUser();
@@ -36,12 +35,6 @@ function EventCard({ event }) {
   } = event;
   const [detailsOpened, setDetailsOpened] = useState(false);
 
-  const statusColors = {
-    upcoming: "blue",
-    ongoing: "green",
-    completed: "gray",
-  };
-
   useEffect(() => {
     async function fetchProfile() {
       if (!user) return;
@@ -51,8 +44,6 @@ function EventCard({ event }) {
           `http://localhost:3000/api/users/${user.id}/basic-info`,
         );
         const data = await res.json();
-        console.log("eventcard.jsx: fetch basic info");
-
         if (data.success) setUserProfile(data.data);
       } catch (err) {
         console.error("Network error:", err);
@@ -62,107 +53,113 @@ function EventCard({ event }) {
     fetchProfile();
   }, [user]);
 
-  // cut characters to show
-  const truncateDescription = (text, maxLength = 80) => {
+  const truncateDescription = (text, maxLength = 100) => {
     if (!text) return "";
     return text.length > maxLength
       ? `${text.substring(0, maxLength)}...`
       : text;
   };
 
+  const remainingSlots = volunteer_count > 0 ? volunteer_count : 0; // placeholder
+
   return (
     <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
-        <Stack gap="md">
-          <Group justify="space-between">
-            <Text fw={600} size="lg">
-              {event_name}
-            </Text>
-            <Badge color={statusColors[status]} variant="light">
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </Badge>
-          </Group>
+      <Card shadow="sm" p={0} radius="md" withBorder style={{ height: 300 }}>
+        <Card.Section>
+          <Image
+            src={event.image || eventImage}
+            height={130}
+            alt={event_name}
+          />
+        </Card.Section>
 
-          <Text size="sm" c="dimmed" lineClamp={2} align="left">
+        <Stack p="xs" gap={4} style={{ height: 170 }}>
+          <Text fw={700} size="lg" lineClamp={1} ta="left">
+            {event_name}
+          </Text>
+          <Text c="dimmed" size="xs" lineClamp={2} h={32} ta="left">
             {truncateDescription(description)}
           </Text>
 
-          <Stack gap="xs">
-            <Group gap="xs">
-              <IconCalendar size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">
+          <Group gap="md" mt="sm" wrap="nowrap">
+            <Group gap="xs" wrap="nowrap">
+              <IconCalendar size={14} color={theme.colors.gray[6]} />
+              <Text size="sm" c="dimmed">
                 {new Date(date).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
                   month: "long",
                   day: "numeric",
+                  year: "numeric",
                 })}
               </Text>
             </Group>
-
-            <Group gap="xs">
-              <IconClock size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{time}</Text>
-            </Group>
-
-            <Group gap="xs">
-              <IconMapPin size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">{venue}</Text>
-            </Group>
-
-            <Group gap="xs">
-              <IconUsers size={16} color={theme.colors.gray[6]} />
-              <Text size="sm">
-                {volunteer_count}{" "}
-                {volunteer_count === 1 ? "Volunteer" : "Volunteers"}
+            <Group gap="xs" wrap="nowrap">
+              <IconMapPin size={14} color={theme.colors.gray[6]} />
+              <Text size="sm" c="dimmed" lineClamp={1}>
+                {venue}
               </Text>
             </Group>
-          </Stack>
+          </Group>
 
-          <Group gap="xs" mt="md">
-            <Button
-              variant="light"
-              fullWidth
-              onClick={() => setDetailsOpened(true)}
-            >
-              View Details
-            </Button>
-            {status === "upcoming" && userProfile?.role !== "admin" && (
+          <Box style={{ flexGrow: 1 }} />
+
+          <Divider my={4} />
+
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Group gap={4} align="center">
+              <Avatar.Group spacing="sm">
+                <Avatar size="sm" radius="xl" />
+                <Avatar size="sm" radius="xl" />
+                <Avatar size="sm" radius="xl">
+                  +6
+                </Avatar>
+              </Avatar.Group>
+              <Text c="orange" size="sm" fs="italic">
+                {remainingSlots} slots remaining
+              </Text>
+            </Group>
+            <Group gap="xs" wrap="nowrap">
               <Button
-                fullWidth
-                onClick={async () => {
-                  try {
-                    const res = await fetch(
-                      `http://localhost:3000/api/events/${id}/join`,
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          userId: user.id,
-                        }),
-                      },
-                    );
-
-                    const data = await res.json();
-
-                    if (!data.success) {
-                      alert(data.error);
-                      return;
-                    }
-
-                    navigate(`/events/${id}`);
-                    alert("Successfully joined the event!");
-                  } catch (err) {
-                    console.error("Join event failed:", err);
-                    alert("Failed to join event");
-                  }
-                }}
+                variant="transparent"
+                size="xs"
+                color="primary"
+                onClick={() => setDetailsOpened(true)}
+                p={0}
+                h="auto"
               >
-                Volunteer
+                Details
               </Button>
-            )}
+              {status === "upcoming" && userProfile?.role !== "admin" && (
+                <Button
+                  variant="filled"
+                  size="xs"
+                  color="primary"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(
+                        `http://localhost:3000/api/events/${id}/join`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userId: user.id }),
+                        },
+                      );
+                      const data = await res.json();
+                      if (!data.success) {
+                        alert(data.error);
+                        return;
+                      }
+                      navigate(`/events/${id}`);
+                      alert("Successfully joined the event!");
+                    } catch (err) {
+                      console.error("Join event failed:", err);
+                      alert("Failed to join event");
+                    }
+                  }}
+                >
+                  Volunteer
+                </Button>
+              )}
+            </Group>
           </Group>
         </Stack>
       </Card>

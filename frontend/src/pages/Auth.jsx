@@ -77,6 +77,12 @@ function Auth() {
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
     setLoading(true);
     try {
       if (view === "login") {
@@ -87,7 +93,20 @@ function Auth() {
         localStorage.setItem("justSignedUp", "true");
       }
     } catch (err) {
-      setError(err.message || "Authentication failed. Please try again.");
+      const errorMessage = err.message;
+      if (errorMessage) {
+        if (errorMessage.includes("Wrong e-mail or password.")) {
+          setError("Incorrect email or password. Please try again.");
+        } else if (errorMessage.includes("must be a valid email")) {
+          setError("Please enter a valid email address.");
+        } else if (errorMessage.includes("already in use")) {
+          setError("An account with this email already exists. Please log in.");
+        } else {
+          setError(errorMessage);
+        }
+      } else {
+        setError("Authentication failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -102,19 +121,7 @@ function Auth() {
         Please enter your details to sign in.
       </Text>
 
-      {error && (
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          color="red"
-          variant="light"
-          onClose={() => setError("")}
-          withCloseButton
-        >
-          {error}
-        </Alert>
-      )}
-
-      <form onSubmit={handleEmailAuth}>
+      <form onSubmit={handleEmailAuth} noValidate>
         <Stack gap="md">
           <TextInput
             label="Email"
@@ -152,7 +159,18 @@ function Auth() {
           </Button>
         </Stack>
       </form>
-
+      {error && (
+        <Alert
+          mt="md"
+          icon={<IconAlertCircle size={16} />}
+          color="red"
+          variant="light"
+          onClose={() => setError("")}
+          withCloseButton
+        >
+          {error}
+        </Alert>
+      )}
       <Divider
         my="xs"
         label="JOIN PAHINUNGOD"

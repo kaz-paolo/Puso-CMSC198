@@ -6,251 +6,211 @@ import {
   Stack,
   Group,
   SimpleGrid,
-  Badge,
-  Divider,
-  Button,
   useMantineTheme,
-  Skeleton,
+  Anchor,
+  Box,
 } from "@mantine/core";
-import { IconCalendar, IconBell, IconActivity } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import {
+  IconCalendar,
+  IconUsers,
+  IconClock,
+  IconListCheck,
+  IconClipboardCheck,
+  IconArrowRight,
+} from "@tabler/icons-react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import EventCalendar from "../components/Calendar";
+import EventCard from "../components/EventCard";
+import { Carousel } from "@mantine/carousel";
+import "@mantine/carousel/styles.css";
 
-function Home() {
+const quotes = [
+  "Volunteers do not necessarily have the time; they just have the heart.",
+  "The best way to find yourself is to lose yourself in the service of others.",
+  "We make a living by what we get, but we make a life by what we give.",
+  "The smallest act of kindness is worth more than the grandest intention.",
+  "Act as if what you do makes a difference. It does.",
+];
+
+function StatCard({ icon, value, label, color }) {
+  const theme = useMantineTheme();
+  const Icon = icon;
+  return (
+    <Paper withBorder p="md" radius="md">
+      <Group>
+        <Icon
+          size={32}
+          color={theme.colors[color]?.[6] || theme.colors.gray[6]}
+        />
+        <div>
+          <Text size="xl" fw={700}>
+            {value}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {label}
+          </Text>
+        </div>
+      </Group>
+    </Paper>
+  );
+}
+
+function Dashboard() {
   const theme = useMantineTheme();
   const user = useUser();
   const navigate = useNavigate();
-
-  // Example data
-  const infoData = [
-    { label: "Total Volunteers", value: 120 },
-    { label: "Upcoming Events", value: 4 },
-    { label: "Active Committees", value: 7 },
-    { label: "Hours Contributed", value: 320 },
-  ];
-
-  // Fetch events from backend
+  const [userProfile, setUserProfile] = useState(null);
   const [eventCards, setEventCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const randomQuote = useMemo(
+    () => quotes[Math.floor(Math.random() * quotes.length)],
+    [],
+  );
 
   useEffect(() => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    // Fetch events from backend
-    async function fetchEvents() {
+
+    async function fetchData() {
+      setLoading(true);
       try {
-        const res = await fetch("http://localhost:3000/api/events");
-        const data = await res.json();
-        if (data.success) {
-          // show upcoming events, sort by date, and limit to 3
-          const upcoming = data.data
+        // Fetch profile
+        const profileRes = await fetch(
+          `http://localhost:3000/api/users/${user.id}/basic-info`,
+        );
+        const profileData = await profileRes.json();
+        if (profileData.success) {
+          setUserProfile(profileData.data);
+        }
+
+        // Fetch events
+        const eventsRes = await fetch("http://localhost:3000/api/events");
+        const eventsData = await eventsRes.json();
+        if (eventsData.success) {
+          const upcoming = eventsData.data
             .filter((e) => e.status === "upcoming")
             .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 3);
+            .slice(0, 7);
           setEventCards(upcoming);
         }
       } catch (err) {
         console.error(err);
-        setEventCards([]);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchEvents();
+
+    fetchData();
   }, [user, navigate]);
 
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-    }
-  }, [user, navigate]);
-
-  if (!user) {
+  if (loading || !userProfile) {
+    // add loading anim
     return null;
   }
 
-  // Example announcements
-  const announcements = [
+  const stats = [
     {
-      title: "Form Change Notice",
-      date: "Feb 8, 2024",
-      content: "The forms for registration has been changed.",
+      icon: IconUsers,
+      value: "310",
+      label: "Individuals Reached",
+      color: "primary",
     },
     {
-      title: "Volunteer Meeting",
-      date: "Feb 9, 2024",
-      content:
-        "All volunteers are required to attend the pre-event meeting at 3 PM.",
+      icon: IconClipboardCheck,
+      value: "8",
+      label: "Events Joined",
+      color: "blue",
+    },
+    {
+      icon: IconCalendar,
+      value: "2",
+      label: "Currently Joined",
+      color: "teal",
+    },
+    { icon: IconClock, value: "124h", label: "Total Hours", color: "green" },
+    {
+      icon: IconListCheck,
+      value: "3",
+      label: "Pending Tasks",
+      color: "yellow",
     },
   ];
 
   return (
     <Container size="xl">
       <Stack gap="xl">
-        {/* Top Row: Welcome and Quick Stats */}
-        <Group align="flex-start" gap="xl">
-          <Paper
-            shadow="sm"
-            radius="md"
-            p="xl"
-            style={{ flex: 2, minWidth: 0 }}
-          >
-            <Title order={2}>Welcome to PULSO</Title>
-            <Text c="dimmed" mt="sm">
-              Pahinungod Unified Lingkod System for Operations.
-            </Text>
-          </Paper>
-          <Paper
-            shadow="sm"
-            radius="md"
-            p="xl"
-            style={{ flex: 1, minWidth: 0 }}
-          >
-            <Group gap="md" align="center" justify="center">
-              <IconBell
-                size={32}
-                color={theme.colors.primary?.[6] || theme.primaryColor}
-              />
-              <Text fw={600} size="lg">
-                Notifications
-              </Text>
-            </Group>
-            <Divider my="sm" />
-            <Text size="sm" c="dimmed">
-              No new notifications.
-            </Text>
-          </Paper>
-        </Group>
+        {/* Welcome Section */}
+        <div>
+          <Title order={2}>Welcome Back, {userProfile.first_name}!</Title>
+          <Text c="dimmed">"{randomQuote}"</Text>
+        </div>
 
-        {/* Info Data Cards */}
-        <Group gap="md" grow>
-          {infoData.map((info, idx) => (
-            <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
-              <Text size="xs" c="dimmed" fw={500} mb={4}>
-                {info.label}
-              </Text>
-              <Text fw={700} size="xl">
-                {info.value}
-              </Text>
-            </Paper>
+        {/* Stats Grid */}
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 5 }}>
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
           ))}
-        </Group>
+        </SimpleGrid>
 
-        {/* Main Grid: Events, Announcements, Calendar */}
-        <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
-          {/* Events Column */}
-          <div
-            style={{
-              minHeight: 340,
-              maxHeight: 500,
-              display: "flex",
-              flexDirection: "column",
+        {/* Upcoming Events */}
+        <div>
+          <Group justify="space-between" mb="md">
+            <Title order={3}>Upcoming Events</Title>
+            <Anchor component="button" onClick={() => navigate("/events")}>
+              <Group gap="xs">
+                <Text>View All</Text>
+                <IconArrowRight size={16} />
+              </Group>
+            </Anchor>
+          </Group>
+          <Carousel
+            slideSize={{
+              base: "100%",
+              sm: "50%",
+              md: "calc(33.333% - var(--mantine-spacing-md))",
             }}
+            slideGap="md"
+            align="start"
+            withControls={eventCards.length > 3}
+            withIndicators
+            loop
           >
-            <Text fw={600} size="md" mb={-8}>
-              Upcoming Events
-            </Text>
-            <Stack gap="md" mt="sm" style={{ overflowY: "auto" }}>
-              {eventCards.length === 0 ? (
-                <Text c="dimmed" ta="center">
-                  No upcoming events
-                </Text>
-              ) : (
-                eventCards.map((event, idx) => (
-                  <Paper
-                    key={event.id || idx}
-                    shadow="xs"
-                    radius="md"
-                    p="md"
-                    withBorder
-                    style={{
-                      maxHeight: 140,
-                      overflow: "hidden",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Group gap="xs">
-                      <IconCalendar
-                        size={18}
-                        color={theme.colors.primary?.[6] || theme.primaryColor}
-                      />
-                      <Text fw={500}>{event.event_name}</Text>
-                    </Group>
-                    <Text size="xs" c="dimmed" mt={4}>
-                      {new Date(event.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </Text>
-                    <Button
-                      mt="md"
-                      size="xs"
-                      variant="light"
-                      color="primary"
-                      fullWidth
-                      onClick={() => navigate(`/events/${event.id}`)}
-                    >
-                      View Details
-                    </Button>
-                  </Paper>
-                ))
-              )}
-            </Stack>
-          </div>
+            {eventCards.map((event) => (
+              <Carousel.Slide key={event.id}>
+                <EventCard event={event} />
+              </Carousel.Slide>
+            ))}
+          </Carousel>
+        </div>
 
-          {/* Announcements Column */}
-          <div
-            style={{
-              minHeight: 340,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Text fw={600} size="md" mb={-8}>
-              Announcements
-            </Text>
-            <Stack gap="md" mt="sm">
-              {announcements.map((a, idx) => (
-                <Paper key={idx} shadow="xs" radius="md" p="md" withBorder>
-                  <Group gap="xs" mb={4}>
-                    <Badge color="yellow" variant="light" size="sm">
-                      Announcement
-                    </Badge>
-                    <Text fw={500}>{a.title}</Text>
-                  </Group>
-                  <Text size="xs" c="dimmed" mb={4}>
-                    {a.date}
-                  </Text>
-                  <Text size="sm">{a.content}</Text>
-                </Paper>
-              ))}
-            </Stack>
-          </div>
-
-          {/* Calendar Column */}
-          <div
-            style={{
-              minHeight: 340,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Text fw={600} size="md" mb={-8}>
+        {/* Calendar and Announcements */}
+        <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl">
+          <Paper withBorder radius="md" p="xl">
+            <Title order={4} mb="md">
               Calendar
-            </Text>
-            <div style={{ flex: 1, marginTop: "1rem" }}>
-              <EventCalendar markedDates={[]} compact />
-            </div>
-          </div>
+            </Title>
+            <Box style={{ minHeight: 300 }}>
+              <EventCalendar markedDates={[]} />
+            </Box>
+          </Paper>
+          <Paper withBorder radius="md" p="xl">
+            <Title order={4} mb="md">
+              Announcement
+            </Title>
+            <Stack>
+              <Text c="dimmed">No new announcements.</Text>
+              {/* placeholder */}
+            </Stack>
+          </Paper>
         </SimpleGrid>
       </Stack>
     </Container>
   );
 }
 
-export default Home;
+export default Dashboard;

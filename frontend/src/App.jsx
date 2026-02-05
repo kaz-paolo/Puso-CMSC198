@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import { stackClientApp } from "./stack/stack.js";
 import "@mantine/dates/styles.css";
+import { Notifications } from "@mantine/notifications";
 import "./App.css";
 
 import Home from "./pages/Home.jsx";
@@ -35,6 +36,7 @@ function HandlerRoutes() {
 function App() {
   return (
     <BrowserRouter>
+      <Notifications />
       <Suspense fallback={null}>
         <StackProvider app={stackClientApp}>
           <StackTheme>
@@ -48,14 +50,12 @@ function App() {
 
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                {/* Updated Route for the form */}
                 <Route path="/volunteer-form" element={<VolunteerForm />}>
                   <Route path=":sectionKey" element={<FormSectionPage />} />
                 </Route>
                 <Route path="/events" element={<Events />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/events/:eventId" element={<EventDashboard />} />
-
                 <Route path="/resources" element={<Resources />} />
                 <Route path="/feedback" element={<Feedback />} />
                 <Route path="/settings" element={<Settings />} />
