@@ -43,6 +43,8 @@ function Auth() {
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
 
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+
   // hook for authentication
   const stackApp = useStackApp();
   // hook for user info
@@ -61,6 +63,10 @@ function Auth() {
       navigate("/dashboard");
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    setError("");
+  }, [view]);
 
   const handleArukahikSignup = () => {
     if (arukahikAvailable) {
@@ -257,6 +263,7 @@ function Auth() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
+            readOnly
           />
           <PasswordInput
             label="Password"
@@ -279,28 +286,92 @@ function Auth() {
     </>
   );
 
-  const renderRecover = () => (
-    <>
-      <Group>
-        <ActionIcon variant="light" onClick={() => setView("login")}>
-          <IconArrowLeft />
-        </ActionIcon>
-        <Title order={3}>Create Your Account</Title>
-      </Group>
-      <Text size="sm" c="dimmed">
-        Enter the email you used in your arukahik registration (Only for
-        Arukahik 1 to 4).
-      </Text>
-      <Stack gap="lg" mt="md">
-        <TextInput
-          label="Volunteer Registration Email"
-          placeholder="youremail@email.com"
-          type="email"
-        />
-        <Button color="primary">Get Verification Code</Button>
-      </Stack>
-    </>
-  );
+  const renderRecover = () => {
+    const handleVerify = async () => {
+      console.log("verify");
+
+      if (!email) {
+        setError("Please enter your email.");
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      try {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const response = await fetch(
+          "http://localhost:3000/api/users/check-existing",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: normalizedEmail }),
+          },
+        );
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error);
+        }
+
+        if (!data.exists) {
+          setError("Email not found in existing members list.");
+          return;
+        }
+
+        // ✅ Verified
+        setVerifiedEmail(normalizedEmail);
+        setEmail(normalizedEmail);
+        setView("signup");
+      } catch (err) {
+        setError(err.message || "Verification failed.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <>
+        <Group>
+          <ActionIcon variant="light" onClick={() => setView("login")}>
+            <IconArrowLeft />
+          </ActionIcon>
+          <Title order={3}>Create Your Account</Title>
+        </Group>
+        <Text size="sm" c="dimmed">
+          Enter the email you used in your arukahik registration (Only for
+          Arukahik 1 to 4).
+        </Text>
+        <Stack gap="lg" mt="md">
+          <TextInput
+            label="Volunteer Registration Email"
+            placeholder="youremail@email.com"
+            type="email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {error && (
+            <Alert
+              mt="md"
+              icon={<IconAlertCircle size={16} />}
+              color="red"
+              variant="light"
+              onClose={() => setError("")}
+              withCloseButton
+            >
+              {error}
+            </Alert>
+          )}
+          {/* <Button color="primary">Get Verification Code</Button> */}
+          <Button color="primary" onClick={handleVerify}>
+            Verify Email
+          </Button>
+        </Stack>
+      </>
+    );
+  };
 
   return (
     <div

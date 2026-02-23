@@ -44,7 +44,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
               <Route
-                path="/volunteerapplication"
+                path="/volunteer-application"
                 element={<VolunteerApplication />}
               />
 

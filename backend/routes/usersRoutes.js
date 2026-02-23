@@ -5,6 +5,7 @@ import {
   getBasicInfo,
   getCompleteInfo,
   getUserJoinedEvents,
+  checkExistingMember,
 } from "../controllers/usersController.js";
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.get("/:id/complete-info", getCompleteInfo);
 router.post("/complete-profile", completeProfile);
 
 router.get("/:id/joined-events", getUserJoinedEvents);
+
+router.post("/check-existing/", checkExistingMember);
 
 export default router;

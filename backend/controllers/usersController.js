@@ -250,10 +250,37 @@ export async function getUserJoinedEvents(req, res) {
     `;
 
     res.json({ success: true, data: events });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     res
       .status(500)
       .json({ success: false, error: "Failed to fetch joined events" });
+  }
+}
+
+export async function checkExistingMember(req, res) {
+  try {
+    console.log("Check existing member");
+
+    const { email } = req.body;
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const result = await sql`
+      SELECT 1 
+      FROM existing_members 
+      WHERE up_email = ${normalizedEmail}
+      LIMIT 1
+    `;
+
+    return res.status(200).json({
+      success: true,
+      exists: result.length > 0,
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to check existing members" });
   }
 }
