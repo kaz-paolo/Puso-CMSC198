@@ -31,6 +31,7 @@ function Events() {
   const [addEventOpened, setAddEventOpened] = useState(false);
   const [events, setEvents] = useState([]);
   const [userProfile, setUserProfile] = useState();
+  const [joinedEventIds, setJoinedEventIds] = useState([]);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -43,14 +44,31 @@ function Events() {
         const data = await res.json();
         console.log("events.jsx: fetch basic info");
 
-        if (data.success) setUserProfile(data.data);
+        if (data.success) {
+          setUserProfile(data.data);
+          fetchJoinedEvents(data.data.id);
+        }
       } catch (err) {
-        console.error("Network error:", err);
+        console.error("Error:", err);
       }
     }
 
     fetchProfile();
   }, [user]);
+
+  const fetchJoinedEvents = async (userId) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/users/${userId}/joined-events`,
+      );
+      const data = await res.json();
+      if (data.success) {
+        setJoinedEventIds(data.data.map((e) => e.id));
+      }
+    } catch (err) {
+      console.error("Failed to fetch joined events:", err);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -95,7 +113,7 @@ function Events() {
         };
       case "week": {
         const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        startOfWeek.setDate(today.getDate() - today.getDay());
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 7);
         return { start: startOfWeek, end: endOfWeek };
@@ -132,11 +150,8 @@ function Events() {
   const filterEvents = (events) => {
     let filtered = events;
 
-    // by default hide completed events
-    if (statusFilter.length === 0) {
-      filtered = filtered.filter((event) => event.status !== "completed");
-    } else {
-      // status filter
+    // Filter by status
+    if (statusFilter.length > 0) {
       filtered = filtered.filter((event) =>
         statusFilter.includes(event.status),
       );
@@ -145,23 +160,23 @@ function Events() {
     // date filter
     if (dateFilterType) {
       filtered = filtered.filter((event) =>
-        isDateInRange(event.date, dateFilterType),
+        isDateInRange(event.start_date, dateFilterType),
       );
     }
 
     if (searchQuery) {
       filtered = filtered.filter(
         (event) =>
-          event.event_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.event_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
           event.description.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
-    // upcoming events first, ascending
+    // Sort
     filtered = filtered.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+      const dateA = new Date(a.start_date);
+      const dateB = new Date(b.start_date);
       return dateA - dateB;
     });
 

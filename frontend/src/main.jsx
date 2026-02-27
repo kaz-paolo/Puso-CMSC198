@@ -10,6 +10,7 @@ import App from "./App.jsx";
 import { ColorSchemeScript } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/dates/styles.css";
 import { ThemeProvider } from "./theme/ThemeProvider.jsx";
 
 // Main Entry Point

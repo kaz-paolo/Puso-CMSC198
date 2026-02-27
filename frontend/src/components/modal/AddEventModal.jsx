@@ -6,60 +6,112 @@ import {
   Stack,
   Group,
   Select,
+  Switch,
+  NumberInput,
+  SegmentedControl,
+  ActionIcon,
+  Alert,
+  Text,
 } from "@mantine/core";
 import { DatePickerInput, TimeInput } from "@mantine/dates";
 import { useState } from "react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 
 function AddEventModal({ opened, onClose, onEventCreated }) {
   const [formData, setFormData] = useState({
-    event_name: "",
+    event_title: "",
     description: "",
-    date: null,
-    time: "",
-    venue: "",
-    volunteer_count: "",
-    status: "upcoming",
+    event_type: "",
+    location: "",
+    start_date: null,
+    start_time: "",
+    end_date: null,
+    end_time: "",
+    registration_allowed: false,
+    publish_event: false,
+    volunteer_capacity: 0,
+    volunteer_roles: [],
   });
+  const [capacityType, setCapacityType] = useState("simple");
+  const [error, setError] = useState(null);
+
+  const handleAddRole = () => {
+    setFormData((prev) => ({
+      ...prev,
+      volunteer_roles: [...prev.volunteer_roles, { role: "", capacity: "" }],
+    }));
+  };
+
+  const handleRemoveRole = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      volunteer_roles: prev.volunteer_roles.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleRoleChange = (index, field, value) => {
+    const newRoles = [...formData.volunteer_roles];
+    newRoles[index][field] = value;
+    setFormData({ ...formData, volunteer_roles: newRoles });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
 
     try {
+      const formatDate = (date) => {
+        if (!date) return null;
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const submissionData = {
+        ...formData,
+        start_date: formatDate(formData.start_date),
+        end_date: formatDate(formData.end_date),
+        volunteer_capacity:
+          capacityType === "simple" ? formData.volunteer_capacity : 0,
+        volunteer_roles:
+          capacityType === "roles" ? formData.volunteer_roles : [],
+      };
+
       const response = await fetch(`http://localhost:3000/api/events/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_name: formData.event_name,
-          description: formData.description,
-          date: formData.date,
-          time: formData.time,
-          venue: formData.venue,
-          volunteer_count: formData.volunteer_count,
-          status: formData.status,
-        }),
+        body: JSON.stringify(submissionData),
       });
 
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "Failed to create event");
 
+      // Reset form
       setFormData({
-        event_name: "",
+        event_title: "",
         description: "",
-        date: null,
-        time: "",
-        venue: "",
-        volunteer_count: "",
-        status: "upcoming",
+        event_type: "",
+        location: "",
+        start_date: null,
+        start_time: "",
+        end_date: null,
+        end_time: "",
+        registration_allowed: false,
+        publish_event: false,
+        volunteer_capacity: 0,
+        volunteer_roles: [],
       });
+      setCapacityType("simple");
+
+      if (onEventCreated) onEventCreated();
+      onClose();
     } catch (error) {
-      console.error("Error", error);
+      console.error("Error creating event:", error);
+      setError(error.message || "Failed to create event");
     }
-
-    console.log("Form submitted:", formData);
-    if (onEventCreated) onEventCreated();
-
-    onClose();
   };
 
   return (
@@ -69,16 +121,30 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
       title="Add New Event"
       size="lg"
       centered
+      closeOnClickOutside={false}
+      closeOnEscape={true}
+      trapFocus
+      withinPortal={true}
     >
+      {error && (
+        <Alert
+          color="red"
+          mb="md"
+          onClose={() => setError(null)}
+          withCloseButton
+        >
+          {error}
+        </Alert>
+      )}
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Event Name"
-            placeholder="Enter event name"
+            label="Event Title"
+            placeholder="Enter event title"
             required
-            value={formData.event_name}
+            value={formData.event_title}
             onChange={(e) =>
-              setFormData({ ...formData, event_name: e.target.value })
+              setFormData({ ...formData, event_title: e.target.value })
             }
           />
 
@@ -93,55 +159,159 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
             }
           />
 
-          <DatePickerInput
-            label="Event Date"
-            placeholder="Select date"
-            required
-            value={formData.date}
-            onChange={(date) => setFormData({ ...formData, date })}
-          />
-
-          <TimeInput
-            label="Event Time"
-            placeholder="Select time"
-            required
-            value={formData.time}
-            onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-          />
-
-          <TextInput
-            label="Venue"
-            placeholder="Enter venue location"
-            required
-            value={formData.venue}
-            onChange={(e) =>
-              setFormData({ ...formData, venue: e.target.value })
-            }
-          />
-
-          <TextInput
-            label="Expected Volunteer Count"
-            placeholder="Enter number of volunteers"
-            type="number"
-            required
-            value={formData.volunteer_count}
-            onChange={(e) =>
-              setFormData({ ...formData, volunteer_count: e.target.value })
-            }
-          />
-
           <Select
-            label="Status"
-            placeholder="Select status"
+            label="Event Type"
+            placeholder="Select event type"
             required
             data={[
-              { value: "upcoming", label: "Upcoming" },
-              { value: "ongoing", label: "Ongoing" },
-              { value: "completed", label: "Completed" },
+              "Academic",
+              "Community",
+              "Recreation",
+              "Creative",
+              "Career",
+              "Service",
+              "Administrative",
+              "Environment",
+              "Health",
             ]}
-            value={formData.status}
-            onChange={(value) => setFormData({ ...formData, status: value })}
+            value={formData.event_type}
+            onChange={(value) =>
+              setFormData({ ...formData, event_type: value })
+            }
           />
+
+          <TextInput
+            label="Location"
+            placeholder="Enter event location"
+            required
+            value={formData.location}
+            onChange={(e) =>
+              setFormData({ ...formData, location: e.target.value })
+            }
+          />
+
+          <Group grow>
+            <DatePickerInput
+              label="Start Date"
+              placeholder="Select date"
+              required
+              value={formData.start_date}
+              onChange={(date) =>
+                setFormData({ ...formData, start_date: date })
+              }
+            />
+            <TimeInput
+              label="Start Time"
+              placeholder="Select time"
+              required
+              value={formData.start_time}
+              onChange={(e) =>
+                setFormData({ ...formData, start_time: e.target.value })
+              }
+            />
+          </Group>
+
+          <Group grow>
+            <DatePickerInput
+              label="End Date"
+              placeholder="Select date"
+              required
+              value={formData.end_date}
+              onChange={(date) => setFormData({ ...formData, end_date: date })}
+            />
+            <TimeInput
+              label="End Time"
+              placeholder="Select time"
+              required
+              value={formData.end_time}
+              onChange={(e) =>
+                setFormData({ ...formData, end_time: e.target.value })
+              }
+            />
+          </Group>
+
+          <Group grow>
+            <Switch
+              label="Allow Registration"
+              checked={formData.registration_allowed}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  registration_allowed: e.currentTarget.checked,
+                })
+              }
+            />
+            <Switch
+              label="Publish Event"
+              checked={formData.publish_event}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  publish_event: e.currentTarget.checked,
+                })
+              }
+            />
+          </Group>
+
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>
+              Volunteer Capacity
+            </Text>
+            <SegmentedControl
+              value={capacityType}
+              onChange={setCapacityType}
+              data={[
+                { label: "Simple", value: "simple" },
+                { label: "By Roles", value: "roles" },
+              ]}
+            />
+            {capacityType === "simple" ? (
+              <NumberInput
+                placeholder="Enter number of volunteers"
+                required
+                value={formData.volunteer_capacity}
+                onChange={(value) =>
+                  setFormData({ ...formData, volunteer_capacity: value })
+                }
+                min={0}
+              />
+            ) : (
+              <Stack gap="xs">
+                {formData.volunteer_roles.map((role, index) => (
+                  <Group key={index} grow>
+                    <TextInput
+                      placeholder="Role Name (e.g. Logistics)"
+                      value={role.role}
+                      onChange={(e) =>
+                        handleRoleChange(index, "role", e.target.value)
+                      }
+                    />
+                    <NumberInput
+                      placeholder="Number of volunteers"
+                      value={role.capacity}
+                      onChange={(value) =>
+                        handleRoleChange(index, "capacity", value)
+                      }
+                      min={1}
+                    />
+                    <ActionIcon
+                      color="red"
+                      onClick={() => handleRemoveRole(index)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Group>
+                ))}
+                <Button
+                  leftSection={<IconPlus size={14} />}
+                  variant="outline"
+                  onClick={handleAddRole}
+                >
+                  Add Role
+                </Button>
+              </Stack>
+            )}
+          </Stack>
 
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={onClose}>

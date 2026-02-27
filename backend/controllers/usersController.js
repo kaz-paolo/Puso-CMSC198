@@ -239,14 +239,13 @@ export async function getUserJoinedEvents(req, res) {
     const events = await sql`
       SELECT 
         e.id,
-        e.event_name,
-        e.date,
+        e.event_title,
+        e.start_date,
         e.status
       FROM event_volunteers ev
       JOIN events e ON ev.event_id = e.id
       WHERE ev.user_id = ${id}
         AND e.status IN ('upcoming', 'ongoing')
-
     `;
 
     res.json({ success: true, data: events });
