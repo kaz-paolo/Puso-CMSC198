@@ -163,7 +163,7 @@ function NavBar() {
         {joinedEvents.slice(0, 3).map((event) => (
           <NavLink
             key={event.id}
-            label={event.event_name}
+            label={event.event_title}
             leftSection={<IconCalendar size={20} />}
             onClick={() => navigate(`/events/${event.id}`)}
           />

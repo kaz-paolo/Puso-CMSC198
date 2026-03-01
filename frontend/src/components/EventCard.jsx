@@ -11,8 +11,9 @@ import {
   Box,
 } from "@mantine/core";
 import { IconCalendar, IconMapPin } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import EventDetailsModal from "../components/modal/ViewEventDetailModal";
+import SelectRoleModal from "../components/modal/SelectRoleModal";
 import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import eventImage from "../assets/hero-image.png";
@@ -22,18 +23,22 @@ function EventCard({ event }) {
   const theme = useMantineTheme();
   const [userProfile, setUserProfile] = useState();
   const navigate = useNavigate();
+  const [hasJoined, setHasJoined] = useState(false);
+  const [checkingJoinStatus, setCheckingJoinStatus] = useState(true);
 
   const {
     id,
-    event_name,
+    event_title,
     description,
-    date,
+    start_date,
     time,
-    venue,
-    volunteer_count,
+    location,
+    volunteer_capacity,
+    volunteer_roles,
     status,
   } = event;
   const [detailsOpened, setDetailsOpened] = useState(false);
+  const [roleSelectOpened, setRoleSelectOpened] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -53,6 +58,32 @@ function EventCard({ event }) {
     fetchProfile();
   }, [user]);
 
+  // if user has already joined this event
+  useEffect(() => {
+    async function checkJoinStatus() {
+      if (!user || !userProfile) return;
+
+      setCheckingJoinStatus(true);
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          const joined = data.data.some((e) => e.id === id);
+          setHasJoined(joined);
+        }
+      } catch (err) {
+        console.error("Failed to check join status:", err);
+      } finally {
+        setCheckingJoinStatus(false);
+      }
+    }
+
+    checkJoinStatus();
+  }, [user, userProfile, id]);
+
   const truncateDescription = (text, maxLength = 100) => {
     if (!text) return "";
     return text.length > maxLength
@@ -60,7 +91,80 @@ function EventCard({ event }) {
       : text;
   };
 
-  const remainingSlots = volunteer_count > 0 ? volunteer_count : 0; // placeholder
+  // total capacity and remaining slots
+  const { totalCapacity, remainingSlots, hasRoles, isFull } = useMemo(() => {
+    if (volunteer_roles && volunteer_roles.length > 0) {
+      // sum all role capacities
+      const total = volunteer_roles.reduce(
+        (sum, role) => sum + (parseInt(role.capacity) || 0),
+        0,
+      );
+      const filled = volunteer_roles.reduce(
+        (sum, role) => sum + (parseInt(role.current_count) || 0),
+        0,
+      );
+      const remaining = total - filled;
+      return {
+        totalCapacity: total,
+        remainingSlots: remaining,
+        hasRoles: true,
+        isFull: remaining <= 0,
+      };
+    }
+    const capacity = parseInt(volunteer_capacity) || 0;
+    const filled = parseInt(event.current_volunteers) || 0;
+    const remaining = capacity - filled;
+    return {
+      totalCapacity: capacity,
+      remainingSlots: remaining,
+      hasRoles: false,
+      isFull: remaining <= 0,
+    };
+  }, [volunteer_roles, volunteer_capacity, event.current_volunteers]);
+
+  const handleVolunteerClick = () => {
+    if (hasRoles) {
+      // role selection modal
+      setRoleSelectOpened(true);
+    } else {
+      // direct join, to add pending/accept confirm by admin etc
+      handleJoinEvent(null);
+    }
+  };
+
+  const handleJoinEvent = async (selectedRole) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/events/${id}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          roleId: selectedRole?.id || null,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || "Failed to join event");
+        return;
+      }
+      setRoleSelectOpened(false);
+      navigate(`/events/${id}`);
+      alert(
+        selectedRole
+          ? `Successfully joined as ${selectedRole.role_name}!`
+          : "Successfully joined the event!",
+      );
+    } catch (err) {
+      console.error("Join event failed:", err);
+      alert("Failed to join event");
+    }
+  };
+
+  const getVolunteerButtonText = () => {
+    if (hasJoined) return "Already Joined";
+    if (isFull) return "Event Full";
+    return "Volunteer";
+  };
 
   return (
     <>
@@ -69,13 +173,13 @@ function EventCard({ event }) {
           <Image
             src={event.image || eventImage}
             height={130}
-            alt={event_name}
+            alt={event_title}
           />
         </Card.Section>
 
         <Stack p="xs" gap={4} style={{ height: 170 }}>
           <Text fw={700} size="lg" lineClamp={1} ta="left">
-            {event_name}
+            {event_title}
           </Text>
           <Text c="dimmed" size="xs" lineClamp={2} h={32} ta="left">
             {truncateDescription(description)}
@@ -85,7 +189,7 @@ function EventCard({ event }) {
             <Group gap="xs" wrap="nowrap">
               <IconCalendar size={14} color={theme.colors.gray[6]} />
               <Text size="sm" c="dimmed">
-                {new Date(date).toLocaleDateString("en-US", {
+                {new Date(start_date).toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
@@ -95,7 +199,7 @@ function EventCard({ event }) {
             <Group gap="xs" wrap="nowrap">
               <IconMapPin size={14} color={theme.colors.gray[6]} />
               <Text size="sm" c="dimmed" lineClamp={1}>
-                {venue}
+                {location}
               </Text>
             </Group>
           </Group>
@@ -113,8 +217,16 @@ function EventCard({ event }) {
                   +6
                 </Avatar>
               </Avatar.Group>
-              <Text c="orange" size="sm" fs="italic">
-                {remainingSlots} slots remaining
+              <Text
+                c={isFull ? "red" : hasJoined ? "green" : "orange"}
+                size="sm"
+                fs="italic"
+              >
+                {isFull
+                  ? "Full"
+                  : hasJoined
+                    ? "Joined"
+                    : `${remainingSlots} ${remainingSlots === 1 ? "slot" : "slots"} remaining`}
               </Text>
             </Group>
             <Group gap="xs" wrap="nowrap">
@@ -132,31 +244,11 @@ function EventCard({ event }) {
                 <Button
                   variant="filled"
                   size="xs"
-                  color="primary"
-                  onClick={async () => {
-                    try {
-                      const res = await fetch(
-                        `http://localhost:3000/api/events/${id}/join`,
-                        {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId: user.id }),
-                        },
-                      );
-                      const data = await res.json();
-                      if (!data.success) {
-                        alert(data.error);
-                        return;
-                      }
-                      navigate(`/events/${id}`);
-                      alert("Successfully joined the event!");
-                    } catch (err) {
-                      console.error("Join event failed:", err);
-                      alert("Failed to join event");
-                    }
-                  }}
+                  color={hasJoined ? "green" : "primary"}
+                  onClick={handleVolunteerClick}
+                  disabled={isFull || hasJoined || checkingJoinStatus}
                 >
-                  Volunteer
+                  {getVolunteerButtonText()}
                 </Button>
               )}
             </Group>
@@ -169,6 +261,15 @@ function EventCard({ event }) {
         onClose={() => setDetailsOpened(false)}
         eventId={id}
       />
+
+      {hasRoles && (
+        <SelectRoleModal
+          opened={roleSelectOpened}
+          onClose={() => setRoleSelectOpened(false)}
+          roles={volunteer_roles}
+          onSelectRole={handleJoinEvent}
+        />
+      )}
     </>
   );
 }
