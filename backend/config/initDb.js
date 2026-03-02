@@ -75,18 +75,63 @@ export async function initDb() {
       );
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_tasks (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        task_title VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        status VARCHAR(50) NOT NULL DEFAULT 'To Do',
+        priority VARCHAR(50),
+        deadline_date DATE,
+        deadline_time TIME,
+        task_details TEXT,
+        relevant_links TEXT[],
+        created_by INTEGER REFERENCES user_info(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS task_assignees (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER NOT NULL REFERENCES event_tasks(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES user_info(id) ON DELETE CASCADE,
+        role_id INTEGER REFERENCES event_volunteer_roles(id) ON DELETE CASCADE,
+        assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT assignee_type CHECK (
+          (user_id IS NOT NULL AND role_id IS NULL) OR 
+          (user_id IS NULL AND role_id IS NOT NULL)
+        )
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_resources (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        url TEXT NOT NULL,
+        description TEXT,
+        parent_resource_id INTEGER REFERENCES event_resources(id) ON DELETE CASCADE,
+        uploaded_by INTEGER REFERENCES user_info(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     const alterTableQueries = [
-      `ALTER TABLE events ADD COLUMN description TEXT;`,
-      `ALTER TABLE events ADD COLUMN event_type VARCHAR(50) NOT NULL DEFAULT '';`,
-      `ALTER TABLE events ADD COLUMN location VARCHAR(255) NOT NULL DEFAULT '';`,
-      `ALTER TABLE events ADD COLUMN start_date DATE;`,
-      `ALTER TABLE events ADD COLUMN start_time TIME;`,
-      `ALTER TABLE events ADD COLUMN end_date DATE;`,
-      `ALTER TABLE events ADD COLUMN end_time TIME;`,
-      `ALTER TABLE events ADD COLUMN registration_allowed BOOLEAN NOT NULL DEFAULT false;`,
-      `ALTER TABLE events ADD COLUMN publish_event BOOLEAN NOT NULL DEFAULT false;`,
-      `ALTER TABLE events ADD COLUMN volunteer_capacity INTEGER NOT NULL DEFAULT 0;`,
-      `ALTER TABLE events ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'upcoming';`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS description TEXT;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS event_type VARCHAR(50) NOT NULL DEFAULT '';`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS location VARCHAR(255) NOT NULL DEFAULT '';`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS start_date DATE;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS start_time TIME;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS end_date DATE;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS end_time TIME;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_allowed BOOLEAN NOT NULL DEFAULT false;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS publish_event BOOLEAN NOT NULL DEFAULT false;`,
+      `ALTER TABLE events ADD COLUMN IF NOT EXISTS volunteer_capacity INTEGER NOT NULL DEFAULT 0;`,
     ];
 
     for (const query of alterTableQueries) {
@@ -97,6 +142,17 @@ export async function initDb() {
           throw error;
         }
       }
+    }
+
+    // remove status column
+    try {
+      await sql.unsafe(`
+        ALTER TABLE events 
+        DROP COLUMN IF EXISTS status;
+      `);
+      console.log("Removed status column from events table");
+    } catch (error) {
+      console.error("Error removing status column:", error);
     }
 
     try {

@@ -22,39 +22,18 @@ import {
 import EventCard from "../components/EventCard";
 import AddEventModal from "../components/modal/AddEventModal";
 import { useUser } from "@stackframe/react";
+import { getEventStatus } from "../utils/eventStatus";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 function Events() {
   const user = useUser();
+  const { userProfile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateFilterType, setDateFilterType] = useState(null);
   const [addEventOpened, setAddEventOpened] = useState(false);
   const [events, setEvents] = useState([]);
-  const [userProfile, setUserProfile] = useState();
   const [joinedEventIds, setJoinedEventIds] = useState([]);
-
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!user) return;
-
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
-        );
-        const data = await res.json();
-        console.log("events.jsx: fetch basic info");
-
-        if (data.success) {
-          setUserProfile(data.data);
-          fetchJoinedEvents(data.data.id);
-        }
-      } catch (err) {
-        console.error("Error:", err);
-      }
-    }
-
-    fetchProfile();
-  }, [user]);
 
   const fetchJoinedEvents = async (userId) => {
     try {
@@ -69,6 +48,12 @@ function Events() {
       console.error("Failed to fetch joined events:", err);
     }
   };
+
+  useEffect(() => {
+    if (userProfile?.id) {
+      fetchJoinedEvents(userProfile.id);
+    }
+  }, [userProfile]);
 
   const fetchEvents = async () => {
     try {
@@ -150,10 +135,16 @@ function Events() {
   const filterEvents = (events) => {
     let filtered = events;
 
-    // Filter by status
+    // filter by status
+    filtered = filtered.map((event) => ({
+      ...event,
+      dynamicStatus: getEventStatus(event.start_date, event.end_date),
+    }));
+
+    // filter by status
     if (statusFilter.length > 0) {
       filtered = filtered.filter((event) =>
-        statusFilter.includes(event.status),
+        statusFilter.includes(event.dynamicStatus),
       );
     }
 

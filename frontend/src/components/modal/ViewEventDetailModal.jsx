@@ -18,38 +18,26 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useUser } from "@stackframe/react";
+import {
+  getEventStatus,
+  getStatusColor,
+  getStatusLabel,
+} from "../../utils/eventStatus";
+import { useUserProfile } from "../../hooks/useUserProfile";
 
 function EventDetailsModal({ opened, onClose, eventId }) {
   const theme = useMantineTheme();
   const user = useUser();
+  const { userProfile } = useUserProfile();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasJoined, setHasJoined] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     if (opened && eventId) {
       fetchEventDetail();
-      fetchUserProfile();
     }
   }, [opened, eventId]);
-
-  const fetchUserProfile = async () => {
-    if (!user) return;
-
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/users/${user.id}/basic-info`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        setUserProfile(data.data);
-        checkJoinStatus(data.data.id);
-      }
-    } catch (err) {
-      console.error("Failed to fetch user profile:", err);
-    }
-  };
 
   const checkJoinStatus = async (userId) => {
     try {
@@ -59,13 +47,19 @@ function EventDetailsModal({ opened, onClose, eventId }) {
       const data = await res.json();
 
       if (data.success) {
-        const joined = data.data.some((e) => e.id === eventId);
+        const joined = data.data.some((e) => e.id === parseInt(eventId));
         setHasJoined(joined);
       }
     } catch (err) {
       console.error("Failed to check join status:", err);
     }
   };
+
+  useEffect(() => {
+    if (userProfile?.id && eventId) {
+      checkJoinStatus(userProfile.id);
+    }
+  }, [userProfile, eventId]);
 
   const fetchEventDetail = async () => {
     setLoading(true);
@@ -83,11 +77,11 @@ function EventDetailsModal({ opened, onClose, eventId }) {
     setLoading(false);
   };
 
-  const statusColors = {
-    upcoming: "blue",
-    ongoing: "green",
-    completed: "gray",
-  };
+  const dynamicStatus = event
+    ? getEventStatus(event.start_date, event.end_date)
+    : null;
+  const statusColor = dynamicStatus ? getStatusColor(dynamicStatus) : "gray";
+  const statusLabel = dynamicStatus ? getStatusLabel(dynamicStatus) : "";
 
   if (loading) {
     return (
@@ -130,8 +124,8 @@ function EventDetailsModal({ opened, onClose, eventId }) {
           <Text fw={700} size="xl">
             {event.event_title}
           </Text>
-          <Badge color={statusColors[event.status]} variant="light" size="lg">
-            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+          <Badge color={statusColor} variant="light" size="lg">
+            {statusLabel}
           </Badge>
         </Group>
 

@@ -25,6 +25,7 @@ import EventCalendar from "../components/Calendar";
 import EventCard from "../components/EventCard";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 const quotes = [
   "Volunteers do not necessarily have the time; they just have the heart.",
@@ -61,7 +62,7 @@ function Dashboard() {
   const theme = useMantineTheme();
   const user = useUser();
   const navigate = useNavigate();
-  const [userProfile, setUserProfile] = useState(null);
+  const { userProfile, loading: profileLoading } = useUserProfile();
   const [eventCards, setEventCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,25 +77,20 @@ function Dashboard() {
       return;
     }
 
-    async function fetchData() {
+    async function fetchEvents() {
       setLoading(true);
       try {
-        // Fetch profile
-        const profileRes = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
-        );
-        const profileData = await profileRes.json();
-        if (profileData.success) {
-          setUserProfile(profileData.data);
-        }
-
-        // Fetch events
+        // Fetch events and filter by date
         const eventsRes = await fetch("http://localhost:3000/api/events");
         const eventsData = await eventsRes.json();
         if (eventsData.success) {
+          const now = new Date();
           const upcoming = eventsData.data
-            .filter((e) => e.status === "upcoming")
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .filter((e) => {
+              const startDate = new Date(e.start_date);
+              return startDate >= now;
+            })
+            .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
             .slice(0, 7);
           setEventCards(upcoming);
         }
@@ -105,10 +101,12 @@ function Dashboard() {
       }
     }
 
-    fetchData();
-  }, [user, navigate]);
+    if (userProfile) {
+      fetchEvents();
+    }
+  }, [user, navigate, userProfile]);
 
-  if (loading || !userProfile) {
+  if (loading || profileLoading || !userProfile) {
     // add loading anim
     return null;
   }

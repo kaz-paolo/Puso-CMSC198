@@ -37,6 +37,7 @@ import { useUser } from "@stackframe/react";
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import { ThemeSettings } from "../components/ThemeSettings";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 // PLACEHOLDER DATA
 const PLACEHOLDER_HISTORY = [
@@ -69,44 +70,30 @@ const PLACEHOLDER_HISTORY = [
 function Profile() {
   const user = useUser();
   const theme = useMantineTheme();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { colorScheme } = useMantineColorScheme();
+  const { userProfile, loading } = useUserProfile();
   const [themeOpened, setThemeOpened] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  // profiledata state
+  // profiledata
   const [profileData, setProfileData] = useState({
-    firstName: "Firstname",
-    lastName: "Lastname",
-    mobile: "09XXXXXXXXX",
-    dob: "XX-XX-XXXX",
-    studentNumber: "XXXX-XXXXX",
-    college: "XXX",
-    degree: "XXX XXXXX XXXXX",
-    address: "XXXX, XXXXX",
-    classification: "XXXXXX",
+    first_name: "",
+    last_name: "",
+    mobile: "",
+    dob: "",
+    student_number: "",
+    college: "",
+    degree: "",
+    present_address: "",
+    classification: "",
   });
 
-  // Fetch data
   useEffect(() => {
-    async function fetchProfile() {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
-        );
-        const data = await res.json();
-        console.log("profile.jsx: fetch basic info");
-
-        if (data.success) setProfileData(data.data);
-      } catch (err) {
-        console.error("Error:", err);
-      }
-      setLoading(false);
+    if (userProfile) {
+      setProfileData(userProfile);
     }
-    if (user) fetchProfile();
-  }, [user]);
+  }, [userProfile]);
 
   const handleSave = async () => {
     // TODO: Save

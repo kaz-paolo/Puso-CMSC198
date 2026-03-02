@@ -9,6 +9,7 @@ import {
   Divider,
   Avatar,
   Box,
+  Badge,
 } from "@mantine/core";
 import { IconCalendar, IconMapPin } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
@@ -17,11 +18,17 @@ import SelectRoleModal from "../components/modal/SelectRoleModal";
 import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import eventImage from "../assets/hero-image.png";
+import {
+  getEventStatus,
+  getStatusColor,
+  getStatusLabel,
+} from "../utils/eventStatus";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 function EventCard({ event }) {
   const user = useUser();
   const theme = useMantineTheme();
-  const [userProfile, setUserProfile] = useState();
+  const { userProfile } = useUserProfile();
   const navigate = useNavigate();
   const [hasJoined, setHasJoined] = useState(false);
   const [checkingJoinStatus, setCheckingJoinStatus] = useState(true);
@@ -31,39 +38,28 @@ function EventCard({ event }) {
     event_title,
     description,
     start_date,
+    end_date,
     time,
     location,
     volunteer_capacity,
     volunteer_roles,
-    status,
   } = event;
+
+  const dynamicStatus = getEventStatus(start_date, end_date);
+  const statusColor = getStatusColor(dynamicStatus);
+  const statusLabel = getStatusLabel(dynamicStatus);
+
   const [detailsOpened, setDetailsOpened] = useState(false);
   const [roleSelectOpened, setRoleSelectOpened] = useState(false);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!user) return;
-
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
-        );
-        const data = await res.json();
-        if (data.success) setUserProfile(data.data);
-      } catch (err) {
-        console.error("Network error:", err);
-      }
-    }
-
-    fetchProfile();
-  }, [user]);
-
-  // if user has already joined this event
+  // check if user has already joined this event
   useEffect(() => {
     async function checkJoinStatus() {
-      if (!user || !userProfile) return;
+      if (!user || !userProfile) {
+        setCheckingJoinStatus(false);
+        return;
+      }
 
-      setCheckingJoinStatus(true);
       try {
         const res = await fetch(
           `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
@@ -175,6 +171,17 @@ function EventCard({ event }) {
             height={130}
             alt={event_title}
           />
+          <Badge
+            color={statusColor}
+            variant="filled"
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+            }}
+          >
+            {statusLabel}
+          </Badge>
         </Card.Section>
 
         <Stack p="xs" gap={4} style={{ height: 170 }}>
@@ -240,17 +247,18 @@ function EventCard({ event }) {
               >
                 Details
               </Button>
-              {status === "upcoming" && userProfile?.role !== "admin" && (
-                <Button
-                  variant="filled"
-                  size="xs"
-                  color={hasJoined ? "green" : "primary"}
-                  onClick={handleVolunteerClick}
-                  disabled={isFull || hasJoined || checkingJoinStatus}
-                >
-                  {getVolunteerButtonText()}
-                </Button>
-              )}
+              {dynamicStatus === "upcoming" &&
+                userProfile?.role !== "admin" && (
+                  <Button
+                    variant="filled"
+                    size="xs"
+                    color={hasJoined ? "green" : "primary"}
+                    onClick={handleVolunteerClick}
+                    disabled={isFull || hasJoined || checkingJoinStatus}
+                  >
+                    {getVolunteerButtonText()}
+                  </Button>
+                )}
             </Group>
           </Group>
         </Stack>

@@ -1,5 +1,48 @@
 import { sql } from "../config/db.js";
 
+// Define field mappings once
+const PROFILE_FIELDS = {
+  firstName: "first_name",
+  middleName: "middle_name",
+  lastName: "last_name",
+  studentNumber: "student_number",
+  nickname: "nickname",
+  sex: "sex",
+  civilStatus: "civil_status",
+  birthDate: "dob",
+  birthPlace: "birth_place",
+  height: "height",
+  weight: "weight",
+  bloodType: "blood_type",
+  languages: "languages",
+  mobile: "mobile",
+  hometown: "hometown",
+  presentAddress: "present_address",
+  classification: "classification",
+  college: "college",
+  degree: "degree",
+  yearLevel: "year_level",
+  yearGraduated: "year_graduated",
+  campus: "campus",
+  designation: "designation",
+  organization: "organization",
+  organizations: "organizations",
+  illness: "illness",
+  arukahikJoinDate: "arukahik_join_date",
+  hobbies: "hobbies",
+  skills: "skills",
+  expertise: "expertise",
+  software: "software",
+  committee1: "committee1",
+  whyCommittee1: "why_committee1",
+  committee2: "committee2",
+  whyCommittee2: "why_committee2",
+  committee3: "committee3",
+  whyCommittee3: "why_committee3",
+  strengths: "strengths",
+  facebook: "facebook",
+};
+
 export const getAllUsers = async (req, res) => {
   res.send("Get all users");
 };
@@ -7,212 +50,83 @@ export const getAllUsers = async (req, res) => {
 export const getBasicInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const result =
-      await sql`SELECT id, first_name, last_name, dob, mobile, present_address, student_number, degree, role FROM user_info WHERE auth_user_id = ${id}`;
 
-    if (result.length === 0)
+    const [user] = await sql`
+      SELECT 
+        id, 
+        first_name, 
+        last_name, 
+        dob, 
+        mobile, 
+        present_address, 
+        student_number, 
+        degree, 
+        role 
+      FROM user_info 
+      WHERE auth_user_id = ${id}
+    `;
+
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
 
-    res.status(200).json({ success: true, data: result[0] });
+    res.status(200).json({ success: true, data: user });
   } catch (err) {
-    console.error(err);
+    console.error("getBasicInfo error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 export const completeProfile = async (req, res) => {
   try {
-    const {
-      authUserId,
-      firstName,
-      middleName,
-      lastName,
-      studentNumber,
-      nickname,
-      sex,
-      civilStatus,
-      birthDate,
-      birthPlace,
-      height,
-      weight,
-      bloodType,
-      languages,
-      mobile,
-      hometown,
-      presentAddress,
-      classification,
-      college,
-      degree,
-      yearLevel,
-      yearGraduated,
-      campus,
-      designation,
-      organization,
-      organizations,
-      illness,
-      arukahikJoinDate,
-      hobbies,
-      skills,
-      expertise,
-      software,
-      committee1,
-      whyCommittee1,
-      committee2,
-      whyCommittee2,
-      committee3,
-      whyCommittee3,
-      strengths,
-      committeeCount,
-      facebook,
-    } = req.body;
+    const { authUserId, ...profileData } = req.body;
 
     if (!authUserId) {
       return res.status(400).json({ error: "authUserId is required" });
     }
 
+    // Verify user exists
     const [userExists] = await sql`
-      SELECT id FROM neon_auth.users_sync WHERE id = ${authUserId};
+      SELECT 1 FROM neon_auth.users_sync WHERE id = ${authUserId}
     `;
 
     if (!userExists) {
       return res.status(404).json({ error: "User not found in Neon Auth" });
     }
 
-    const result = await sql`
-      INSERT INTO user_info (
-        auth_user_id,
-        first_name,
-        middle_name,
-        last_name,
-        student_number,
-        nickname,
-        sex,
-        civil_status,
-        dob,
-        birth_place,
-        height,
-        weight,
-        blood_type,
-        languages,
-        mobile,
-        hometown,
-        present_address,
-        classification,
-        college,
-        degree,
-        year_level,
-        year_graduated,
-        campus,
-        designation,
-        organization,
-        organizations,
-        illness,
-        arukahik_join_date,
-        hobbies,
-        skills,
-        expertise,
-        software,
-        committee1,
-        why_committee1,
-        committee2,
-        why_committee2,
-        committee3,
-        why_committee3,
-        strengths,
-        facebook
-      )
-      VALUES (
-        ${authUserId},
-        ${firstName},
-        ${middleName},
-        ${lastName},
-        ${studentNumber},
-        ${nickname},
-        ${sex},
-        ${civilStatus},
-        ${birthDate},
-        ${birthPlace},
-        ${height},
-        ${weight},
-        ${bloodType},
-        ${languages},
-        ${mobile},
-        ${hometown},
-        ${presentAddress},
-        ${classification},
-        ${college},
-        ${degree},
-        ${yearLevel},
-        ${yearGraduated},
-        ${campus},
-        ${designation},
-        ${organization},
-        ${organizations},
-        ${illness},
-        ${arukahikJoinDate},
-        ${hobbies},
-        ${skills},
-        ${expertise},
-        ${software},
-        ${committee1},
-        ${whyCommittee1},
-        ${committee2},
-        ${whyCommittee2},
-        ${committee3},
-        ${whyCommittee3},
-        ${strengths},
-        ${facebook}
-      )
+    // Map camelCase to snake_case
+    const dbFields = {};
+    Object.entries(PROFILE_FIELDS).forEach(([camelKey, snakeKey]) => {
+      if (profileData[camelKey] !== undefined) {
+        dbFields[snakeKey] = profileData[camelKey];
+      }
+    });
+
+    // Add auth_user_id
+    dbFields.auth_user_id = authUserId;
+
+    // Generate dynamic SQL
+    const columns = Object.keys(dbFields);
+    const values = Object.values(dbFields);
+
+    const updateClauses = columns
+      .filter((col) => col !== "auth_user_id")
+      .map((col) => `${col} = EXCLUDED.${col}`)
+      .join(", ");
+
+    const [result] = await sql`
+      INSERT INTO user_info ${sql(dbFields)}
       ON CONFLICT (auth_user_id)
-      DO UPDATE SET
-        first_name = EXCLUDED.first_name,
-        middle_name = EXCLUDED.middle_name,
-        last_name = EXCLUDED.last_name,
-        student_number = EXCLUDED.student_number,
-        nickname = EXCLUDED.nickname,
-        sex = EXCLUDED.sex,
-        civil_status = EXCLUDED.civil_status,
-        dob = EXCLUDED.dob,
-        birth_place = EXCLUDED.birth_place,
-        height = EXCLUDED.height,
-        weight = EXCLUDED.weight,
-        blood_type = EXCLUDED.blood_type,
-        languages = EXCLUDED.languages,
-        mobile = EXCLUDED.mobile,
-        hometown = EXCLUDED.hometown,
-        present_address = EXCLUDED.present_address,
-        classification = EXCLUDED.classification,
-        college = EXCLUDED.college,
-        degree = EXCLUDED.degree,
-        year_level = EXCLUDED.year_level,
-        year_graduated = EXCLUDED.year_graduated,
-        campus = EXCLUDED.campus,
-        designation = EXCLUDED.designation,
-        organization = EXCLUDED.organization,
-        organizations = EXCLUDED.organizations,
-        illness = EXCLUDED.illness,
-        arukahik_join_date = EXCLUDED.arukahik_join_date,
-        hobbies = EXCLUDED.hobbies,
-        skills = EXCLUDED.skills,
-        expertise = EXCLUDED.expertise,
-        software = EXCLUDED.software,
-        committee1 = EXCLUDED.committee1,
-        why_committee1 = EXCLUDED.why_committee1,
-        committee2 = EXCLUDED.committee2,
-        why_committee2 = EXCLUDED.why_committee2,
-        committee3 = EXCLUDED.committee3,
-        why_committee3 = EXCLUDED.why_committee3,
-        strengths = EXCLUDED.strengths,
-        facebook = EXCLUDED.facebook
-      RETURNING *;
+      DO UPDATE SET ${sql.unsafe(updateClauses)}
+      RETURNING *
     `;
 
     res.status(200).json({
       success: true,
-      data: result[0],
+      data: result,
     });
   } catch (error) {
-    console.error("completeProfile error", error);
+    console.error("completeProfile error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -220,15 +134,19 @@ export const completeProfile = async (req, res) => {
 export const getCompleteInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await sql`
-      SELECT * FROM user_info WHERE auth_user_id = ${id};
-    `;
-    if (result.length === 0)
-      return res.status(404).json({ error: "User not found" });
 
-    res.status(200).json({ success: true, data: result[0] });
+    const [user] = await sql`
+      SELECT * FROM user_info WHERE auth_user_id = ${id}
+    `;
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
-    console.error(error);
+    console.error("getCompleteInfo error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -241,45 +159,52 @@ export async function getUserJoinedEvents(req, res) {
         e.id,
         e.event_title,
         e.start_date,
-        e.status
+        e.end_date
       FROM event_volunteers ev
-      JOIN events e ON ev.event_id = e.id
+      INNER JOIN events e ON ev.event_id = e.id
       WHERE ev.user_id = ${id}
-        AND e.status IN ('upcoming', 'ongoing')
+      ORDER BY e.start_date ASC
     `;
 
     res.json({ success: true, data: events });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch joined events" });
+    console.error("getUserJoinedEvents error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch joined events",
+    });
   }
 }
 
 export async function checkExistingMember(req, res) {
   try {
-    console.log("Check existing member");
-
     const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required",
+      });
+    }
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const result = await sql`
+    const [result] = await sql`
       SELECT 1 
       FROM existing_members 
-      WHERE up_email = ${normalizedEmail}
+      WHERE LOWER(up_email) = ${normalizedEmail}
       LIMIT 1
     `;
 
     return res.status(200).json({
       success: true,
-      exists: result.length > 0,
+      exists: !!result,
     });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to check existing members" });
+    console.error("checkExistingMember error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to check existing members",
+    });
   }
 }
