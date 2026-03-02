@@ -8,6 +8,8 @@ import {
   useMantineTheme,
   useMantineColorScheme,
   Button,
+  ScrollArea,
+  Select,
 } from "@mantine/core";
 import {
   IconHome,
@@ -17,14 +19,18 @@ import {
   IconMessageCircle,
   IconSettings,
   IconChevronRight,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useStackApp, useUser } from "@stackframe/react";
+import { getEventStatus } from "../utils/eventStatus";
+import { useUserProfile } from "../hooks/useUserProfile";
 
 function NavBar() {
   const stackApp = useStackApp();
   const user = useUser();
+  const { userProfile } = useUserProfile();
 
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
@@ -32,9 +38,9 @@ function NavBar() {
   const [needsVolunteerForm, setNeedsVolunteerForm] = useState(false);
 
   const [activeLink, setActiveLink] = useState();
-  const [userProfile, setUserProfile] = useState();
-
   const [joinedEvents, setJoinedEvents] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
+  const [eventFilter, setEventFilter] = useState("upcoming"); // "upcoming" or "ongoing"
 
   // Check if user has answered volunteer form
   // useEffect(() => {
@@ -69,28 +75,47 @@ function NavBar() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userProfile) return;
 
-    async function fetchJoinedEvents() {
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
-        );
-        const data = await res.json();
-        console.log(userProfile.id);
-
-        console.log("navbar.jsx: fetch joined events");
-
-        if (data.success) {
-          setJoinedEvents(data.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch joined events:", err);
-      }
+    if (userProfile.role === "admin") {
+      fetchAllEvents();
+    } else {
+      fetchJoinedEvents();
     }
-
-    fetchJoinedEvents();
   }, [userProfile]);
+
+  async function fetchJoinedEvents() {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        setJoinedEvents(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch joined events:", err);
+    }
+  }
+
+  async function fetchAllEvents() {
+    try {
+      const res = await fetch("http://localhost:3000/api/events");
+      const data = await res.json();
+
+      if (data.success) {
+        // dynamic event status
+        const eventsWithStatus = data.data.map((event) => ({
+          ...event,
+          dynamicStatus: getEventStatus(event.start_date, event.end_date),
+        }));
+        setAllEvents(eventsWithStatus);
+      }
+    } catch (err) {
+      console.error("Failed to fetch all events:", err);
+    }
+  }
 
   const userEmail = user?.primaryEmail || "";
   const userName = userProfile
@@ -105,6 +130,16 @@ function NavBar() {
     await stackApp.signOut();
     navigate("/auth");
   };
+
+  // filter event status for admin
+  const upcomingEvents = allEvents.filter(
+    (e) => e.dynamicStatus === "upcoming",
+  );
+  const ongoingEvents = allEvents.filter((e) => e.dynamicStatus === "ongoing");
+
+  // Get events based on filter
+  const filteredEvents =
+    eventFilter === "upcoming" ? upcomingEvents : ongoingEvents;
 
   return (
     <Stack
@@ -138,7 +173,6 @@ function NavBar() {
           color="primary"
           onClick={(e) => {
             e.preventDefault();
-            // setActiveLink(link);
             navigate("/events");
           }}
         />
@@ -150,48 +184,98 @@ function NavBar() {
 
         <Divider my="md" />
 
-        <Text size="xs" c="dimmed" fw={500} mb="xs" tt="uppercase">
-          Joined Events
-        </Text>
+        {userProfile?.role === "admin" ? (
+          <>
+            <Group justify="space-between" mb="xs">
+              <Text size="xs" c="dimmed" fw={500} tt="uppercase">
+                Event Management
+              </Text>
+            </Group>
 
-        {joinedEvents.length === 0 && (
-          <Text size="xs" c="dimmed">
-            No joined events
-          </Text>
+            <Select
+              size="xs"
+              value={eventFilter}
+              onChange={setEventFilter}
+              data={[
+                {
+                  value: "upcoming",
+                  label: `Upcoming (${upcomingEvents.length})`,
+                },
+                {
+                  value: "ongoing",
+                  label: `Ongoing (${ongoingEvents.length})`,
+                },
+              ]}
+              rightSection={<IconChevronDown size={14} />}
+              mb="xs"
+              styles={{
+                input: {
+                  fontSize: "0.85rem",
+                },
+              }}
+            />
+
+            <ScrollArea h={200} type="auto">
+              <Stack gap="xs">
+                {filteredEvents.length === 0 ? (
+                  <Text size="xs" c="dimmed">
+                    No {eventFilter} events
+                  </Text>
+                ) : (
+                  filteredEvents
+                    .slice(0, 10)
+                    .map((event) => (
+                      <NavLink
+                        key={event.id}
+                        label={event.event_title}
+                        leftSection={<IconCalendar size={16} />}
+                        onClick={() => navigate(`/events/${event.id}`)}
+                        style={{ fontSize: "0.85rem" }}
+                      />
+                    ))
+                )}
+                {filteredEvents.length > 10 && (
+                  <NavLink
+                    label={`+${filteredEvents.length - 10} more`}
+                    leftSection={<IconChevronRight size={16} />}
+                    onClick={() => navigate("/events")}
+                    c="dimmed"
+                    style={{ fontSize: "0.85rem" }}
+                  />
+                )}
+              </Stack>
+            </ScrollArea>
+          </>
+        ) : (
+          <>
+            <Text size="xs" c="dimmed" fw={500} mb="xs" tt="uppercase">
+              Joined Events
+            </Text>
+
+            {joinedEvents.length === 0 && (
+              <Text size="xs" c="dimmed">
+                No joined events
+              </Text>
+            )}
+
+            {joinedEvents.slice(0, 3).map((event) => (
+              <NavLink
+                key={event.id}
+                label={event.event_title}
+                leftSection={<IconCalendar size={20} />}
+                onClick={() => navigate(`/events/${event.id}`)}
+              />
+            ))}
+
+            {joinedEvents.length > 3 && (
+              <NavLink
+                label="More"
+                leftSection={<IconChevronRight size={20} />}
+                onClick={() => navigate("/events")}
+              />
+            )}
+          </>
         )}
-
-        {joinedEvents.slice(0, 3).map((event) => (
-          <NavLink
-            key={event.id}
-            label={event.event_title}
-            leftSection={<IconCalendar size={20} />}
-            onClick={() => navigate(`/events/${event.id}`)}
-          />
-        ))}
-
-        {joinedEvents.length > 3 && (
-          <NavLink
-            label="More"
-            leftSection={<IconChevronRight size={20} />}
-            onClick={() => navigate("/events")}
-          />
-        )}
-
-        {/* <NavLink
-          label="EventName"
-          leftSection={<IconCalendar size={20} />}
-          color="primary"
-        />
-        <NavLink
-          label="EventName"
-          leftSection={<IconCalendar size={20} />}
-          color="primary"
-        />
-        <NavLink
-          label="More"
-          leftSection={<IconChevronRight size={20} />}
-          color="primary"
-        /> */}
 
         <Divider my="md" />
 

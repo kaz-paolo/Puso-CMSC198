@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import usersRoutes from "./routes/usersRoutes.js";
 import eventsRoutes from "./routes/eventsRoutes.js";
+import tasksRoutes from "./routes/tasksRoutes.js";
 import { sql } from "./config/db.js";
 import { initDb } from "./config/initDb.js";
 
@@ -36,6 +37,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", usersRoutes);
 
 app.use("/api/events", eventsRoutes);
+
+app.use("/api/events", tasksRoutes);
 
 initDb().then(() => {
   app.listen(PORT, () => {

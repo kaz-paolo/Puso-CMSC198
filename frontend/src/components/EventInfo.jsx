@@ -12,6 +12,11 @@ import {
   IconUsers,
   IconClock,
 } from "@tabler/icons-react";
+import {
+  getEventStatus,
+  getStatusColor,
+  getStatusLabel,
+} from "../utils/eventStatus";
 
 function EventInfo({ event }) {
   const theme = useMantineTheme();
@@ -24,11 +29,9 @@ function EventInfo({ event }) {
     );
   }
 
-  const statusColors = {
-    upcoming: "blue",
-    ongoing: "green",
-    completed: "gray",
-  };
+  const dynamicStatus = getEventStatus(event.start_date, event.end_date);
+  const statusColor = getStatusColor(dynamicStatus);
+  const statusLabel = getStatusLabel(dynamicStatus);
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -39,8 +42,8 @@ function EventInfo({ event }) {
               {event.event_title}
             </Text>
           </Stack>
-          <Badge color={statusColors[event.status]} variant="light" size="lg">
-            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+          <Badge color={statusColor} variant="light" size="lg">
+            {statusLabel}
           </Badge>
         </Group>
 
