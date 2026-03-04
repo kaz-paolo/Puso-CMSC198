@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 
 export function useUserProfile() {
-  const user = useUser();
+  const [session, setSession] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
+
+  const user = session?.user;
 
   useEffect(() => {
     if (!user) {
@@ -33,5 +43,5 @@ export function useUserProfile() {
     fetchProfile();
   }, [user]);
 
-  return { userProfile, loading, error };
+  return { userProfile, loading, error, user };
 }

@@ -21,12 +21,20 @@ import {
 } from "@tabler/icons-react";
 import EventCard from "../components/EventCard";
 import AddEventModal from "../components/modal/AddEventModal";
-import { useUser } from "@stackframe/react";
 import { getEventStatus } from "../utils/eventStatus";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { authClient } from "../auth.js";
 
 function Events() {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
+
   const { userProfile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
@@ -289,7 +297,7 @@ function Events() {
             Type
           </Button>
 
-          {userProfile?.role === "admin" && (
+          {session?.data?.user?.role === "admin" && (
             <Button
               leftSection={<IconPlus size={18} />}
               onClick={() => setAddEventOpened(true)}
