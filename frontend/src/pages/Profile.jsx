@@ -33,7 +33,7 @@ import {
   IconSchool,
   IconBriefcase,
 } from "@tabler/icons-react";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import { ThemeSettings } from "../components/ThemeSettings";
@@ -68,7 +68,14 @@ const PLACEHOLDER_HISTORY = [
 ];
 
 function Profile() {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await authClient.getSession();
+      setSession(data);
+    };
+    fetchSession();
+  }, []);
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const { userProfile, loading } = useUserProfile();
@@ -211,7 +218,7 @@ function Profile() {
               {profileData.first_name} {profileData.last_name}
             </Title>
             <Text c="dimmed" style={{ textAlign: "left" }}>
-              {user?.primaryEmail}
+              {session?.user?.primaryEmail}
             </Text>
           </div>
         </Group>

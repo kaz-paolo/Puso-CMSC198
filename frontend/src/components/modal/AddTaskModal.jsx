@@ -14,10 +14,17 @@ import {
 import { DatePickerInput, TimeInput } from "@mantine/dates";
 import { useState, useEffect } from "react";
 import { IconPlus, IconTrash, IconLink } from "@tabler/icons-react";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../../auth.js";
 
 function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await authClient.getSession();
+      setSession(data);
+    };
+    fetchSession();
+  }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
@@ -108,7 +115,7 @@ function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
     try {
       // fetch user database ID
       const userRes = await fetch(
-        `http://localhost:3000/api/users/${user.id}/basic-info`,
+        `http://localhost:3000/api/users/${session.user.id}/basic-info`,
       );
       const userData = await userRes.json();
 

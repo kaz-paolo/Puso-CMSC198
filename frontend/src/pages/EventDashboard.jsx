@@ -25,11 +25,11 @@ import {
   IconLock,
   IconAlertCircle,
 } from "@tabler/icons-react";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 import { Alert } from "@mantine/core";
 import { useUserProfile } from "../hooks/useUserProfile";
 
-// Import event dashboard components
+// event dashboard components
 import EventDescription from "../components/event-dashboard/EventDescription";
 import EventTimeline from "../components/event-dashboard/EventTimeline";
 import LatestAnnouncements from "../components/event-dashboard/LatestAnnouncements";
@@ -92,7 +92,14 @@ const DUMMY_TIMELINE = [
 
 function EventDashboard() {
   const { eventId } = useParams();
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const { userProfile, loading: profileLoading } = useUserProfile();
@@ -114,11 +121,12 @@ function EventDashboard() {
   const [resources, setResources] = useState([]);
   const [timeline] = useState(DUMMY_TIMELINE);
 
-  const checkAccess = async (profile) => {
+  const checkAccess = async (profile, sessionData) => {
     try {
-      // Admin has access to all events
-      if (profile.role === "admin") {
+      // admin access
+      if (sessionData?.data?.user?.role === "admin") {
         setHasAccess(true);
+        setLoading(false);
         return;
       }
 
@@ -141,14 +149,20 @@ function EventDashboard() {
   };
 
   useEffect(() => {
-    if (userProfile) {
-      checkAccess(userProfile);
+    if (session?.data?.user?.role === "admin") {
+      checkAccess(null, session);
+      fetchEventDetails();
+      fetchVolunteers();
+      fetchTasks();
+      fetchResources();
+    } else if (userProfile) {
+      checkAccess(userProfile, session);
       fetchEventDetails();
       fetchVolunteers();
       fetchTasks();
       fetchResources();
     }
-  }, [eventId, userProfile]);
+  }, [eventId, userProfile, session]);
 
   const fetchEventDetails = async () => {
     try {
@@ -260,7 +274,7 @@ function EventDashboard() {
                   <Text size="sm">Administrators</Text>
                 </li>
               </ul>
-              {userProfile?.role !== "admin" && (
+              {session?.data?.user?.role !== "admin" && (
                 <Text size="sm" mt="xs">
                   Please join this event first to access the dashboard.
                 </Text>

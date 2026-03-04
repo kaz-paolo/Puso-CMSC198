@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Paper,
   Text,
@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import AddResourceModal from "../modal/AddResourceModal";
+import { authClient } from "../../auth.js";
 
 function ResourcesList({
   resources,
@@ -32,6 +33,14 @@ function ResourcesList({
   onResourcesRefresh,
 }) {
   const [addResourceOpened, setAddResourceOpened] = useState(false);
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await authClient.getSession();
+      setSession(data);
+    };
+    fetchSession();
+  }, []);
 
   const handleOpenLink = (url) => {
     // URL protocol
@@ -141,7 +150,7 @@ function ResourcesList({
             </ActionIcon>
           </Tooltip>
 
-          {userProfile?.role === "admin" && (
+          {session?.user?.role === "admin" && (
             <Menu shadow="md" width={150}>
               <Menu.Target>
                 <ActionIcon variant="subtle" color="gray">
@@ -172,7 +181,7 @@ function ResourcesList({
           <Text fw={600} size="lg">
             Available Resources and Links
           </Text>
-          {userProfile?.role === "admin" && (
+          {session?.user?.role === "admin" && (
             <Button
               leftSection={<IconPlus size={16} />}
               size="xs"

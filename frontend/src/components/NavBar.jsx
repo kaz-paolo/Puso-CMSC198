@@ -23,13 +23,19 @@ import {
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useStackApp, useUser } from "@stackframe/react";
 import { getEventStatus } from "../utils/eventStatus";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { authClient } from "../auth.js";
 
 function NavBar() {
-  const stackApp = useStackApp();
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
   const { userProfile } = useUserProfile();
 
   const theme = useMantineTheme();
@@ -56,11 +62,11 @@ function NavBar() {
 
   useEffect(() => {
     async function fetchProfile() {
-      if (!user) return;
+      if (!session?.data?.user) return;
 
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
+          `http://localhost:3000/api/users/${session.data.user.id}/basic-info`,
         );
         const data = await res.json();
         console.log("navbar.jsx: fetch basic info");
@@ -72,17 +78,17 @@ function NavBar() {
     }
 
     fetchProfile();
-  }, [user]);
+  }, [session]);
 
   useEffect(() => {
-    if (!user || !userProfile) return;
+    if (!session?.data?.user && !userProfile) return;
 
-    if (userProfile.role === "admin") {
+    if (session?.data?.user?.role === "admin") {
       fetchAllEvents();
-    } else {
+    } else if (userProfile) {
       fetchJoinedEvents();
     }
-  }, [userProfile]);
+  }, [userProfile, session]);
 
   async function fetchJoinedEvents() {
     try {
@@ -117,7 +123,7 @@ function NavBar() {
     }
   }
 
-  const userEmail = user?.primaryEmail || "";
+  const userEmail = session?.data?.user?.email || "";
   const userName = userProfile
     ? `${userProfile.first_name || ""} ${userProfile.last_name || ""}`.trim()
     : "No Name";
@@ -127,7 +133,7 @@ function NavBar() {
       : "";
 
   const handleLogout = async () => {
-    await stackApp.signOut();
+    await authClient.signOut();
     navigate("/auth");
   };
 
@@ -184,7 +190,7 @@ function NavBar() {
 
         <Divider my="md" />
 
-        {userProfile?.role === "admin" ? (
+        {session?.data?.user?.role === "admin" ? (
           <>
             <Group justify="space-between" mb="xs">
               <Text size="xs" c="dimmed" fw={500} tt="uppercase">
@@ -331,7 +337,7 @@ function NavBar() {
       )}
 
       {/* User Profile at Bottom */}
-      {user && (
+      {session?.data?.user && (
         <>
           <Group
             p="md"

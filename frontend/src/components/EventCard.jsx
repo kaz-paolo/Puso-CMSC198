@@ -15,7 +15,6 @@ import { IconCalendar, IconMapPin } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
 import EventDetailsModal from "../components/modal/ViewEventDetailModal";
 import SelectRoleModal from "../components/modal/SelectRoleModal";
-import { useUser } from "@stackframe/react";
 import { useNavigate } from "react-router-dom";
 import eventImage from "../assets/hero-image.png";
 import {
@@ -24,9 +23,11 @@ import {
   getStatusLabel,
 } from "../utils/eventStatus";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { authClient } from "../auth.js";
 
 function EventCard({ event }) {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
   const theme = useMantineTheme();
   const { userProfile } = useUserProfile();
   const navigate = useNavigate();
@@ -162,6 +163,15 @@ function EventCard({ event }) {
     return "Volunteer";
   };
 
+  useEffect(() => {
+    authClient.getSession().then((result) => {
+      if (result.data?.session && result.data?.user) {
+        setSession(result.data.session);
+        setUser(result.data.user);
+      }
+    });
+  }, []);
+
   return (
     <>
       <Card shadow="sm" p={0} radius="md" withBorder style={{ height: 300 }}>
@@ -247,18 +257,17 @@ function EventCard({ event }) {
               >
                 Details
               </Button>
-              {dynamicStatus === "upcoming" &&
-                userProfile?.role !== "admin" && (
-                  <Button
-                    variant="filled"
-                    size="xs"
-                    color={hasJoined ? "green" : "primary"}
-                    onClick={handleVolunteerClick}
-                    disabled={isFull || hasJoined || checkingJoinStatus}
-                  >
-                    {getVolunteerButtonText()}
-                  </Button>
-                )}
+              {dynamicStatus === "upcoming" && user?.role !== "admin" && (
+                <Button
+                  variant="filled"
+                  size="xs"
+                  color={hasJoined ? "green" : "primary"}
+                  onClick={handleVolunteerClick}
+                  disabled={isFull || hasJoined || checkingJoinStatus}
+                >
+                  {getVolunteerButtonText()}
+                </Button>
+              )}
             </Group>
           </Group>
         </Stack>
