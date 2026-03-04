@@ -190,7 +190,7 @@ function Auth() {
       </Text>
 
       <form onSubmit={handleEmailAuth} noValidate>
-        <Stack gap="md">
+        <Stack gap="md" ta="left">
           <TextInput
             label="Email"
             placeholder="your@email.com"
@@ -464,6 +464,7 @@ function Auth() {
           flex: 1,
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           paddingBottom: "5vh",
         }}
       >

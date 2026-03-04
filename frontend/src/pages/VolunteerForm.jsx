@@ -439,7 +439,10 @@ function VolunteerForm() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, authUserId: session.user.id }),
+          body: JSON.stringify({
+            ...formData,
+            authUserId: session.data.user.id,
+          }),
         },
       );
       const data = await response.json();

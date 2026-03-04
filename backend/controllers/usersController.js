@@ -87,7 +87,7 @@ export const completeProfile = async (req, res) => {
 
     // Verify user exists
     const [userExists] = await sql`
-      SELECT 1 FROM neon_auth.users_sync WHERE id = ${authUserId}
+      SELECT 1 FROM neon_auth.user WHERE id = ${authUserId}
     `;
 
     if (!userExists) {
