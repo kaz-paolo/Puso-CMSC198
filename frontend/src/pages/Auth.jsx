@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Container,
   Paper,
@@ -10,22 +10,21 @@ import {
   Anchor,
   Stack,
   Alert,
-  Checkbox,
   Group,
   Divider,
   ActionIcon,
   useMantineTheme,
+  Loader,
+  Center,
 } from "@mantine/core";
 import { useMantineColorScheme } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
-import { useStackApp, useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 import {
   IconAlertCircle,
-  IconSettings,
   IconSchool,
   IconUserPlus,
   IconArrowLeft,
-  IconBell,
   IconPalette,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
@@ -33,8 +32,9 @@ import Header from "../components/Header";
 import { ThemeSettings } from "../components/ThemeSettings";
 
 function Auth() {
-  const [view, setView] = useState("login"); // login signup recover
+  const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,25 +44,50 @@ function Auth() {
   const theme = useMantineTheme();
 
   const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  // hook for authentication
-  const stackApp = useStackApp();
-  // hook for user info
-  const user = useUser();
+  // session checks
+  const sessionCheckDone = useRef(false);
+  const isNavigating = useRef(false);
 
-  // condition for Arukahik Training
-  // true allow application, false show alert
   const arukahikAvailable = false;
 
+  // check existing session
   useEffect(() => {
-    if (!user) return;
-    const justSignedUp = localStorage.getItem("justSignedUp") === "true";
-    if (justSignedUp) {
-      navigate("/volunteer-form");
-    } else {
-      navigate("/dashboard");
+    if (sessionCheckDone.current || isNavigating.current) {
+      return;
     }
-  }, [user, navigate]);
+
+    sessionCheckDone.current = true;
+
+    const checkSession = async () => {
+      try {
+        const { data } = await authClient.getSession();
+
+        if (data?.session && !isNavigating.current) {
+          isNavigating.current = true;
+
+          const justSignedUp = localStorage.getItem("justSignedUp") === "true";
+          localStorage.removeItem("justSignedUp");
+
+          // navigation
+          if (justSignedUp) {
+            window.location.replace("/volunteer-form");
+          } else {
+            window.location.replace("/dashboard");
+          }
+        } else {
+          // show auth
+          setCheckingSession(false);
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+        setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+  }, []);
 
   useEffect(() => {
     setError("");
@@ -89,23 +114,52 @@ function Auth() {
       return;
     }
 
+    // stop multiple submission
+    if (loading || isNavigating.current) return;
+
     setLoading(true);
+    isNavigating.current = true;
+
     try {
       if (view === "login") {
-        await stackApp.signInWithCredential({ email, password });
-        localStorage.setItem("justSignedUp", "false");
+        const { data, error } = await authClient.signIn.email({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        // clea flags
+        localStorage.removeItem("justSignedUp");
+
+        window.location.replace("/dashboard");
       } else {
-        await stackApp.signUpWithCredential({ email, password });
+        // Sign up
+        const { data, error } = await authClient.signUp.email({
+          email,
+          password,
+          name: name || email.split("@")[0],
+        });
+
+        if (error) throw error;
+
         localStorage.setItem("justSignedUp", "true");
+        window.location.replace("/volunteer-form");
       }
     } catch (err) {
-      const errorMessage = err.message;
+      // reset flag on error
+      isNavigating.current = false;
+
+      const errorMessage = err.message || err.error?.message;
       if (errorMessage) {
-        if (errorMessage.includes("Wrong e-mail or password.")) {
+        if (
+          errorMessage.includes("Invalid credentials") ||
+          errorMessage.includes("password")
+        ) {
           setError("Incorrect email or password. Please try again.");
-        } else if (errorMessage.includes("must be a valid email")) {
+        } else if (errorMessage.includes("email")) {
           setError("Please enter a valid email address.");
-        } else if (errorMessage.includes("already in use")) {
+        } else if (errorMessage.includes("already exists")) {
           setError("An account with this email already exists. Please log in.");
         } else {
           setError(errorMessage);
@@ -113,10 +167,18 @@ function Auth() {
       } else {
         setError("Authentication failed. Please try again.");
       }
-    } finally {
       setLoading(false);
     }
   };
+
+  // loader
+  if (checkingSession) {
+    return (
+      <Center style={{ minHeight: "100vh" }}>
+        <Loader size="lg" />
+      </Center>
+    );
+  }
 
   const renderLogin = () => (
     <>
@@ -128,7 +190,7 @@ function Auth() {
       </Text>
 
       <form onSubmit={handleEmailAuth} noValidate>
-        <Stack gap="md">
+        <Stack gap="md" ta="left">
           <TextInput
             label="Email"
             placeholder="your@email.com"
@@ -256,6 +318,14 @@ function Auth() {
 
       <form onSubmit={handleEmailAuth}>
         <Stack gap="md">
+          {/* Need to add name on better auth */}
+          <TextInput
+            label="Full Name"
+            placeholder="John Doe"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <TextInput
             label="Email"
             placeholder="your@email.com"
@@ -263,7 +333,7 @@ function Auth() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
-            readOnly
+            readOnly={!!verifiedEmail}
           />
           <PasswordInput
             label="Password"
@@ -288,8 +358,6 @@ function Auth() {
 
   const renderRecover = () => {
     const handleVerify = async () => {
-      console.log("verify");
-
       if (!email) {
         setError("Please enter your email.");
         return;
@@ -322,7 +390,6 @@ function Auth() {
           return;
         }
 
-        // ✅ Verified
         setVerifiedEmail(normalizedEmail);
         setEmail(normalizedEmail);
         setView("signup");
@@ -350,6 +417,7 @@ function Auth() {
             label="Volunteer Registration Email"
             placeholder="youremail@email.com"
             type="email"
+            value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           {error && (
@@ -364,8 +432,7 @@ function Auth() {
               {error}
             </Alert>
           )}
-          {/* <Button color="primary">Get Verification Code</Button> */}
-          <Button color="primary" onClick={handleVerify}>
+          <Button color="primary" onClick={handleVerify} loading={loading}>
             Verify Email
           </Button>
         </Stack>
@@ -397,6 +464,7 @@ function Auth() {
           flex: 1,
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
           paddingBottom: "5vh",
         }}
       >

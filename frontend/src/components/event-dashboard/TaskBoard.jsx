@@ -10,9 +10,9 @@ import {
   SimpleGrid,
 } from "@mantine/core";
 import { IconPlus, IconDots } from "@tabler/icons-react";
-import { useUser } from "@stackframe/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddTaskModal from "../modal/AddTaskModal";
+import { authClient } from "../../auth.js";
 
 function TaskColumn({ title, count, tasks, color }) {
   //TODO
@@ -115,7 +115,14 @@ function TaskBoard({
   onTasksRefresh,
   userProfile,
 }) {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await authClient.getSession();
+      setSession(data);
+    };
+    fetchSession();
+  }, []);
   const [addTaskOpened, setAddTaskOpened] = useState(false);
 
   const handleTaskCreated = async () => {
@@ -132,7 +139,7 @@ function TaskBoard({
           <Group gap="xs">
             <Text fw={600}>Tasks</Text>
           </Group>
-          {userProfile?.role === "admin" && (
+          {session?.user?.role === "admin" && (
             <Button
               leftSection={<IconPlus size={16} />}
               size="xs"
@@ -171,7 +178,7 @@ function TaskBoard({
         </SimpleGrid>
       </Paper>
 
-      {userProfile?.role === "admin" && (
+      {session?.user?.role === "admin" && (
         <AddTaskModal
           opened={addTaskOpened}
           onClose={() => setAddTaskOpened(false)}

@@ -17,17 +17,24 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import { useUser } from "@stackframe/react";
 import {
   getEventStatus,
   getStatusColor,
   getStatusLabel,
 } from "../../utils/eventStatus";
 import { useUserProfile } from "../../hooks/useUserProfile";
+import { authClient } from "../../auth.js";
 
 function EventDetailsModal({ opened, onClose, eventId }) {
   const theme = useMantineTheme();
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
   const { userProfile } = useUserProfile();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);

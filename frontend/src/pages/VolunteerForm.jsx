@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Paper,
@@ -33,7 +33,7 @@ import {
   IconHealthRecognition,
 } from "@tabler/icons-react";
 import { useNavigate, Link, Outlet } from "react-router-dom";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 
 const SECTIONS = [
   {
@@ -124,7 +124,7 @@ const SECTIONS = [
         label: "Email",
         component: TextInput,
         isStatic: true,
-      }, // Special case for email
+      },
       {
         span: 12,
         name: "hometown",
@@ -380,13 +380,20 @@ function degreeOptions() {
 const consentText = `I hereby consent to participate in UP Visayas Ugnayan ng Pahinungód/Oblation Corps (UPV UP/OC) activities as a volunteer. I understand that volunteering entails service which may be physically and mentally demanding. I also acknowledge the inherent risks, including but not limited to, physical injury, illness, and emotional distress. I voluntarily assume these risks. I release and hold harmless UPV UP/OC, its officers, and affiliates from any liability, claims, and demands arising from my participation. I grant permission for the use of my name, likeness, and photographic images for official purposes. Thus, I hereby declare the information provided as true and correct.`;
 
 function VolunteerForm() {
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await authClient.getSession();
+      setSession(session);
+    };
+    fetchSession();
+  }, []);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    email: user?.primaryEmail || "",
+    email: session?.user?.primaryEmail || "",
     consent: false,
   });
 
@@ -432,7 +439,10 @@ function VolunteerForm() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, authUserId: user.id }),
+          body: JSON.stringify({
+            ...formData,
+            authUserId: session.data.user.id,
+          }),
         },
       );
       const data = await response.json();

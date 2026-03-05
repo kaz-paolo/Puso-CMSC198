@@ -19,7 +19,7 @@ import {
   IconArrowRight,
 } from "@tabler/icons-react";
 import { useEffect, useState, useMemo } from "react";
-import { useUser } from "@stackframe/react";
+import { authClient } from "../auth.js";
 import { useNavigate } from "react-router-dom";
 import EventCalendar from "../components/Calendar";
 import EventCard from "../components/EventCard";
@@ -60,7 +60,22 @@ function StatCard({ icon, value, label, color }) {
 
 function Dashboard() {
   const theme = useMantineTheme();
-  const user = useUser();
+  const [session, setSession] = useState(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const { data } = await authClient.getSession();
+        setSession(data);
+      } catch (error) {
+        console.error("Failed to fetch session:", error);
+      } finally {
+        setIsSessionLoading(false);
+      }
+    };
+    fetchSession();
+  }, []);
   const navigate = useNavigate();
   const { userProfile, loading: profileLoading } = useUserProfile();
   const [eventCards, setEventCards] = useState([]);
@@ -72,7 +87,9 @@ function Dashboard() {
   );
 
   useEffect(() => {
-    if (!user) {
+    if (isSessionLoading) return;
+
+    if (!session?.user) {
       navigate("/auth");
       return;
     }
@@ -104,9 +121,9 @@ function Dashboard() {
     if (userProfile) {
       fetchEvents();
     }
-  }, [user, navigate, userProfile]);
+  }, [session, isSessionLoading, navigate, userProfile]);
 
-  if (loading || profileLoading || !userProfile) {
+  if (loading || profileLoading || !userProfile || isSessionLoading) {
     // add loading anim
     return null;
   }
