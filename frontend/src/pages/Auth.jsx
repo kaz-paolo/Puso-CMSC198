@@ -39,6 +39,10 @@ function Auth() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [themeOpened, setThemeOpened] = useState(false);
+
+  const [code, setCode] = useState("");
+  // const [message, setMessage] = useState("");
+
   const navigate = useNavigate();
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
@@ -129,7 +133,7 @@ function Auth() {
 
         if (error) throw error;
 
-        // clea flags
+        // clear flags
         localStorage.removeItem("justSignedUp");
 
         window.location.replace("/dashboard");
@@ -143,8 +147,14 @@ function Auth() {
 
         if (error) throw error;
 
-        localStorage.setItem("justSignedUp", "true");
-        window.location.replace("/volunteer-form");
+        // localStorage.setItem("justSignedUp", "true");
+        // window.location.replace("/volunteer-form");
+        if (data?.user && !data.user.emailVerified) {
+          isNavigating.current = false;
+          setLoading(false);
+          // setMessage("Check your email for the verification code.");
+          setView("verify");
+        }
       }
     } catch (err) {
       // reset flag on error
@@ -157,7 +167,17 @@ function Auth() {
           errorMessage.includes("password")
         ) {
           setError("Incorrect email or password. Please try again.");
-        } else if (errorMessage.includes("email")) {
+        }
+
+        // to be implemented
+
+        // else if (errorMessage.includes("not verified")) {
+        //   setError(
+        //     "Your email is not verified. Enter the verification code sent to your email.",
+        //   );
+        //   setView("verify");
+        // }
+        else if (errorMessage.includes("email")) {
           setError("Please enter a valid email address.");
         } else if (errorMessage.includes("already exists")) {
           setError("An account with this email already exists. Please log in.");
@@ -171,6 +191,94 @@ function Auth() {
     }
   };
 
+  const handleVerifyMemberEmail = async () => {
+    if (!email) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      const response = await fetch(
+        "http://localhost:3000/api/users/check-existing",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: normalizedEmail }),
+        },
+      );
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error);
+      }
+
+      if (!data.exists) {
+        setError("Email not found in existing members list.");
+        return;
+      }
+
+      setVerifiedEmail(normalizedEmail);
+      setEmail(normalizedEmail);
+      setView("signup");
+    } catch (err) {
+      setError(err.message || "Verification failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCodeVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (!code) {
+      setError("Please enter the verification code.");
+      return;
+    }
+
+    try {
+      const { data, error } = await authClient.emailOtp.verifyEmail({
+        email,
+        otp: code,
+      });
+
+      if (error) throw error;
+
+      await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      localStorage.setItem("justSignedUp", "true");
+      window.location.replace("/volunteer-form");
+
+      // if (data?.session) {
+      //   localStorage.setItem("justSignedUp", "true");
+      //   // window.location.replace("/volunteer-form");
+      //   console.log("if");
+      //   navigate("/volunteer-form");
+      // } else {
+      //   // setMessage("Email verified! You can now sign in.");
+      //   // setStep("auth");
+      //   console.log("else");
+      //   // setView("signup");
+      //   setCode("");
+      // }
+    } catch (err) {
+      setError(err?.message || "Verification failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // loader
   if (checkingSession) {
     return (
@@ -179,6 +287,10 @@ function Auth() {
       </Center>
     );
   }
+
+  const handleResendCode = () => {
+    console.log("resend code");
+  };
 
   const renderLogin = () => (
     <>
@@ -357,49 +469,6 @@ function Auth() {
   );
 
   const renderRecover = () => {
-    const handleVerify = async () => {
-      if (!email) {
-        setError("Please enter your email.");
-        return;
-      }
-
-      setLoading(true);
-      setError("");
-
-      try {
-        const normalizedEmail = email.trim().toLowerCase();
-
-        const response = await fetch(
-          "http://localhost:3000/api/users/check-existing",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email: normalizedEmail }),
-          },
-        );
-
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.error);
-        }
-
-        if (!data.exists) {
-          setError("Email not found in existing members list.");
-          return;
-        }
-
-        setVerifiedEmail(normalizedEmail);
-        setEmail(normalizedEmail);
-        setView("signup");
-      } catch (err) {
-        setError(err.message || "Verification failed.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     return (
       <>
         <Group>
@@ -432,13 +501,70 @@ function Auth() {
               {error}
             </Alert>
           )}
-          <Button color="primary" onClick={handleVerify} loading={loading}>
+          <Button
+            color="primary"
+            onClick={handleVerifyMemberEmail}
+            loading={loading}
+          >
             Verify Email
           </Button>
         </Stack>
       </>
     );
   };
+
+  const renderVerify = () => (
+    <>
+      <Group miw={300}>
+        <ActionIcon variant="light" onClick={() => navigate(-1)}>
+          <IconArrowLeft />
+        </ActionIcon>
+        <Title order={3}>Verify Email</Title>
+      </Group>
+
+      <Text size="sm" c="dimmed">
+        Enter the verification code sent to {email}
+      </Text>
+
+      <form onSubmit={handleCodeVerify}>
+        <Stack gap="md">
+          <TextInput
+            label="Verification Code"
+            placeholder="Enter code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+          />
+
+          <Button type="submit" loading={loading} fullWidth>
+            Verify Code
+          </Button>
+
+          <Anchor
+            component="button"
+            type="button"
+            size="sm"
+            onClick={handleResendCode}
+          >
+            Resend Code (This is not available yet.)
+          </Anchor>
+        </Stack>
+      </form>
+
+      {error && (
+        <Alert
+          mt="md"
+          icon={<IconAlertCircle size={16} />}
+          color="red"
+          variant="light"
+          withCloseButton
+          onClose={() => setError("")}
+        >
+          {error}
+        </Alert>
+      )}
+    </>
+  );
 
   return (
     <div
@@ -479,6 +605,7 @@ function Auth() {
             {view === "login" && renderLogin()}
             {view === "signup" && renderSignup()}
             {view === "recover" && renderRecover()}
+            {view === "verify" && renderVerify()}
           </Stack>
         </Paper>
       </Container>
