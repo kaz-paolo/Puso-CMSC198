@@ -28,6 +28,7 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
     end_date: null,
     end_time: "",
     registration_allowed: false,
+    approval_required: true,
     publish_event: false,
     volunteer_capacity: 0,
     volunteer_roles: [],
@@ -100,6 +101,7 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
         end_date: null,
         end_time: "",
         registration_allowed: false,
+        approval_required: true,
         publish_event: false,
         volunteer_capacity: 0,
         volunteer_roles: [],
@@ -118,7 +120,11 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Add New Event"
+      title={
+        <Text fw={600} size="lg">
+          Create New Event
+        </Text>
+      }
       size="lg"
       centered
       closeOnClickOutside={false}
@@ -238,6 +244,17 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
                 setFormData({
                   ...formData,
                   registration_allowed: e.currentTarget.checked,
+                })
+              }
+            />
+            <Switch
+              label="Require Approval"
+              description="Volunteers need admin approval to join"
+              checked={formData.approval_required}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  approval_required: e.currentTarget.checked,
                 })
               }
             />

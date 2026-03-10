@@ -130,7 +130,13 @@ function EventDashboard() {
         return;
       }
 
-      // Check if user is a volunteer in this event
+      if (!profile?.id) {
+        setHasAccess(false);
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is a volunteer in this event using user_info.id
       const res = await fetch(
         `http://localhost:3000/api/users/${profile.id}/joined-events`,
       );
@@ -311,7 +317,7 @@ function EventDashboard() {
         </div>
 
         {/* Tabs for different sections */}
-        <Tabs defaultValue="overview" color="primary">
+        <Tabs defaultValue="overview">
           <Tabs.List>
             <Tabs.Tab value="overview" leftSection={<IconFileText size={16} />}>
               Overview
@@ -361,19 +367,18 @@ function EventDashboard() {
             </Grid>
           </Tabs.Panel>
 
-          {/* Tasks Tab */}
-          <Tabs.Panel value="tasks" pt="md">
-            <TaskBoard
-              eventId={eventId}
-              tasks={tasks}
-              onTasksRefresh={fetchTasks}
-              userProfile={userProfile}
-            />
-          </Tabs.Panel>
-
           {/* Volunteers Tab */}
           <Tabs.Panel value="volunteers" pt="md">
-            <VolunteersTable volunteers={volunteers} />
+            <VolunteersTable
+              volunteers={volunteers}
+              eventId={eventId}
+              onVolunteersRefresh={() => {
+                fetchVolunteers();
+                fetchEventStats();
+              }}
+              isAdmin={session?.data?.user?.role === "admin"}
+              currentUserId={userProfile?.id}
+            />
           </Tabs.Panel>
 
           {/* Resources Tab */}
@@ -383,6 +388,16 @@ function EventDashboard() {
               eventId={eventId}
               userProfile={userProfile}
               onResourcesRefresh={fetchResources}
+            />
+          </Tabs.Panel>
+
+          {/* Tasks Tab */}
+          <Tabs.Panel value="tasks" pt="md">
+            <TaskBoard
+              eventId={eventId}
+              tasks={tasks}
+              onTasksRefresh={fetchTasks}
+              userProfile={userProfile}
             />
           </Tabs.Panel>
         </Tabs>

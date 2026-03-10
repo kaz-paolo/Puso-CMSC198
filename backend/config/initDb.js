@@ -52,7 +52,18 @@ export async function initDb() {
     await sql`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
-        event_title VARCHAR(255) NOT NULL
+        event_title VARCHAR(255) NOT NULL,
+        description TEXT,
+        event_type VARCHAR(50) NOT NULL DEFAULT '',
+        location VARCHAR(255) NOT NULL DEFAULT '',
+        start_date DATE,
+        start_time TIME,
+        end_date DATE,
+        end_time TIME,
+        registration_allowed BOOLEAN NOT NULL DEFAULT false,
+        publish_event BOOLEAN NOT NULL DEFAULT false,
+        volunteer_capacity INTEGER NOT NULL DEFAULT 0,
+        approval_required BOOLEAN NOT NULL DEFAULT true
       );
     `;
 
@@ -84,7 +95,7 @@ export async function initDb() {
         status VARCHAR(50) NOT NULL DEFAULT 'To Do',
         priority VARCHAR(50),
         deadline_date DATE,
-        deadline_time TIME,
+        deadline_time TIME, 
         task_details TEXT,
         relevant_links TEXT[],
         created_by INTEGER REFERENCES user_info(id),
@@ -121,29 +132,6 @@ export async function initDb() {
       );
     `;
 
-    const alterTableQueries = [
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS description TEXT;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS event_type VARCHAR(50) NOT NULL DEFAULT '';`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS location VARCHAR(255) NOT NULL DEFAULT '';`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS start_date DATE;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS start_time TIME;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS end_date DATE;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS end_time TIME;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_allowed BOOLEAN NOT NULL DEFAULT false;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS publish_event BOOLEAN NOT NULL DEFAULT false;`,
-      `ALTER TABLE events ADD COLUMN IF NOT EXISTS volunteer_capacity INTEGER NOT NULL DEFAULT 0;`,
-    ];
-
-    for (const query of alterTableQueries) {
-      try {
-        await sql.unsafe(query);
-      } catch (error) {
-        if (!error.message.includes("already exists")) {
-          throw error;
-        }
-      }
-    }
-
     // remove status column
     try {
       await sql.unsafe(`
@@ -166,6 +154,28 @@ export async function initDb() {
       }
     }
 
+    // For event_volunteers
+    await sql`
+      ALTER TABLE event_volunteers 
+      ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES user_info(id)
+    `;
+
+    // For event_resources
+    await sql`
+      ALTER TABLE event_resources 
+      ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES user_info(id)
+    `;
+
+    // For event_tasks
+    await sql`
+      ALTER TABLE event_tasks 
+      ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES user_info(id)
+    `;
+
+    console.log("Soft delete columns added successfully.");
     console.log("Database initialized successfully.");
   } catch (error) {
     console.error("Database initialization error:", error);

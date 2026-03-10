@@ -43,8 +43,11 @@ function EventDetailsModal({ opened, onClose, eventId }) {
   useEffect(() => {
     if (opened && eventId) {
       fetchEventDetail();
+      if (userProfile?.id) {
+        checkJoinStatus(userProfile.id);
+      }
     }
-  }, [opened, eventId]);
+  }, [opened, eventId, userProfile]);
 
   const checkJoinStatus = async (userId) => {
     try {
@@ -61,12 +64,6 @@ function EventDetailsModal({ opened, onClose, eventId }) {
       console.error("Failed to check join status:", err);
     }
   };
-
-  useEffect(() => {
-    if (userProfile?.id && eventId) {
-      checkJoinStatus(userProfile.id);
-    }
-  }, [userProfile, eventId]);
 
   const fetchEventDetail = async () => {
     setLoading(true);
