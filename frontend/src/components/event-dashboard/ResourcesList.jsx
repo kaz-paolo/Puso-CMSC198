@@ -59,7 +59,11 @@ function ResourcesList({
     try {
       const response = await fetch(
         `http://localhost:3000/api/events/${eventId}/resources/${resourceId}`,
-        { method: "DELETE" },
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deletedBy: userProfile?.id }),
+        },
       );
 
       const data = await response.json();

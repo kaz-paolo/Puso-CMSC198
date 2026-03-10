@@ -36,7 +36,7 @@ function NavBar() {
     };
     fetchSession();
   }, []);
-  const { userProfile } = useUserProfile();
+  const { userProfile, loading: profileLoading } = useUserProfile();
 
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
@@ -46,46 +46,14 @@ function NavBar() {
   const [activeLink, setActiveLink] = useState();
   const [joinedEvents, setJoinedEvents] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
-  const [eventFilter, setEventFilter] = useState("upcoming"); // "upcoming" or "ongoing"
-
-  // Check if user has answered volunteer form
-  // useEffect(() => {
-  //   async function checkVolunteerForm() {
-  //     if (!user) {
-  //       setNeedsVolunteerForm(false);
-  //       return;
-  //     }
-
-  //   }
-  //   checkVolunteerForm();
-  // }, [user]);
+  const [eventFilter, setEventFilter] = useState("upcoming");
 
   useEffect(() => {
-    async function fetchProfile() {
-      if (!session?.data?.user) return;
-
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/users/${session.data.user.id}/basic-info`,
-        );
-        const data = await res.json();
-        console.log("navbar.jsx: fetch basic info");
-
-        if (data.success) setUserProfile(data.data);
-      } catch (err) {
-        console.error("Network error:", err);
-      }
-    }
-
-    fetchProfile();
-  }, [session]);
-
-  useEffect(() => {
-    if (!session?.data?.user && !userProfile) return;
+    if (!session?.data?.user) return;
 
     if (session?.data?.user?.role === "admin") {
       fetchAllEvents();
-    } else if (userProfile) {
+    } else if (userProfile?.id) {
       fetchJoinedEvents();
     }
   }, [userProfile, session]);

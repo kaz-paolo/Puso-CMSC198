@@ -383,8 +383,8 @@ function VolunteerForm() {
   const [session, setSession] = useState(null);
   useEffect(() => {
     const fetchSession = async () => {
-      const session = await authClient.getSession();
-      setSession(session);
+      const { data } = await authClient.getSession();
+      setSession(data);
     };
     fetchSession();
   }, []);
@@ -393,9 +393,16 @@ function VolunteerForm() {
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    email: session?.user?.primaryEmail || "",
+    email: "",
     consent: false,
   });
+
+  // Update email when session is loaded
+  useEffect(() => {
+    if (session?.user?.email) {
+      setForm((prev) => ({ ...prev, email: session.user.email }));
+    }
+  }, [session]);
 
   const sectionProgress = useMemo(() => {
     const progress = {};
@@ -429,11 +436,25 @@ function VolunteerForm() {
       );
       return;
     }
+
+    if (!session?.user?.id) {
+      setError("Session not found. Please log in again.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
-      const { email, ...formData } = form;
+      const { email, consent, ...formData } = form;
+
+      // Log the data being sent
+      console.log("Submitting profile data:", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        authUserId: session.user.id,
+      });
+
       const response = await fetch(
         "http://localhost:3000/api/users/complete-profile",
         {
@@ -441,11 +462,14 @@ function VolunteerForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
-            authUserId: session.data.user.id,
+            authUserId: session.user.id,
           }),
         },
       );
       const data = await response.json();
+
+      console.log("Server response:", data);
+
       if (!response.ok)
         throw new Error(data.error || "Failed to save profile.");
       navigate("/dashboard");

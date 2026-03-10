@@ -21,6 +21,7 @@ export async function getTasksByEventId(req, res) {
       LEFT JOIN task_assignees ta ON t.id = ta.task_id
       LEFT JOIN user_info ui ON ta.user_id = ui.id
       WHERE t.event_id = ${eventId}
+        AND t.deleted_at IS NULL
       GROUP BY t.id
       ORDER BY t.created_at DESC
     `;
@@ -181,10 +182,37 @@ export async function updateTask(req, res) {
 export async function deleteTask(req, res) {
   try {
     const { taskId } = req.params;
+    const { deletedBy } = req.body;
 
-    await sql`DELETE FROM event_tasks WHERE id = ${taskId};`;
+    if (!deletedBy) {
+      return res.status(400).json({
+        success: false,
+        error: "deletedBy is required",
+      });
+    }
 
-    res.status(200).json({ success: true, message: "Task deleted" });
+    // update deleted_at and deleted_by
+    const softDeleted = await sql`
+      UPDATE event_tasks
+      SET 
+        deleted_at = CURRENT_TIMESTAMP,
+        deleted_by = ${deletedBy}
+      WHERE id = ${taskId} AND deleted_at IS NULL
+      RETURNING *;
+    `;
+
+    if (softDeleted.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Task not found or already deleted",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Task deleted successfully",
+      data: softDeleted[0],
+    });
   } catch (error) {
     console.error("Delete task error:", error);
     res.status(500).json({ success: false, error: "Failed to delete task" });

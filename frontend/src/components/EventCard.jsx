@@ -32,6 +32,7 @@ function EventCard({ event }) {
   const { userProfile } = useUserProfile();
   const navigate = useNavigate();
   const [hasJoined, setHasJoined] = useState(false);
+  const [volunteerStatus, setVolunteerStatus] = useState(null); // Track volunteer status
   const [checkingJoinStatus, setCheckingJoinStatus] = useState(true);
 
   const {
@@ -61,15 +62,24 @@ function EventCard({ event }) {
         return;
       }
 
+      setCheckingJoinStatus(true);
+
       try {
+        // Check if user has joined using auth_user_id
         const res = await fetch(
-          `http://localhost:3000/api/users/${userProfile.id}/joined-events`,
+          `http://localhost:3000/api/users/${user.id}/joined-events`,
         );
         const data = await res.json();
 
         if (data.success) {
-          const joined = data.data.some((e) => e.id === id);
-          setHasJoined(joined);
+          const joinedEvent = data.data.find((e) => e.id === parseInt(id));
+          if (joinedEvent) {
+            setHasJoined(true);
+            setVolunteerStatus(joinedEvent.volunteer_status);
+          } else {
+            setHasJoined(false);
+            setVolunteerStatus(null);
+          }
         }
       } catch (err) {
         console.error("Failed to check join status:", err);
@@ -79,7 +89,7 @@ function EventCard({ event }) {
     }
 
     checkJoinStatus();
-  }, [user, userProfile, id]);
+  }, [user, id]); // Add 'id' to dependencies
 
   const truncateDescription = (text, maxLength = 100) => {
     if (!text) return "";
@@ -144,13 +154,18 @@ function EventCard({ event }) {
         alert(data.error || "Failed to join event");
         return;
       }
+
+      // Update join status based on response
+      setHasJoined(true);
+      setVolunteerStatus(data.data.volunteer_status);
       setRoleSelectOpened(false);
-      navigate(`/events/${id}`);
-      alert(
-        selectedRole
-          ? `Successfully joined as ${selectedRole.role_name}!`
-          : "Successfully joined the event!",
-      );
+
+      alert(data.message);
+
+      // Only navigate if confirmed (no approval needed)
+      if (data.data.volunteer_status === "CONFIRMED") {
+        navigate(`/events/${id}`);
+      }
     } catch (err) {
       console.error("Join event failed:", err);
       alert("Failed to join event");
@@ -158,7 +173,8 @@ function EventCard({ event }) {
   };
 
   const getVolunteerButtonText = () => {
-    if (hasJoined) return "Already Joined";
+    if (volunteerStatus === "PENDING") return "Pending Approval";
+    if (volunteerStatus === "CONFIRMED") return "Joined";
     if (isFull) return "Event Full";
     return "Volunteer";
   };
@@ -261,9 +277,19 @@ function EventCard({ event }) {
                 <Button
                   variant="filled"
                   size="xs"
-                  color={hasJoined ? "green" : "primary"}
+                  color={
+                    volunteerStatus === "CONFIRMED"
+                      ? "green"
+                      : volunteerStatus === "PENDING"
+                        ? "yellow"
+                        : "primary"
+                  }
                   onClick={handleVolunteerClick}
-                  disabled={isFull || hasJoined || checkingJoinStatus}
+                  disabled={
+                    isFull ||
+                    volunteerStatus === "CONFIRMED" ||
+                    checkingJoinStatus
+                  }
                 >
                   {getVolunteerButtonText()}
                 </Button>
