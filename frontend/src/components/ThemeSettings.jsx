@@ -1,21 +1,29 @@
-import { Stack, Group, Button, Text, Drawer } from '@mantine/core';
-import { IconSun, IconMoon } from '@tabler/icons-react';
-import { useTheme } from '../theme/ThemeProvider';
-import { colorOptions } from '../theme/colors';
-import { useMantineColorScheme, useMantineTheme } from '@mantine/core';
-import { useState } from 'react';
+import { Stack, Group, Button, Text, Drawer } from "@mantine/core";
+import { IconSun, IconMoon } from "@tabler/icons-react";
+import { useTheme } from "../theme/ThemeProvider";
+import { colorOptions } from "../theme/colors";
+import { useMantineColorScheme, useMantineTheme } from "@mantine/core";
+import { useState } from "react";
 
 const platformOptions = [
-  { label: 'System', value: 'system' },
-  { label: 'Default', value: 'default' },
-  { label: 'Windows', value: 'windows' },
-  { label: 'iOS', value: 'ios' },
-  { label: 'Android', value: 'android' },
-  { label: 'macOS', value: 'macos' },
+  { label: "System", value: "system" },
+  { label: "Default", value: "default" },
+  { label: "Windows", value: "windows" },
+  { label: "iOS", value: "ios" },
+  { label: "Android", value: "android" },
+  { label: "macOS", value: "macos" },
 ];
 
 export function ThemeSettings({ opened, onClose }) {
-  const { primaryColor, changePrimaryColor, currentColors, platform, setPlatform, fontSize, changeFontSize } = useTheme();
+  const {
+    primaryColor,
+    changePrimaryColor,
+    currentColors,
+    platform,
+    setPlatform,
+    fontSize,
+    changeFontSize,
+  } = useTheme();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const mantineTheme = useMantineTheme();
 
@@ -36,10 +44,10 @@ export function ThemeSettings({ opened, onClose }) {
             Font Settings
           </Text>
           <Group gap="xs">
-            {platformOptions.map(opt => (
+            {platformOptions.map((opt) => (
               <Button
                 key={opt.value}
-                variant={platform === opt.value ? 'filled' : 'outline'}
+                variant={platform === opt.value ? "filled" : "outline"}
                 onClick={() => setPlatform(opt.value)}
                 size="xs"
               >
@@ -54,12 +62,26 @@ export function ThemeSettings({ opened, onClose }) {
             Font Size
           </Text>
           <Group>
-            <Button variant={fontSize === 14 ? 'filled' : 'outline'} onClick={() => changeFontSize(14)}>Small</Button>
-            <Button variant={fontSize === 16 ? 'filled' : 'outline'} onClick={() => changeFontSize(16)}>Regular</Button>
-            <Button variant={fontSize === 18 ? 'filled' : 'outline'} onClick={() => changeFontSize(18)}>Large</Button>
+            <Button
+              variant={fontSize === 14 ? "filled" : "outline"}
+              onClick={() => changeFontSize(14)}
+            >
+              Small
+            </Button>
+            <Button
+              variant={fontSize === 16 ? "filled" : "outline"}
+              onClick={() => changeFontSize(16)}
+            >
+              Regular
+            </Button>
+            <Button
+              variant={fontSize === 18 ? "filled" : "outline"}
+              onClick={() => changeFontSize(18)}
+            >
+              Large
+            </Button>
           </Group>
         </div>
-++++++++++++++
         {/* Color Scheme Section */}
         <div>
           <Text size="sm" fw={600} mb="sm">
@@ -68,16 +90,16 @@ export function ThemeSettings({ opened, onClose }) {
           <Group gap="md" grow>
             <Button
               leftSection={<IconSun size={16} />}
-              variant={colorScheme === 'light' ? 'filled' : 'outline'}
-              onClick={() => setColorScheme('light')}
+              variant={colorScheme === "light" ? "filled" : "outline"}
+              onClick={() => setColorScheme("light")}
               fullWidth
             >
               Light
             </Button>
             <Button
               leftSection={<IconMoon size={16} />}
-              variant={colorScheme === 'dark' ? 'filled' : 'outline'}
-              onClick={() => setColorScheme('dark')}
+              variant={colorScheme === "dark" ? "filled" : "outline"}
+              onClick={() => setColorScheme("dark")}
               fullWidth
             >
               Dark
@@ -94,7 +116,7 @@ export function ThemeSettings({ opened, onClose }) {
             {colorOptions.map((color) => (
               <Button
                 key={color.value}
-                variant={primaryColor === color.value ? 'filled' : 'outline'}
+                variant={primaryColor === color.value ? "filled" : "outline"}
                 onClick={() => changePrimaryColor(color.value)}
                 fullWidth
               >
@@ -103,7 +125,6 @@ export function ThemeSettings({ opened, onClose }) {
             ))}
           </Stack>
         </div>
-
       </Stack>
     </Drawer>
   );

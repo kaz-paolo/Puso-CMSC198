@@ -183,7 +183,7 @@ function TaskBoard({
   const handleDeleteTask = async (taskId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/events/${eventId}/tasks/${taskId}`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/tasks/${taskId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

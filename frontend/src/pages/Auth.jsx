@@ -204,7 +204,7 @@ function Auth() {
       const normalizedEmail = email.trim().toLowerCase();
 
       const response = await fetch(
-        "http://localhost:3000/api/users/check-existing",
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/check-existing`,
         {
           method: "POST",
           headers: {
@@ -319,14 +319,15 @@ function Auth() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Group justify="space-between" align="center">
-            <Anchor
+            {/* Commented out for prod */}
+            {/* <Anchor
               component="button"
               type="button"
               size="xs"
               onClick={() => setView("signup")}
             >
               Create an account
-            </Anchor>
+            </Anchor> */}
           </Group>
           <Button
             type="submit"

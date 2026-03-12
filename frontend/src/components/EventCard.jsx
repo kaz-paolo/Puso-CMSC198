@@ -67,7 +67,7 @@ function EventCard({ event }) {
       try {
         // Check if user has joined using auth_user_id
         const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/joined-events`,
+          `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${user.id}/joined-events`,
         );
         const data = await res.json();
 
@@ -141,14 +141,17 @@ function EventCard({ event }) {
 
   const handleJoinEvent = async (selectedRole) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/events/${id}/join`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          roleId: selectedRole?.id || null,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${id}/join`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            roleId: selectedRole?.id || null,
+          }),
+        },
+      );
       const data = await res.json();
       if (!data.success) {
         alert(data.error || "Failed to join event");

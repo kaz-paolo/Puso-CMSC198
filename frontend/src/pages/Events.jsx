@@ -46,7 +46,7 @@ function Events() {
   const fetchJoinedEvents = async (userId) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/users/${userId}/joined-events`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${userId}/joined-events`,
       );
       const data = await res.json();
       if (data.success) {
@@ -65,7 +65,9 @@ function Events() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/events`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
+      );
       const data = await res.json();
       if (data.success) setEvents(data.data);
     } catch (err) {

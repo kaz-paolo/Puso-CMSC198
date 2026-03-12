@@ -138,7 +138,7 @@ function EventDashboard() {
 
       // Check if user is a volunteer in this event using user_info.id
       const res = await fetch(
-        `http://localhost:3000/api/users/${profile.id}/joined-events`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${profile.id}/joined-events`,
       );
       const data = await res.json();
 
@@ -172,7 +172,9 @@ function EventDashboard() {
 
   const fetchEventDetails = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/api/events/${eventId}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
+      );
       const data = await res.json();
 
       if (data.success) {
@@ -191,7 +193,7 @@ function EventDashboard() {
   const fetchVolunteers = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/events/${eventId}/volunteers`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers`,
       );
       const data = await res.json();
 
@@ -209,7 +211,7 @@ function EventDashboard() {
   const fetchTasks = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/events/${eventId}/tasks`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/tasks`,
       );
       const data = await res.json();
 
@@ -224,7 +226,7 @@ function EventDashboard() {
   const fetchResources = async () => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/events/${eventId}/resources`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/resources`,
       );
       const data = await res.json();
 

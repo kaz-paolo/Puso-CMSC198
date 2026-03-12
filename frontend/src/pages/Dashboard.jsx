@@ -98,7 +98,9 @@ function Dashboard() {
       setLoading(true);
       try {
         // Fetch events and filter by date
-        const eventsRes = await fetch("http://localhost:3000/api/events");
+        const eventsRes = await fetch(
+          `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
+        );
         const eventsData = await eventsRes.json();
         if (eventsData.success) {
           const now = new Date();

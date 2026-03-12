@@ -52,7 +52,7 @@ function EventDetailsModal({ opened, onClose, eventId }) {
   const checkJoinStatus = async (userId) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/users/${userId}/joined-events`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${userId}/joined-events`,
       );
       const data = await res.json();
 
@@ -68,7 +68,9 @@ function EventDetailsModal({ opened, onClose, eventId }) {
   const fetchEventDetail = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/events/${eventId}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
+      );
       const data = await res.json();
       if (data.success) {
         setEvent(data.data);

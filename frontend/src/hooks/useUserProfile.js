@@ -18,7 +18,7 @@ export function useUserProfile() {
         }
 
         const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/basic-info`,
+          `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${user.id}/basic-info`,
         );
         const result = await res.json();
         if (result.success) {

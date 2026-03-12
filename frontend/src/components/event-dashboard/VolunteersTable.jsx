@@ -84,7 +84,7 @@ function VolunteersTable({
   const handleStatusUpdate = async (userId, newStatus) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/events/${eventId}/volunteers/${userId}/status`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers/${userId}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -118,7 +118,7 @@ function VolunteersTable({
   const handleRemoveVolunteer = async (userId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/events/${eventId}/volunteers/${userId}`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers/${userId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

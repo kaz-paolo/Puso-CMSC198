@@ -51,7 +51,7 @@ function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
     try {
       // get volunteers from event to be assigned
       const volRes = await fetch(
-        `http://localhost:3000/api/events/${eventId}/volunteers`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers`,
       );
       const volData = await volRes.json();
 
@@ -68,7 +68,7 @@ function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
 
       // get event details for roles to be assigned
       const eventRes = await fetch(
-        `http://localhost:3000/api/events/${eventId}`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
       );
       const eventData = await eventRes.json();
 
@@ -115,7 +115,7 @@ function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
     try {
       // fetch user database ID
       const userRes = await fetch(
-        `http://localhost:3000/api/users/${session.user.id}/basic-info`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${session.user.id}/basic-info`,
       );
       const userData = await userRes.json();
 
@@ -150,7 +150,7 @@ function AddTaskModal({ opened, onClose, eventId, onTaskCreated }) {
       };
 
       const response = await fetch(
-        `http://localhost:3000/api/events/${eventId}/tasks`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/tasks`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
