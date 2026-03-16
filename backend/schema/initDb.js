@@ -1,4 +1,4 @@
-import { sql } from "./db.js";
+import { sql } from "../config/db.js";
 
 export async function initDb() {
   try {

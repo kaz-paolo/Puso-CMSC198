@@ -12,10 +12,10 @@ import {
   Modal,
 } from "@mantine/core";
 import { IconPlus, IconDots, IconTrash, IconEdit } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AddTaskModal from "../modal/AddTaskModal";
-import { authClient } from "../../auth.js";
-import { notifications } from "@mantine/notifications";
+import { useSession } from "../../hooks/useSession";
+import { useTaskMutation } from "../../hooks/useTaskMutation";
 
 function TaskColumn({ title, count, tasks, color, onDeleteTask }) {
   const [confirmDelete, setConfirmDelete] = useState({
@@ -114,41 +114,51 @@ function TaskColumn({ title, count, tasks, color, onDeleteTask }) {
                         {assignee.name?.charAt(0) || "?"}
                       </Avatar>
                     ))}
+                    {task.assignees?.length === 0 && (
+                      <Text size="xs" c="dimmed">
+                        Unassigned
+                      </Text>
+                    )}
                   </Avatar.Group>
-                  {task.deadline && (
-                    <Text size="xs" c="dimmed">
-                      {task.deadline}
-                    </Text>
+                  {task.priority && (
+                    <Badge
+                      size="xs"
+                      variant="light"
+                      color={getPriorityColor(task.priority)}
+                    >
+                      {task.priority}
+                    </Badge>
                   )}
                 </Group>
+
+                {task.deadline && (
+                  <Text size="xs" c="dimmed" ta="right">
+                    Due {task.deadline}
+                  </Text>
+                )}
               </Stack>
             </Paper>
           ))}
         </Stack>
       </Stack>
 
-      {/* Confirmation Modal */}
       <Modal
         opened={confirmDelete.opened}
         onClose={() => setConfirmDelete({ opened: false, taskId: null })}
         title="Delete Task"
         centered
-        size="sm"
       >
-        <Stack gap="md">
-          <Text size="sm">
-            Are you sure you want to delete this task? This action cannot be
-            undone.
-          </Text>
+        <Text size="sm">Are you sure you want to delete this task?</Text>
+        <Stack gap="md" mt="md">
           <Group justify="flex-end">
             <Button
-              variant="subtle"
+              variant="default"
               onClick={() => setConfirmDelete({ opened: false, taskId: null })}
             >
               Cancel
             </Button>
             <Button color="red" onClick={handleConfirmDelete}>
-              Delete Task
+              Delete
             </Button>
           </Group>
         </Stack>
@@ -163,57 +173,15 @@ function TaskBoard({
   onTasksRefresh,
   userProfile,
 }) {
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await authClient.getSession();
-      setSession(data);
-    };
-    fetchSession();
-  }, []);
+  const { session } = useSession();
   const [addTaskOpened, setAddTaskOpened] = useState(false);
+  const { deleteTask } = useTaskMutation(eventId, userProfile, onTasksRefresh);
 
   const handleTaskCreated = async () => {
     if (onTasksRefresh) {
       await onTasksRefresh();
     }
     setAddTaskOpened(false);
-  };
-
-  const handleDeleteTask = async (taskId) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/tasks/${taskId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deletedBy: userProfile?.id }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to delete task");
-      }
-
-      notifications.show({
-        title: "Success",
-        message: "Task deleted successfully",
-        color: "green",
-      });
-
-      if (onTasksRefresh) {
-        await onTasksRefresh();
-      }
-    } catch (error) {
-      console.error("Delete task error:", error);
-      notifications.show({
-        title: "Error",
-        message: error.message || "Failed to delete task",
-        color: "red",
-      });
-    }
   };
 
   return (
@@ -241,28 +209,28 @@ function TaskBoard({
             count={tasks.todo.length}
             tasks={tasks.todo}
             color="#3b82f6"
-            onDeleteTask={handleDeleteTask}
+            onDeleteTask={deleteTask}
           />
           <TaskColumn
             title="In Progress"
             count={tasks.inProgress.length}
             tasks={tasks.inProgress}
             color="#f59e0b"
-            onDeleteTask={handleDeleteTask}
+            onDeleteTask={deleteTask}
           />
           <TaskColumn
             title="In Review"
             count={tasks.inReview.length}
             tasks={tasks.inReview}
             color="#8b5cf6"
-            onDeleteTask={handleDeleteTask}
+            onDeleteTask={deleteTask}
           />
           <TaskColumn
             title="Done"
             count={tasks.done.length}
             tasks={tasks.done}
             color="#10b981"
-            onDeleteTask={handleDeleteTask}
+            onDeleteTask={deleteTask}
           />
         </SimpleGrid>
       </Paper>

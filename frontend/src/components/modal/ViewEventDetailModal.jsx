@@ -16,76 +16,25 @@ import {
   IconClock,
   IconCheck,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   getEventStatus,
   getStatusColor,
   getStatusLabel,
-} from "../../utils/eventStatus";
+} from "../../utils/eventStatus.js";
 import { useUserProfile } from "../../hooks/useUserProfile";
-import { authClient } from "../../auth.js";
+import { useEventDetails } from "../../hooks/useEventDetails.js";
 
 function EventDetailsModal({ opened, onClose, eventId }) {
   const theme = useMantineTheme();
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const session = await authClient.getSession();
-      setSession(session);
-    };
-    fetchSession();
-  }, []);
   const { userProfile } = useUserProfile();
-  const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [hasJoined, setHasJoined] = useState(false);
 
-  useEffect(() => {
-    if (opened && eventId) {
-      fetchEventDetail();
-      if (userProfile?.id) {
-        checkJoinStatus(userProfile.id);
-      }
-    }
-  }, [opened, eventId, userProfile]);
+  const { event, loading, hasJoined, error, dynamicStatus } = useEventDetails({
+    eventId,
+    userId: userProfile?.id,
+    opened,
+  });
 
-  const checkJoinStatus = async (userId) => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${userId}/joined-events`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        const joined = data.data.some((e) => e.id === parseInt(eventId));
-        setHasJoined(joined);
-      }
-    } catch (err) {
-      console.error("Failed to check join status:", err);
-    }
-  };
-
-  const fetchEventDetail = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        setEvent(data.data);
-      } else {
-        setEvent(null);
-      }
-    } catch (err) {
-      setEvent(null);
-    }
-    setLoading(false);
-  };
-
-  const dynamicStatus = event
-    ? getEventStatus(event.start_date, event.end_date)
-    : null;
   const statusColor = dynamicStatus ? getStatusColor(dynamicStatus) : "gray";
   const statusLabel = dynamicStatus ? getStatusLabel(dynamicStatus) : "";
 
@@ -103,6 +52,21 @@ function EventDetailsModal({ opened, onClose, eventId }) {
     );
   }
 
+  if (error) {
+    return (
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="Event Details"
+        size="lg"
+        centered
+      >
+        <Alert color="red" title="Error loading event">
+          {error}
+        </Alert>
+      </Modal>
+    );
+  }
   if (!event) {
     return (
       <Modal

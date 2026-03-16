@@ -1,0 +1,129 @@
+import { sql } from "../../config/db.js";
+
+export const eventsService = {
+  // Selects all events
+  // attached volunteer roles and count
+  async getAllEvents() {
+    const events = await sql`
+      SELECT e.*,
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', r.id,
+                'role_name', r.role_name,
+                'capacity', r.capacity,
+                'current_count', (
+                  SELECT COUNT(*) FROM event_volunteers ev 
+                  WHERE ev.event_id = e.id AND ev.role_id = r.id
+                )
+              )
+            )
+            FROM event_volunteer_roles r 
+            WHERE r.event_id = e.id
+          ),
+          '[]'::json
+        ) as volunteer_roles,
+        (
+          SELECT COUNT(*) FROM event_volunteers ev 
+          WHERE ev.event_id = e.id
+        ) as current_volunteers
+      FROM events e
+      ORDER BY e.start_date DESC
+    `;
+    // TODO: filter out soft deleted
+    // TODO: Add a function(?) to only get either: ongoing, completed, upcoming for optimization shts
+    return events;
+  },
+
+  // Insert event data to events table
+  async createEvent(eventData) {
+    const {
+      event_title,
+      description,
+      event_type,
+      location,
+      start_date,
+      start_time,
+      end_date,
+      end_time,
+      registration_allowed,
+      approval_required,
+      publish_event,
+      volunteer_capacity,
+      volunteer_roles,
+    } = eventData;
+
+    return await sql.begin(async (sql) => {
+      /// create event
+      const [newEvent] = await sql`
+        INSERT INTO events
+          (event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity)
+        VALUES
+          (${event_title}, ${description}, ${event_type}, ${location}, ${start_date}, ${start_time}, ${end_date}, ${end_time}, ${registration_allowed}, ${approval_required}, ${publish_event}, ${volunteer_capacity})
+        RETURNING *;
+      `;
+
+      // add volunteer roles if provided
+      if (volunteer_roles && volunteer_roles.length > 0) {
+        const eventId = newEvent.id;
+
+        // array of insert promises
+        await Promise.all(
+          volunteer_roles.map(
+            (role) =>
+              sql`
+              INSERT INTO event_volunteer_roles
+                (event_id, role_name, capacity)
+              VALUES
+                (${eventId}, ${role.role_name}, ${role.capacity})
+            `,
+          ),
+        );
+      }
+
+      return newEvent;
+    });
+  },
+
+  // Fetch specific event detail and unique volunteers count, and roles for that event and count
+  async getEventById(id) {
+    const events = await sql`
+      SELECT 
+        e.*,
+        COUNT(DISTINCT ev.user_id) as current_volunteers
+      FROM events e
+      LEFT JOIN event_volunteers ev ON e.id = ev.event_id
+      WHERE e.id = ${id}
+      GROUP BY e.id
+    `;
+
+    if (events.length === 0) return null;
+
+    // Fetch volunteer roles
+    const roles = await sql`
+      SELECT 
+        evr.id,
+        evr.role_name,
+        evr.capacity,
+        COUNT(ev.user_id) as current_count
+      FROM event_volunteer_roles evr
+      LEFT JOIN event_volunteers ev ON evr.id = ev.role_id
+      WHERE evr.event_id = ${id}
+      GROUP BY evr.id, evr.role_name, evr.capacity
+    `;
+
+    return {
+      ...events[0],
+      volunteer_roles: roles,
+    };
+  },
+  async deleteEvent() {
+    // TODO
+    return;
+  },
+  async archiveEvent() {
+    // TODO
+    return;
+  },
+};

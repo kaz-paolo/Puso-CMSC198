@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState } from "react";
 import {
   Container,
   Title,
@@ -25,21 +24,19 @@ import {
   IconLock,
   IconAlertCircle,
 } from "@tabler/icons-react";
-import { authClient } from "../auth.js";
 import { Alert } from "@mantine/core";
-import { useUserProfile } from "../hooks/useUserProfile";
+import { useEventDashboardData } from "../hooks/useEventDashboardData";
 
 // event dashboard components
-import EventDescription from "../components/event-dashboard/EventDescription";
-import EventTimeline from "../components/event-dashboard/EventTimeline";
-import LatestAnnouncements from "../components/event-dashboard/LatestAnnouncements";
-import ResourcesList from "../components/event-dashboard/ResourcesList";
-import TaskBoard from "../components/event-dashboard/TaskBoard";
-import VolunteersTable from "../components/event-dashboard/VolunteersTable";
-import EventCalendar from "../components/Calendar";
+import EventDescription from "../components/event-dashboard/EventDescription.jsx";
+import EventTimeline from "../components/event-dashboard/EventTimeline.jsx";
+import LatestAnnouncements from "../components/event-dashboard/LatestAnnouncements.jsx";
+import ResourcesList from "../components/event-dashboard/ResourcesList.jsx";
+import TaskBoard from "../components/event-dashboard/TaskBoard.jsx";
+import VolunteersTable from "../components/event-dashboard/VolunteersTable.jsx";
+import EventCalendar from "../components/Calendar.jsx";
 
 // DUMMY DATA for features not yet in database
-
 const DUMMY_ANNOUNCEMENTS = [
   {
     id: 1,
@@ -91,152 +88,24 @@ const DUMMY_TIMELINE = [
 ];
 
 function EventDashboard() {
-  const { eventId } = useParams();
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const session = await authClient.getSession();
-      setSession(session);
-    };
-    fetchSession();
-  }, []);
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
-  const { userProfile, loading: profileLoading } = useUserProfile();
-  const [loading, setLoading] = useState(true);
-
-  // Database data state
-  const [eventDetails, setEventDetails] = useState(null);
-  const [volunteers, setVolunteers] = useState([]);
-  const [hasAccess, setHasAccess] = useState(false);
-
-  // dummy data
-  const [tasks, setTasks] = useState({
-    todo: [],
-    inProgress: [],
-    inReview: [],
-    done: [],
-  });
+  const {
+    eventId,
+    session,
+    userProfile,
+    profileLoading,
+    loading,
+    eventDetails,
+    volunteers,
+    hasAccess,
+    tasks,
+    resources,
+    fetchVolunteers,
+    fetchTasks,
+    fetchResources,
+  } = useEventDashboardData();
   const [announcements] = useState(DUMMY_ANNOUNCEMENTS);
-  const [resources, setResources] = useState([]);
   const [timeline] = useState(DUMMY_TIMELINE);
-
-  const checkAccess = async (profile, sessionData) => {
-    try {
-      // admin access
-      if (sessionData?.data?.user?.role === "admin") {
-        setHasAccess(true);
-        setLoading(false);
-        return;
-      }
-
-      if (!profile?.id) {
-        setHasAccess(false);
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is a volunteer in this event using user_info.id
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${profile.id}/joined-events`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        const isVolunteer = data.data.some((e) => e.id === parseInt(eventId));
-        setHasAccess(isVolunteer);
-      }
-    } catch (err) {
-      console.error("Failed to check access:", err);
-      setHasAccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.data?.user?.role === "admin") {
-      checkAccess(null, session);
-      fetchEventDetails();
-      fetchVolunteers();
-      fetchTasks();
-      fetchResources();
-    } else if (userProfile) {
-      checkAccess(userProfile, session);
-      fetchEventDetails();
-      fetchVolunteers();
-      fetchTasks();
-      fetchResources();
-    }
-  }, [eventId, userProfile, session]);
-
-  const fetchEventDetails = async () => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        setEventDetails(data.data);
-      } else {
-        setEventDetails(null);
-      }
-    } catch (err) {
-      console.error("Failed to fetch event details:", err);
-      setEventDetails(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchVolunteers = async () => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        setVolunteers(data.data);
-      } else {
-        setVolunteers([]);
-      }
-    } catch (err) {
-      console.error("Failed to fetch volunteers:", err);
-      setVolunteers([]);
-    }
-  };
-
-  const fetchTasks = async () => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/tasks`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        setTasks(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-    }
-  };
-
-  const fetchResources = async () => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/resources`,
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        setResources(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch resources:", err);
-    }
-  };
 
   if (loading || profileLoading) {
     return (
@@ -376,7 +245,6 @@ function EventDashboard() {
               eventId={eventId}
               onVolunteersRefresh={() => {
                 fetchVolunteers();
-                fetchEventStats();
               }}
               isAdmin={session?.data?.user?.role === "admin"}
               currentUserId={userProfile?.id}

@@ -56,7 +56,6 @@ export function ThemeSettings({ opened, onClose }) {
             ))}
           </Group>
         </div>
-
         <div>
           <Text size="sm" fw={600} mb="sm">
             Font Size
@@ -106,7 +105,6 @@ export function ThemeSettings({ opened, onClose }) {
             </Button>
           </Group>
         </div>
-
         {/* Color Palette Section */}
         <div>
           <Text size="sm" fw={600} mb="sm">

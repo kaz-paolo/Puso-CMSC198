@@ -22,8 +22,9 @@ import {
   IconX,
   IconTrash,
 } from "@tabler/icons-react";
-import { useState, useMemo } from "react";
-import { notifications } from "@mantine/notifications";
+import { useState } from "react";
+import { useVolunteerMutation } from "../../hooks/useVolunteerMutation";
+import { useVolunteerFilters } from "../../hooks/useFilteredData";
 
 function VolunteersTable({
   volunteers,
@@ -32,165 +33,95 @@ function VolunteersTable({
   isAdmin,
   currentUserId,
 }) {
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState(null);
-  const [statusFilter, setStatusFilter] = useState(null);
+  const {
+    search,
+    setSearch,
+    roleFilter,
+    setRoleFilter,
+    statusFilter,
+    setStatusFilter,
+    filteredVolunteers,
+    uniqueRoles,
+    uniqueStatuses,
+  } = useVolunteerFilters(volunteers);
+
+  const { updateStatus, removeVolunteer } = useVolunteerMutation(
+    eventId,
+    onVolunteersRefresh,
+  );
+
   const [confirmModal, setConfirmModal] = useState({
     opened: false,
     volunteer: null,
     action: "",
   });
 
-  // extract unique roles and status from volunteers
-  const uniqueRoles = useMemo(() => {
-    const roles = new Set(volunteers.map((v) => v.role_name || "Volunteer"));
-    return ["All", ...Array.from(roles)];
-  }, [volunteers]);
+  const openConfirmModal = (volunteer, action) => {
+    setConfirmModal({
+      opened: true,
+      volunteer,
+      action,
+    });
+  };
 
-  const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(volunteers.map((v) => v.volunteer_status));
-    return ["All", ...Array.from(statuses)];
-  }, [volunteers]);
-
-  const filteredVolunteers = volunteers.filter((volunteer) => {
-    const fullName =
-      `${volunteer.first_name} ${volunteer.last_name}`.toLowerCase();
-    const matchesSearch =
-      fullName.includes(search.toLowerCase()) ||
-      (volunteer.student_number || "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
-    const matchesRole =
-      !roleFilter ||
-      roleFilter === "All" ||
-      (volunteer.role_name || "Volunteer") === roleFilter;
-    const matchesStatus =
-      !statusFilter ||
-      statusFilter === "All" ||
-      volunteer.volunteer_status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  const handleRemove = async () => {
+    if (confirmModal.volunteer) {
+      await removeVolunteer(confirmModal.volunteer.id);
+    }
+    setConfirmModal({
+      opened: false,
+      volunteer: null,
+      action: "",
+    });
+  };
 
   const getStatusColor = (status) => {
-    const statusColors = {
-      CONFIRMED: "green",
-      PENDING: "yellow",
-      REMOVED: "red",
-      DECLINED: "gray",
-    };
-    return statusColors[status] || "gray";
-  };
-
-  const handleStatusUpdate = async (userId, newStatus) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers/${userId}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to update status");
-      }
-
-      notifications.show({
-        title: "Success",
-        message: `Volunteer status updated to ${newStatus}`,
-        color: "green",
-      });
-
-      if (onVolunteersRefresh) onVolunteersRefresh();
-    } catch (error) {
-      console.error("Update status error:", error);
-      notifications.show({
-        title: "Error",
-        message: error.message || "Failed to update volunteer status",
-        color: "red",
-      });
+    switch (status) {
+      case "CONFIRMED":
+        return "green";
+      case "PENDING":
+        return "yellow";
+      case "DECLINED":
+        return "red";
+      case "REMOVED":
+        return "gray";
+      default:
+        return "blue";
     }
-  };
-
-  const handleRemoveVolunteer = async (userId) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/volunteers/${userId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deletedBy: currentUserId }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to remove volunteer");
-      }
-
-      notifications.show({
-        title: "Success",
-        message: "Volunteer removed from event",
-        color: "green",
-      });
-
-      if (onVolunteersRefresh) onVolunteersRefresh();
-      setConfirmModal({ opened: false, volunteer: null, action: "" });
-    } catch (error) {
-      console.error("Remove volunteer error:", error);
-      notifications.show({
-        title: "Error",
-        message: error.message || "Failed to remove volunteer",
-        color: "red",
-      });
-    }
-  };
-
-  const openConfirmModal = (volunteer, action) => {
-    setConfirmModal({ opened: true, volunteer, action });
   };
 
   const rows = filteredVolunteers.map((volunteer) => (
     <Table.Tr key={volunteer.id}>
       <Table.Td>
-        <input type="checkbox" />
-      </Table.Td>
-      <Table.Td>
         <Group gap="sm">
-          <Avatar radius="xl" size="md" color="primary">
-            {volunteer.first_name.charAt(0)}
-            {volunteer.last_name.charAt(0)}
+          <Avatar color="primary" radius="xl">
+            {volunteer.first_name[0]}
+            {volunteer.last_name[0]}
           </Avatar>
           <div>
             <Text size="sm" fw={500}>
               {volunteer.first_name} {volunteer.last_name}
             </Text>
             <Text size="xs" c="dimmed">
-              {volunteer.student_number || "N/A"}
+              {volunteer.email || "No email"}
             </Text>
           </div>
         </Group>
       </Table.Td>
       <Table.Td>
-        <Badge variant="light" size="sm">
+        <Badge variant="light" color={volunteer.role_name ? "blue" : "gray"}>
           {volunteer.role_name || "Volunteer"}
         </Badge>
       </Table.Td>
       <Table.Td>
-        <Text size="sm">{volunteer.email || "N/A"}</Text>
+        {volunteer.student_number || (
+          <Text size="sm" c="dimmed">
+            Not provided
+          </Text>
+        )}
       </Table.Td>
       <Table.Td>
-        <Text size="sm">{volunteer.mobile || "N/A"}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Badge
-          color={getStatusColor(volunteer.volunteer_status)}
-          variant="light"
-        >
+        <Badge color={getStatusColor(volunteer.volunteer_status)} variant="dot">
           {volunteer.volunteer_status}
         </Badge>
       </Table.Td>
@@ -208,16 +139,14 @@ function VolunteersTable({
                   <Menu.Item
                     leftSection={<IconCheck size={16} />}
                     color="green"
-                    onClick={() =>
-                      handleStatusUpdate(volunteer.id, "CONFIRMED")
-                    }
+                    onClick={() => updateStatus(volunteer.id, "CONFIRMED")}
                   >
                     Approve
                   </Menu.Item>
                   <Menu.Item
                     leftSection={<IconX size={16} />}
                     color="orange"
-                    onClick={() => handleStatusUpdate(volunteer.id, "DECLINED")}
+                    onClick={() => updateStatus(volunteer.id, "DECLINED")}
                   >
                     Decline
                   </Menu.Item>
@@ -226,7 +155,8 @@ function VolunteersTable({
               {volunteer.volunteer_status === "CONFIRMED" && (
                 <Menu.Item
                   leftSection={<IconX size={16} />}
-                  onClick={() => handleStatusUpdate(volunteer.id, "REMOVED")}
+                  color="gray"
+                  onClick={() => updateStatus(volunteer.id, "REMOVED")}
                 >
                   Mark as Removed
                 </Menu.Item>
@@ -291,25 +221,29 @@ function VolunteersTable({
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th style={{ width: 40 }}>
-                <input type="checkbox" />
-              </Table.Th>
-              <Table.Th>VOLUNTEER NAME</Table.Th>
-              <Table.Th>ASSIGNED ROLE</Table.Th>
-              <Table.Th>EMAIL</Table.Th>
-              <Table.Th>CONTACT</Table.Th>
-              <Table.Th>STATUS</Table.Th>
-              {isAdmin && <Table.Th>ACTIONS</Table.Th>}
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Role</Table.Th>
+              <Table.Th>ID Number</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
+          <Table.Tbody>
+            {rows.length > 0 ? (
+              rows
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={5} align="center">
+                  <Text c="dimmed" py="xl">
+                    No volunteers found
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            )}
+          </Table.Tbody>
         </Table>
 
-        <Group justify="space-between" mt="md">
-          <Text size="xs" c="dimmed">
-            Showing 1-{filteredVolunteers.length} out of{" "}
-            {filteredVolunteers.length} results
-          </Text>
+        <Group justify="flex-end" mt="md">
           <Group gap="xs">
             <Button variant="subtle" size="xs" disabled>
               Previous
@@ -348,11 +282,8 @@ function VolunteersTable({
             >
               Cancel
             </Button>
-            <Button
-              color="red"
-              onClick={() => handleRemoveVolunteer(confirmModal.volunteer?.id)}
-            >
-              Remove Volunteer
+            <Button color="red" onClick={handleRemove}>
+              Remove
             </Button>
           </Group>
         </Stack>

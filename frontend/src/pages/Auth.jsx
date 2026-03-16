@@ -204,7 +204,7 @@ function Auth() {
       const normalizedEmail = email.trim().toLowerCase();
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/check-existing`,
+        "${import.meta.env.VITE_API_URL_BASE_URL}/api/users/check-existing",
         {
           method: "POST",
           headers: {

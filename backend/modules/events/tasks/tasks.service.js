@@ -1,9 +1,7 @@
-import { sql } from "../config/db.js";
+import { sql } from "../../../config/db.js";
 
-export async function getTasksByEventId(req, res) {
-  try {
-    const { eventId } = req.params;
-
+export const tasksService = {
+  async getTasksByEventId(eventId) {
     const tasks = await sql`
       SELECT 
         t.*,
@@ -63,16 +61,10 @@ export async function getTasksByEventId(req, res) {
       }
     });
 
-    res.json({ success: true, data: categorizedTasks });
-  } catch (error) {
-    console.error("Get tasks error:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch tasks" });
-  }
-}
+    return categorizedTasks;
+  },
 
-export async function createTask(req, res) {
-  try {
-    const { eventId } = req.params;
+  async createTask(eventId, taskData) {
     const {
       taskTitle,
       category,
@@ -83,7 +75,7 @@ export async function createTask(req, res) {
       taskDetails,
       relevantLinks,
       createdBy,
-    } = req.body;
+    } = taskData;
 
     const result = await sql`
       INSERT INTO event_tasks (
@@ -112,16 +104,10 @@ export async function createTask(req, res) {
       RETURNING *
     `;
 
-    res.status(201).json({ success: true, data: result[0] });
-  } catch (error) {
-    console.error("Create task error:", error);
-    res.status(500).json({ success: false, error: "Failed to create task" });
-  }
-}
+    return result[0];
+  },
 
-export async function updateTask(req, res) {
-  try {
-    const { taskId } = req.params;
+  async updateTask(taskId, taskData) {
     const {
       task_title,
       category,
@@ -132,9 +118,9 @@ export async function updateTask(req, res) {
       task_details,
       relevant_links,
       assignees,
-    } = req.body;
+    } = taskData;
 
-    // update task
+    // update task details
     const [updatedTask] = await sql`
       UPDATE event_tasks
       SET
@@ -151,12 +137,12 @@ export async function updateTask(req, res) {
       RETURNING *;
     `;
 
-    // update assignees
-    if (assignees) {
+    // update assignees if provided
+    if (assignees && updatedTask) {
       // remove existing assignees
       await sql`DELETE FROM task_assignees WHERE task_id = ${taskId};`;
 
-      // add new
+      // add new assignees
       for (const assignee of assignees) {
         if (assignee.type === "user") {
           await sql`
@@ -172,26 +158,10 @@ export async function updateTask(req, res) {
       }
     }
 
-    res.status(200).json({ success: true, data: updatedTask });
-  } catch (error) {
-    console.error("Update task error:", error);
-    res.status(500).json({ success: false, error: "Failed to update task" });
-  }
-}
+    return updatedTask;
+  },
 
-export async function deleteTask(req, res) {
-  try {
-    const { taskId } = req.params;
-    const { deletedBy } = req.body;
-
-    if (!deletedBy) {
-      return res.status(400).json({
-        success: false,
-        error: "deletedBy is required",
-      });
-    }
-
-    // update deleted_at and deleted_by
+  async deleteTask(taskId, deletedBy) {
     const softDeleted = await sql`
       UPDATE event_tasks
       SET 
@@ -200,21 +170,6 @@ export async function deleteTask(req, res) {
       WHERE id = ${taskId} AND deleted_at IS NULL
       RETURNING *;
     `;
-
-    if (softDeleted.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Task not found or already deleted",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Task deleted successfully",
-      data: softDeleted[0],
-    });
-  } catch (error) {
-    console.error("Delete task error:", error);
-    res.status(500).json({ success: false, error: "Failed to delete task" });
-  }
-}
+    return softDeleted[0];
+  },
+};

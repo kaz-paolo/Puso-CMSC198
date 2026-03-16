@@ -1,0 +1,46 @@
+import { eventsService } from "./events.service.js";
+
+export const eventsController = {
+  async getAllEvents(req, res) {
+    try {
+      const data = await eventsService.getAllEvents();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Fetch events error:", error);
+      res.status(500).json({ success: false, error: "Failed to fetch events" });
+    }
+  },
+  async createEvent(req, res) {
+    try {
+      const data = await eventsService.createEvent(req.body);
+      res.status(201).json({ success: true, data });
+    } catch (error) {
+      console.log("Create event error: ", error);
+      res.status(500).json({ error: "Failed to create event" });
+    }
+  },
+  async getEventById(req, res) {
+    try {
+      const data = await eventsService.getEventById(req.params.id);
+      if (!data) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Event not found" });
+      }
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Fetch event error:", error);
+      res.status(500).json({ success: false, error: "Failed to fetch event" });
+    }
+  },
+  async deleteEvent(req, res) {
+    // TODO
+    try {
+    } catch {}
+  },
+  async archiveEvent(req, res) {
+    // TODO
+    try {
+    } catch {}
+  },
+};

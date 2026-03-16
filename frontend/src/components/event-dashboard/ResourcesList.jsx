@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Paper,
   Text,
@@ -22,9 +22,10 @@ import {
   IconTrash,
   IconEdit,
 } from "@tabler/icons-react";
-import { notifications } from "@mantine/notifications";
 import AddResourceModal from "../modal/AddResourceModal";
-import { authClient } from "../../auth.js";
+import { useSession } from "../../hooks/useSession";
+import { useExternalLink } from "../../hooks/useExternalLink";
+import { useResourceMutation } from "../../hooks/useResourceMutation";
 
 function ResourcesList({
   resources,
@@ -33,58 +34,13 @@ function ResourcesList({
   onResourcesRefresh,
 }) {
   const [addResourceOpened, setAddResourceOpened] = useState(false);
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await authClient.getSession();
-      setSession(data);
-    };
-    fetchSession();
-  }, []);
-
-  const handleOpenLink = (url) => {
-    // URL protocol
-    let fullUrl = url;
-    if (!/^https?:\/\//i.test(url)) {
-      fullUrl = `https://${url}`;
-    }
-    window.open(fullUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleDelete = async (resourceId) => {
-    if (!window.confirm("Are you sure you want to delete this resource?")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/resources/${resourceId}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deletedBy: userProfile?.id }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        notifications.show({
-          title: "Success",
-          message: "Resource deleted successfully",
-          color: "green",
-        });
-        if (onResourcesRefresh) onResourcesRefresh();
-      }
-    } catch (error) {
-      console.error("Error deleting resource:", error);
-      notifications.show({
-        title: "Error",
-        message: "Failed to delete resource",
-        color: "red",
-      });
-    }
-  };
+  const { session } = useSession();
+  const { openLink } = useExternalLink();
+  const { deleteResource } = useResourceMutation(
+    eventId,
+    userProfile,
+    onResourcesRefresh,
+  );
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -148,7 +104,7 @@ function ResourcesList({
             <ActionIcon
               variant="subtle"
               color="gray"
-              onClick={() => handleOpenLink(resource.url)}
+              onClick={() => openLink(resource.url)}
             >
               <IconExternalLink size={18} />
             </ActionIcon>
@@ -166,7 +122,7 @@ function ResourcesList({
                 <Menu.Item
                   leftSection={<IconTrash size={16} />}
                   color="red"
-                  onClick={() => handleDelete(resource.id)}
+                  onClick={() => deleteResource(resource.id)}
                 >
                   Delete
                 </Menu.Item>
@@ -182,9 +138,12 @@ function ResourcesList({
     <>
       <Paper withBorder p="lg" radius="md">
         <Group justify="space-between" mb="md">
-          <Text fw={600} size="lg">
-            Available Resources and Links
-          </Text>
+          <Group>
+            <IconLink size={20} />
+            <Text fw={600} size="lg">
+              Available Resources and Links
+            </Text>
+          </Group>
           {session?.user?.role === "admin" && (
             <Button
               leftSection={<IconPlus size={16} />}
