@@ -18,14 +18,15 @@ import {
   IconClipboardCheck,
   IconArrowRight,
 } from "@tabler/icons-react";
-import { useEffect, useState, useMemo } from "react";
-import { authClient } from "../auth.js";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import EventCalendar from "../components/Calendar";
-import EventCard from "../components/EventCard";
+import EventCalendar from "../components/Calendar.jsx";
+import EventCard from "../components/EventCard.jsx";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { useSession } from "../hooks/useSession.js";
+import { useUpcomingEvents } from "../hooks/useUpcomingEvents";
 
 const quotes = [
   "Volunteers do not necessarily have the time; they just have the heart.",
@@ -60,26 +61,10 @@ function StatCard({ icon, value, label, color }) {
 
 function Dashboard() {
   const theme = useMantineTheme();
-  const [session, setSession] = useState(null);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const { data } = await authClient.getSession();
-        setSession(data);
-      } catch (error) {
-        console.error("Failed to fetch session:", error);
-      } finally {
-        setIsSessionLoading(false);
-      }
-    };
-    fetchSession();
-  }, []);
+  const { session, loading: isSessionLoading } = useSession();
   const navigate = useNavigate();
   const { userProfile, loading: profileLoading } = useUserProfile();
-  const [eventCards, setEventCards] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { upcomingEvents, loading, error } = useUpcomingEvents(userProfile);
 
   const randomQuote = useMemo(
     () => quotes[Math.floor(Math.random() * quotes.length)],
@@ -93,35 +78,7 @@ function Dashboard() {
       navigate("/auth");
       return;
     }
-
-    async function fetchEvents() {
-      setLoading(true);
-      try {
-        // Fetch events and filter by date
-        const eventsRes = await fetch("http://localhost:3000/api/events");
-        const eventsData = await eventsRes.json();
-        if (eventsData.success) {
-          const now = new Date();
-          const upcoming = eventsData.data
-            .filter((e) => {
-              const startDate = new Date(e.start_date);
-              return startDate >= now;
-            })
-            .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-            .slice(0, 7);
-          setEventCards(upcoming);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (userProfile) {
-      fetchEvents();
-    }
-  }, [session, isSessionLoading, navigate, userProfile]);
+  }, [session, isSessionLoading, navigate]);
 
   if (loading || profileLoading || !userProfile || isSessionLoading) {
     // add loading anim
@@ -191,11 +148,11 @@ function Dashboard() {
             }}
             slideGap="md"
             align="start"
-            withControls={eventCards.length > 3}
+            withControls={upcomingEvents.length > 3}
             withIndicators
             loop
           >
-            {eventCards.map((event) => (
+            {upcomingEvents.map((event) => (
               <Carousel.Slide key={event.id}>
                 <EventCard event={event} />
               </Carousel.Slide>

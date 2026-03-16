@@ -3,28 +3,37 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import dotenv from "dotenv";
-import usersRoutes from "./routes/usersRoutes.js";
-import eventsRoutes from "./routes/eventsRoutes.js";
-import tasksRoutes from "./routes/tasksRoutes.js";
-import { sql } from "./config/db.js";
-import { initDb } from "./config/initDb.js";
+import usersRoutes from "./modules/users/user.routes.js";
+import eventsRoutes from "./modules/events/events.routes.js";
+import tasksRoutes from "./modules/events/tasks/tasks.routes.js";
+import resourcesRoutes from "./modules/events/resources/resources.routes.js";
+import volunteersRoutes from "./modules/events/volunteers/volunteers.routes.js";
+import { initDb } from "./schema/initDb.js";
+import path from "path";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  }),
+);
 app.use(morgan("dev")); // logs requests to console
 
-app.get("/", (req, res) => {
-  res.send("Hello test route");
-});
-
-// app.get("api/products", (req, res) => {
-//   // get all products from db
+// Mount API routes
+app.use("/api/users", usersRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/events", tasksRoutes);
+app.use("/api/events", resourcesRoutes);
+app.use("/api/events", volunteersRoutes);
+// Example test route (optional)
+// app.get("/api/products", (req, res) => {
 //   res.status(200).json({
 //     success: true,
 //     data: [
@@ -33,13 +42,13 @@ app.get("/", (req, res) => {
 //     ],
 //   });
 // });
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "/frontend/dist")));
 
-app.use("/api/users", usersRoutes);
-
-app.use("/api/events", eventsRoutes);
-
-app.use("/api/events", tasksRoutes);
-
+  app.get(/.*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+  });
+}
 initDb().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -58,3 +58,9 @@ npm run dev
 - `npm run build` - Build for production
 - `npm run lint` - Run ESLint checks
 - `npm run preview` - Preview production build locally
+
+## Architecture Design
+
+- routes.js: API endpoints and maps to controller functions
+- controller.js: Handles the HTTP request and response. Extracts data, calls service, and send back JSON response.
+- service.js: Contains business logic and interact with database.

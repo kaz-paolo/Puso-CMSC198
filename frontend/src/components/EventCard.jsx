@@ -21,19 +21,21 @@ import {
   getEventStatus,
   getStatusColor,
   getStatusLabel,
-} from "../utils/eventStatus";
+} from "../utils/eventStatus.js";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { authClient } from "../auth.js";
+import { useSession } from "../hooks/useSession";
+import { useEventJoinStatus } from "../hooks/useEventJoinStatus";
 
 function EventCard({ event }) {
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState(null);
   const theme = useMantineTheme();
   const { userProfile } = useUserProfile();
+  const { session, loading: loadingSession } = useSession();
+  const user = session?.user;
+
   const navigate = useNavigate();
-  const [hasJoined, setHasJoined] = useState(false);
-  const [volunteerStatus, setVolunteerStatus] = useState(null); // Track volunteer status
-  const [checkingJoinStatus, setCheckingJoinStatus] = useState(true);
+
+  const { hasJoined, volunteerStatus, checkingJoinStatus, joinEvent } =
+    useEventJoinStatus(user?.id, event.id);
 
   const {
     id,
@@ -47,49 +49,8 @@ function EventCard({ event }) {
     volunteer_roles,
   } = event;
 
-  const dynamicStatus = getEventStatus(start_date, end_date);
-  const statusColor = getStatusColor(dynamicStatus);
-  const statusLabel = getStatusLabel(dynamicStatus);
-
   const [detailsOpened, setDetailsOpened] = useState(false);
   const [roleSelectOpened, setRoleSelectOpened] = useState(false);
-
-  // check if user has already joined this event
-  useEffect(() => {
-    async function checkJoinStatus() {
-      if (!user || !userProfile) {
-        setCheckingJoinStatus(false);
-        return;
-      }
-
-      setCheckingJoinStatus(true);
-
-      try {
-        // Check if user has joined using auth_user_id
-        const res = await fetch(
-          `http://localhost:3000/api/users/${user.id}/joined-events`,
-        );
-        const data = await res.json();
-
-        if (data.success) {
-          const joinedEvent = data.data.find((e) => e.id === parseInt(id));
-          if (joinedEvent) {
-            setHasJoined(true);
-            setVolunteerStatus(joinedEvent.volunteer_status);
-          } else {
-            setHasJoined(false);
-            setVolunteerStatus(null);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to check join status:", err);
-      } finally {
-        setCheckingJoinStatus(false);
-      }
-    }
-
-    checkJoinStatus();
-  }, [user, id]); // Add 'id' to dependencies
 
   const truncateDescription = (text, maxLength = 100) => {
     if (!text) return "";
@@ -129,6 +90,10 @@ function EventCard({ event }) {
     };
   }, [volunteer_roles, volunteer_capacity, event.current_volunteers]);
 
+  const dynamicStatus = getEventStatus(start_date, end_date);
+  const statusColor = getStatusColor(dynamicStatus);
+  const statusLabel = getStatusLabel(dynamicStatus);
+
   const handleVolunteerClick = () => {
     if (hasRoles) {
       // role selection modal
@@ -140,31 +105,14 @@ function EventCard({ event }) {
   };
 
   const handleJoinEvent = async (selectedRole) => {
+    // Wrapper function for the hook's join logic
     try {
-      const res = await fetch(`http://localhost:3000/api/events/${id}/join`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          roleId: selectedRole?.id || null,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        alert(data.error || "Failed to join event");
-        return;
-      }
-
-      // Update join status based on response
-      setHasJoined(true);
-      setVolunteerStatus(data.data.volunteer_status);
-      setRoleSelectOpened(false);
-
-      alert(data.message);
-
-      // Only navigate if confirmed (no approval needed)
-      if (data.data.volunteer_status === "CONFIRMED") {
-        navigate(`/events/${id}`);
+      const newStatus = await joinEvent(selectedRole);
+      if (newStatus) {
+        setRoleSelectOpened(false);
+        if (newStatus === "CONFIRMED") {
+          navigate(`/events/${id}`);
+        }
       }
     } catch (err) {
       console.error("Join event failed:", err);
@@ -178,15 +126,6 @@ function EventCard({ event }) {
     if (isFull) return "Event Full";
     return "Volunteer";
   };
-
-  useEffect(() => {
-    authClient.getSession().then((result) => {
-      if (result.data?.session && result.data?.user) {
-        setSession(result.data.session);
-        setUser(result.data.user);
-      }
-    });
-  }, []);
 
   return (
     <>

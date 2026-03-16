@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Container,
   Title,
@@ -19,63 +19,20 @@ import {
   IconCalendar,
   IconCategory,
 } from "@tabler/icons-react";
-import EventCard from "../components/EventCard";
-import AddEventModal from "../components/modal/AddEventModal";
-import { getEventStatus } from "../utils/eventStatus";
+import EventCard from "../components/EventCard.jsx";
+import AddEventModal from "../components/modal/AddEventModal.jsx";
+import { getEventStatus } from "../utils/eventStatus.js";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { authClient } from "../auth.js";
+import { useSession } from "../auth.js";
+import { useEvents } from "../hooks/useEvents";
 
 function Events() {
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const session = await authClient.getSession();
-      setSession(session);
-    };
-    fetchSession();
-  }, []);
-
   const { userProfile } = useUserProfile();
+  const { events, loading, error, refetchEvents } = useEvents(userProfile);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateFilterType, setDateFilterType] = useState(null);
   const [addEventOpened, setAddEventOpened] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [joinedEventIds, setJoinedEventIds] = useState([]);
-
-  const fetchJoinedEvents = async (userId) => {
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/users/${userId}/joined-events`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        setJoinedEventIds(data.data.map((e) => e.id));
-      }
-    } catch (err) {
-      console.error("Failed to fetch joined events:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (userProfile?.id) {
-      fetchJoinedEvents(userProfile.id);
-    }
-  }, [userProfile]);
-
-  const fetchEvents = async () => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/events`);
-      const data = await res.json();
-      if (data.success) setEvents(data.data);
-    } catch (err) {
-      console.error("Error:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
 
   const toggleStatusFilter = (status) => {
     setStatusFilter((prev) =>
@@ -297,7 +254,7 @@ function Events() {
             Type
           </Button>
 
-          {session?.data?.user?.role === "admin" && (
+          {userProfile?.role === "admin" && (
             <Button
               leftSection={<IconPlus size={18} />}
               onClick={() => setAddEventOpened(true)}
@@ -357,7 +314,15 @@ function Events() {
         </Text>
 
         {/* Events Grid */}
-        {filteredEvents.length === 0 ? (
+        {loading ? (
+          <Text c="dimmed" ta="center" py="xl">
+            Loading events...
+          </Text>
+        ) : error ? (
+          <Text c="red" ta="center" py="xl">
+            Error fetching events.
+          </Text>
+        ) : filteredEvents.length === 0 ? (
           <Text c="dimmed" ta="center" py="xl">
             No events found
           </Text>
@@ -374,7 +339,7 @@ function Events() {
       <AddEventModal
         opened={addEventOpened}
         onClose={() => setAddEventOpened(false)}
-        onEventCreated={fetchEvents}
+        onEventCreated={refetchEvents}
       />
     </Container>
   );

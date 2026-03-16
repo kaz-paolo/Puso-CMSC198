@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Container,
   Paper,
@@ -33,11 +33,11 @@ import {
   IconSchool,
   IconBriefcase,
 } from "@tabler/icons-react";
-import { authClient } from "../auth.js";
-import Header from "../components/Header";
-import NavBar from "../components/NavBar";
-import { ThemeSettings } from "../components/ThemeSettings";
-import { useUserProfile } from "../hooks/useUserProfile";
+import Header from "../components/Header.jsx";
+import NavBar from "../components/NavBar.jsx";
+import { ThemeSettings } from "../components/ThemeSettings.jsx";
+import { useProfileData } from "../hooks/useProfileData";
+import { useSession } from "../hooks/useSession";
 
 // PLACEHOLDER DATA
 const PLACEHOLDER_HISTORY = [
@@ -67,45 +67,23 @@ const PLACEHOLDER_HISTORY = [
   },
 ];
 
+import { InfoItem } from "../components/common/InfoItem";
+
 function Profile() {
-  const [session, setSession] = useState(null);
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await authClient.getSession();
-      setSession(data);
-    };
-    fetchSession();
-  }, []);
+  const { session } = useSession();
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
-  const { userProfile, loading } = useUserProfile();
+  const {
+    userProfile,
+    loading,
+    profileData,
+    setProfileData,
+    isEditing,
+    setIsEditing,
+    handleSave,
+  } = useProfileData();
   const [themeOpened, setThemeOpened] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
-  const [isEditing, setIsEditing] = useState(false);
-
-  // profiledata
-  const [profileData, setProfileData] = useState({
-    first_name: "",
-    last_name: "",
-    mobile: "",
-    dob: "",
-    student_number: "",
-    college: "",
-    degree: "",
-    present_address: "",
-    classification: "",
-  });
-
-  useEffect(() => {
-    if (userProfile) {
-      setProfileData(userProfile);
-    }
-  }, [userProfile]);
-
-  const handleSave = async () => {
-    // TODO: Save
-    setIsEditing(false);
-  };
 
   function formatDate(dateString) {
     if (!dateString) return "Not set";
@@ -116,35 +94,6 @@ function Profile() {
       day: "2-digit",
     }).format(new Date(dateString));
   }
-
-  const InfoItem = ({ icon: Icon, label, value, name }) => (
-    <Group wrap="nowrap" align="center" gap={8} style={{ width: "100%" }}>
-      <Icon size={20} style={{ opacity: 0.7 }} />
-      <Text
-        size="xs"
-        c="dimmed"
-        tt="uppercase"
-        fw={700}
-        style={{ minWidth: 90 }}
-      >
-        {label}
-      </Text>
-      {isEditing ? (
-        <TextInput
-          value={profileData[name]}
-          onChange={(e) =>
-            setProfileData({ ...profileData, [name]: e.target.value })
-          }
-          size="xs"
-          style={{ flex: 1 }}
-        />
-      ) : (
-        <Text size="sm" style={{ flex: 1 }}>
-          {value || "Not set"}
-        </Text>
-      )}
-    </Group>
-  );
 
   if (loading) {
     return (
