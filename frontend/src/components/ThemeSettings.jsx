@@ -81,7 +81,6 @@ export function ThemeSettings({ opened, onClose }) {
             </Button>
           </Group>
         </div>
-        ++++++++++++++
         {/* Color Scheme Section */}
         <div>
           <Text size="sm" fw={600} mb="sm">

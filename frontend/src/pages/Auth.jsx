@@ -319,14 +319,15 @@ function Auth() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Group justify="space-between" align="center">
-            <Anchor
+            {/* Commented out for prod */}
+            {/* <Anchor
               component="button"
               type="button"
               size="xs"
               onClick={() => setView("signup")}
             >
               Create an account
-            </Anchor>
+            </Anchor> */}
           </Group>
           <Button
             type="submit"
