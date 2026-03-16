@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Container,
   Paper,
@@ -18,56 +18,268 @@ import {
   Center,
 } from "@mantine/core";
 import { useMantineColorScheme } from "@mantine/core";
+import { useNavigate } from "react-router-dom";
+import { authClient } from "../auth.js";
 import {
   IconAlertCircle,
   IconSchool,
   IconUserPlus,
   IconArrowLeft,
+  IconPalette,
 } from "@tabler/icons-react";
-import Header from "../components/Header.jsx";
-import { ThemeSettings } from "../components/ThemeSettings.jsx";
-import { useSession } from "../hooks/useSession";
-import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { notifications } from "@mantine/notifications";
+import Header from "../components/Header";
+import { ThemeSettings } from "../components/ThemeSettings";
 
 function Auth() {
+  const [view, setView] = useState("login");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [themeOpened, setThemeOpened] = useState(false);
+
+  const [code, setCode] = useState("");
+  // const [message, setMessage] = useState("");
+
+  const navigate = useNavigate();
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
-  const { session, loading: checkingSession } = useSession();
-  const navigate = useNavigate();
-  const {
-    view,
-    setView,
-    email,
-    setEmail,
-    name,
-    setName,
-    password,
-    setPassword,
-    error,
-    setError,
-    loading,
-    verifiedEmail,
-    handleArukahikSignup,
-    handleEmailAuth,
-    handleVerify,
-  } = useAuth();
+
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // session checks
+  const sessionCheckDone = useRef(false);
+  const isNavigating = useRef(false);
+
+  const arukahikAvailable = false;
+
+  // check existing session
+  useEffect(() => {
+    if (sessionCheckDone.current || isNavigating.current) {
+      return;
+    }
+
+    sessionCheckDone.current = true;
+
+    const checkSession = async () => {
+      try {
+        const { data } = await authClient.getSession();
+
+        if (data?.session && !isNavigating.current) {
+          isNavigating.current = true;
+
+          const justSignedUp = localStorage.getItem("justSignedUp") === "true";
+          localStorage.removeItem("justSignedUp");
+
+          // navigation
+          if (justSignedUp) {
+            window.location.replace("/volunteer-form");
+          } else {
+            window.location.replace("/dashboard");
+          }
+        } else {
+          // show auth
+          setCheckingSession(false);
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+        setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+  }, []);
 
   useEffect(() => {
-    // If a session exists, the user is logged in and should not be on the Auth page.
-    // Redirect them to the appropriate page.
-    if (session) {
-      const justSignedUp = localStorage.getItem("justSignedUp") === "true";
-      if (justSignedUp) {
-        localStorage.removeItem("justSignedUp");
-        navigate("/volunteer-form");
-      } else {
-        navigate("/dashboard");
-      }
-    }
-  }, [session, navigate]);
+    setError("");
+  }, [view]);
 
+  const handleArukahikSignup = () => {
+    if (arukahikAvailable) {
+      navigate("/volunteerapplication");
+    } else {
+      notifications.show({
+        title: "Coming Soon!",
+        message: "There are currently no available Arukahik trainings.",
+        color: "yellow",
+      });
+    }
+  };
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    // stop multiple submission
+    if (loading || isNavigating.current) return;
+
+    setLoading(true);
+    isNavigating.current = true;
+
+    try {
+      if (view === "login") {
+        const { data, error } = await authClient.signIn.email({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        // clear flags
+        localStorage.removeItem("justSignedUp");
+
+        window.location.replace("/dashboard");
+      } else {
+        // Sign up
+        const { data, error } = await authClient.signUp.email({
+          email,
+          password,
+          name: name || email.split("@")[0],
+        });
+
+        if (error) throw error;
+
+        // localStorage.setItem("justSignedUp", "true");
+        // window.location.replace("/volunteer-form");
+        if (data?.user && !data.user.emailVerified) {
+          isNavigating.current = false;
+          setLoading(false);
+          // setMessage("Check your email for the verification code.");
+          setView("verify");
+        }
+      }
+    } catch (err) {
+      // reset flag on error
+      isNavigating.current = false;
+
+      const errorMessage = err.message || err.error?.message;
+      if (errorMessage) {
+        if (
+          errorMessage.includes("Invalid credentials") ||
+          errorMessage.includes("password")
+        ) {
+          setError("Incorrect email or password. Please try again.");
+        }
+
+        // to be implemented
+
+        // else if (errorMessage.includes("not verified")) {
+        //   setError(
+        //     "Your email is not verified. Enter the verification code sent to your email.",
+        //   );
+        //   setView("verify");
+        // }
+        else if (errorMessage.includes("email")) {
+          setError("Please enter a valid email address.");
+        } else if (errorMessage.includes("already exists")) {
+          setError("An account with this email already exists. Please log in.");
+        } else {
+          setError(errorMessage);
+        }
+      } else {
+        setError("Authentication failed. Please try again.");
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyMemberEmail = async () => {
+    if (!email) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      const response = await fetch(
+        "${import.meta.env.VITE_API_URL_BASE_URL}/api/users/check-existing",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: normalizedEmail }),
+        },
+      );
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error);
+      }
+
+      if (!data.exists) {
+        setError("Email not found in existing members list.");
+        return;
+      }
+
+      setVerifiedEmail(normalizedEmail);
+      setEmail(normalizedEmail);
+      setView("signup");
+    } catch (err) {
+      setError(err.message || "Verification failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCodeVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (!code) {
+      setError("Please enter the verification code.");
+      return;
+    }
+
+    try {
+      const { data, error } = await authClient.emailOtp.verifyEmail({
+        email,
+        otp: code,
+      });
+
+      if (error) throw error;
+
+      await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      localStorage.setItem("justSignedUp", "true");
+      window.location.replace("/volunteer-form");
+
+      // if (data?.session) {
+      //   localStorage.setItem("justSignedUp", "true");
+      //   // window.location.replace("/volunteer-form");
+      //   console.log("if");
+      //   navigate("/volunteer-form");
+      // } else {
+      //   // setMessage("Email verified! You can now sign in.");
+      //   // setStep("auth");
+      //   console.log("else");
+      //   // setView("signup");
+      //   setCode("");
+      // }
+    } catch (err) {
+      setError(err?.message || "Verification failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // loader
   if (checkingSession) {
     return (
       <Center style={{ minHeight: "100vh" }}>
@@ -75,6 +287,10 @@ function Auth() {
       </Center>
     );
   }
+
+  const handleResendCode = () => {
+    console.log("resend code");
+  };
 
   const renderLogin = () => (
     <>
@@ -214,6 +430,7 @@ function Auth() {
 
       <form onSubmit={handleEmailAuth}>
         <Stack gap="md">
+          {/* Need to add name on better auth */}
           <TextInput
             label="Full Name"
             placeholder="John Doe"
@@ -251,42 +468,101 @@ function Auth() {
     </>
   );
 
-  const renderRecover = () => (
+  const renderRecover = () => {
+    return (
+      <>
+        <Group>
+          <ActionIcon variant="light" onClick={() => setView("login")}>
+            <IconArrowLeft />
+          </ActionIcon>
+          <Title order={3}>Create Your Account</Title>
+        </Group>
+        <Text size="sm" c="dimmed">
+          Enter the email you used in your arukahik registration (Only for
+          Arukahik 1 to 4).
+        </Text>
+        <Stack gap="lg" mt="md">
+          <TextInput
+            label="Volunteer Registration Email"
+            placeholder="youremail@email.com"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {error && (
+            <Alert
+              mt="md"
+              icon={<IconAlertCircle size={16} />}
+              color="red"
+              variant="light"
+              onClose={() => setError("")}
+              withCloseButton
+            >
+              {error}
+            </Alert>
+          )}
+          <Button
+            color="primary"
+            onClick={handleVerifyMemberEmail}
+            loading={loading}
+          >
+            Verify Email
+          </Button>
+        </Stack>
+      </>
+    );
+  };
+
+  const renderVerify = () => (
     <>
-      <Group>
-        <ActionIcon variant="light" onClick={() => setView("login")}>
+      <Group miw={300}>
+        <ActionIcon variant="light" onClick={() => navigate(-1)}>
           <IconArrowLeft />
         </ActionIcon>
-        <Title order={3}>Create Your Account</Title>
+        <Title order={3}>Verify Email</Title>
       </Group>
+
       <Text size="sm" c="dimmed">
-        Enter the email you used in your arukahik registration (Only for
-        Arukahik 1 to 4).
+        Enter the verification code sent to {email}
       </Text>
-      <Stack gap="lg" mt="md">
-        <TextInput
-          label="Volunteer Registration Email"
-          placeholder="youremail@email.com"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {error && (
-          <Alert
-            mt="md"
-            icon={<IconAlertCircle size={16} />}
-            color="red"
-            variant="light"
-            onClose={() => setError("")}
-            withCloseButton
+
+      <form onSubmit={handleCodeVerify}>
+        <Stack gap="md">
+          <TextInput
+            label="Verification Code"
+            placeholder="Enter code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+          />
+
+          <Button type="submit" loading={loading} fullWidth>
+            Verify Code
+          </Button>
+
+          <Anchor
+            component="button"
+            type="button"
+            size="sm"
+            onClick={handleResendCode}
           >
-            {error}
-          </Alert>
-        )}
-        <Button color="primary" onClick={handleVerify} loading={loading}>
-          Verify Email
-        </Button>
-      </Stack>
+            Resend Code (This is not available yet.)
+          </Anchor>
+        </Stack>
+      </form>
+
+      {error && (
+        <Alert
+          mt="md"
+          icon={<IconAlertCircle size={16} />}
+          color="red"
+          variant="light"
+          withCloseButton
+          onClose={() => setError("")}
+        >
+          {error}
+        </Alert>
+      )}
     </>
   );
 
@@ -329,6 +605,7 @@ function Auth() {
             {view === "login" && renderLogin()}
             {view === "signup" && renderSignup()}
             {view === "recover" && renderRecover()}
+            {view === "verify" && renderVerify()}
           </Stack>
         </Paper>
       </Container>
