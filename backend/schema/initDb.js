@@ -175,6 +175,54 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES user_info(id)
     `;
 
+    // --- SURVEY & PARTICIPANTS TABLES ---
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_surveys (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER UNIQUE NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        privacy_notice TEXT,
+        accepting_responses BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS survey_questions (
+        id SERIAL PRIMARY KEY,
+        survey_id INTEGER NOT NULL REFERENCES event_surveys(id) ON DELETE CASCADE,
+        question_text TEXT NOT NULL,
+        question_type VARCHAR(50) NOT NULL, -- e.g., 'text', 'choices', 'dropdown'
+        validation_type VARCHAR(50), -- e.g., 'none', 'text', 'number', 'email'
+        options JSONB, -- Stores array of strings for choices/dropdowns
+        is_required BOOLEAN DEFAULT true,
+        order_index INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS survey_responses (
+        id SERIAL PRIMARY KEY,
+        survey_id INTEGER NOT NULL REFERENCES event_surveys(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        contact_number VARCHAR(50),
+        registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(survey_id, email) -- Prevents the same email from registering twice
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS survey_answers (
+        id SERIAL PRIMARY KEY,
+        response_id INTEGER NOT NULL REFERENCES survey_responses(id) ON DELETE CASCADE,
+        question_id INTEGER NOT NULL REFERENCES survey_questions(id) ON DELETE CASCADE,
+        answer_text TEXT
+      );
+    `;
+
     console.log("Soft delete columns added successfully.");
     console.log("Database initialized successfully.");
   } catch (error) {
