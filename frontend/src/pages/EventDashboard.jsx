@@ -23,6 +23,8 @@ import {
   IconFolder,
   IconLock,
   IconAlertCircle,
+  IconListCheck,
+  IconFileAnalytics,
 } from "@tabler/icons-react";
 import { Alert } from "@mantine/core";
 import { useEventDashboardData } from "../hooks/useEventDashboardData";
@@ -164,6 +166,10 @@ function EventDashboard() {
     );
   }
 
+  // Checker if ADMIN, then show registration tabs if yes
+  const isAdmin = session?.data?.user?.role === "admin";
+  const showRegistrationTabs = isAdmin && eventDetails?.registration_allowed;
+
   return (
     <Container size="xl">
       <Stack gap="xl">
@@ -205,6 +211,22 @@ function EventDashboard() {
             <Tabs.Tab value="resources" leftSection={<IconFolder size={16} />}>
               Resources
             </Tabs.Tab>
+
+            {/* TABS FOR Participants REGISTRATION */}
+            <>
+              <Tabs.Tab
+                value="participants"
+                leftSection={<IconListCheck size={16} />}
+              >
+                Participants Table
+              </Tabs.Tab>
+              <Tabs.Tab
+                value="survey"
+                leftSection={<IconFileAnalytics size={16} />}
+              >
+                Participants Survey
+              </Tabs.Tab>
+            </>
           </Tabs.List>
 
           {/* Overview Tab */}
@@ -270,6 +292,30 @@ function EventDashboard() {
               userProfile={userProfile}
             />
           </Tabs.Panel>
+
+          {/* NEW TAB PANELS */}
+          {showRegistrationTabs && (
+            <>
+              <Tabs.Panel value="participants" pt="md">
+                {/* Component to build:
+                  Fetch data from /api/events/:eventId/survey/responses 
+                  Show a Mantine Table with Name, Email, Contact, Registered At.
+                  Clicking a row opens a Mantine Modal showing their survey_answers.
+                */}
+                <AdminParticipantsTable eventId={eventId} />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="survey" pt="md">
+                {/* Component to build:
+                  Admin UI to toggle "Accepting Responses"
+                  Inputs for Title, Description, Privacy Notice.
+                  Dynamic list of questions (add/edit/delete).
+                  URL generator pointing to `/event/${eventId}/register`
+                */}
+                <AdminSurveyBuilder eventId={eventId} />
+              </Tabs.Panel>
+            </>
+          )}
         </Tabs>
       </Stack>
     </Container>

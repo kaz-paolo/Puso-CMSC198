@@ -82,46 +82,52 @@ export function useEventDashboardData() {
     }
   };
 
-  const checkAccess = async (profile, sessionData) => {
+  const checkAccess = async (profile, sessionData, eventId) => {
     try {
-      if (sessionData?.data?.user?.role === "admin") {
-        setHasAccess(true);
-        return;
+      const authUser = sessionData?.data?.user || sessionData?.user;
+      if (authUser?.role === "admin") {
+        return true;
       }
+
       if (!profile?.id) {
-        setHasAccess(false);
-        return;
+        return false;
       }
+
       const res = await fetch(
         `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${profile.id}/joined-events`,
       );
       const data = await res.json();
-      if (data.success) {
-        const isVolunteer = data.data.some((e) => e.id === parseInt(eventId));
-        setHasAccess(isVolunteer);
-      }
+
+      return data.success && data.data.some((e) => e.id === parseInt(eventId));
     } catch (err) {
       console.error("Failed to check access:", err);
-      setHasAccess(false);
+      return false;
     }
   };
 
   useEffect(() => {
+    if (profileLoading) {
+      return;
+    }
+
     const init = async () => {
       setLoading(true);
-      await checkAccess(userProfile, session);
-      await Promise.all([
-        fetchEventDetails(),
-        fetchVolunteers(),
-        fetchTasks(),
-        fetchResources(),
-      ]);
+      const canAccess = await checkAccess(userProfile, session, eventId);
+      setHasAccess(canAccess);
+
+      if (canAccess) {
+        await Promise.all([
+          fetchEventDetails(),
+          fetchVolunteers(),
+          fetchTasks(),
+          fetchResources(),
+        ]);
+      }
       setLoading(false);
     };
-    if (userProfile || session?.data?.user?.role === "admin") {
-      init();
-    }
-  }, [eventId, userProfile, session]);
+
+    init();
+  }, [eventId, userProfile, session, profileLoading]);
 
   return {
     eventId,

@@ -72,7 +72,7 @@ export function useVolunteerForm(sections) {
       });
 
       const response = await fetch(
-        "${import.meta.env.VITE_API_URL_BASE_URL}/api/users/complete-profile",
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/complete-profile`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
