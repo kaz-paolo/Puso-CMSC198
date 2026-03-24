@@ -63,7 +63,8 @@ export async function initDb() {
         registration_allowed BOOLEAN NOT NULL DEFAULT false,
         publish_event BOOLEAN NOT NULL DEFAULT false,
         volunteer_capacity INTEGER NOT NULL DEFAULT 0,
-        approval_required BOOLEAN NOT NULL DEFAULT true
+        approval_required BOOLEAN NOT NULL DEFAULT true,
+        created_by INTEGER REFERENCES user_info(id)
       );
     `;
 
@@ -175,8 +176,11 @@ export async function initDb() {
       ADD COLUMN IF NOT EXISTS deleted_by INTEGER REFERENCES user_info(id)
     `;
 
-    // --- SURVEY & PARTICIPANTS TABLES ---
+    // For survey and participants
+
+    // Survey Main
     await sql`
+    
       CREATE TABLE IF NOT EXISTS event_surveys (
         id SERIAL PRIMARY KEY,
         event_id INTEGER UNIQUE NOT NULL REFERENCES events(id) ON DELETE CASCADE,
@@ -188,6 +192,7 @@ export async function initDb() {
       );
     `;
 
+    // Specific survey questions
     await sql`
       CREATE TABLE IF NOT EXISTS survey_questions (
         id SERIAL PRIMARY KEY,
@@ -202,6 +207,7 @@ export async function initDb() {
       );
     `;
 
+    // responses (only the consistent like name etc)
     await sql`
       CREATE TABLE IF NOT EXISTS survey_responses (
         id SERIAL PRIMARY KEY,
@@ -214,6 +220,7 @@ export async function initDb() {
       );
     `;
 
+    // Answers
     await sql`
       CREATE TABLE IF NOT EXISTS survey_answers (
         id SERIAL PRIMARY KEY,

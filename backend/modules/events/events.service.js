@@ -52,15 +52,17 @@ export const eventsService = {
       publish_event,
       volunteer_capacity,
       volunteer_roles,
+      created_by,
     } = eventData;
 
-    return await sql.begin(async (sql) => {
-      /// create event
+    await sql`BEGIN`;
+    try {
+      // create event
       const [newEvent] = await sql`
         INSERT INTO events
-          (event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity)
+          (event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity, created_by)
         VALUES
-          (${event_title}, ${description}, ${event_type}, ${location}, ${start_date}, ${start_time}, ${end_date}, ${end_time}, ${registration_allowed}, ${approval_required}, ${publish_event}, ${volunteer_capacity})
+          (${event_title}, ${description}, ${event_type}, ${location}, ${start_date}, ${start_time}, ${end_date}, ${end_time}, ${registration_allowed}, ${approval_required}, ${publish_event}, ${volunteer_capacity}, ${created_by})
         RETURNING *;
       `;
 
@@ -68,7 +70,6 @@ export const eventsService = {
       if (volunteer_roles && volunteer_roles.length > 0) {
         const eventId = newEvent.id;
 
-        // array of insert promises
         await Promise.all(
           volunteer_roles.map(
             (role) =>
@@ -82,8 +83,12 @@ export const eventsService = {
         );
       }
 
+      await sql`COMMIT`;
       return newEvent;
-    });
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
   },
 
   // Fetch specific event detail and unique volunteers count, and roles for that event and count

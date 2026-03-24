@@ -10,11 +10,8 @@ export function useResourceMutation(eventId, userProfile, onRefresh) {
     }
 
     try {
-      const baseUrl =
-        import.meta.env.VITE_API_URL_BASE_URL ||
-        "${import.meta.env.VITE_API_URL_BASE_URL}";
       const response = await fetch(
-        `${baseUrl}/api/events/${eventId}/resources/${resourceId}`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/resources/${resourceId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

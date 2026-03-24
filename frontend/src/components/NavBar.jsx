@@ -76,7 +76,7 @@ function NavBar() {
   async function fetchAllEvents() {
     try {
       const res = await fetch(
-        "${import.meta.env.VITE_API_URL_BASE_URL}/api/events",
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
       );
       const data = await res.json();
 

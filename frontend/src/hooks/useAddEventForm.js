@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authClient } from "../auth.js";
 
 export function useAddEventForm({ onEventCreated, onClose }) {
+  const [session, setSession] = useState(null);
   const [formData, setFormData] = useState({
     event_title: "",
     description: "",
@@ -19,10 +21,21 @@ export function useAddEventForm({ onEventCreated, onClose }) {
   const [capacityType, setCapacityType] = useState("simple");
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await authClient.getSession();
+      setSession(data);
+    };
+    fetchSession();
+  }, []);
+
   const handleAddRole = () => {
     setFormData((prev) => ({
       ...prev,
-      volunteer_roles: [...prev.volunteer_roles, { role: "", capacity: "" }],
+      volunteer_roles: [
+        ...prev.volunteer_roles,
+        { role_name: "", capacity: "" },
+      ],
     }));
   };
 
@@ -44,6 +57,22 @@ export function useAddEventForm({ onEventCreated, onClose }) {
     setError(null);
 
     try {
+      if (!session?.user?.id) {
+        throw new Error("User session not found.");
+      }
+
+      // ID from auth user id
+      const userRes = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/users/${
+          session.user.id
+        }/basic-info`,
+      );
+      const userData = await userRes.json();
+
+      if (!userData.success) {
+        throw new Error("Failed to get user information for event creation.");
+      }
+
       const formatDate = (date) => {
         if (!date) return null;
         const d = new Date(date);
@@ -61,10 +90,11 @@ export function useAddEventForm({ onEventCreated, onClose }) {
           capacityType === "simple" ? formData.volunteer_capacity : 0,
         volunteer_roles:
           capacityType === "roles" ? formData.volunteer_roles : [],
+        created_by: userData.data.id,
       };
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/`,
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

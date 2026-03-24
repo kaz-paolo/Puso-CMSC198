@@ -75,38 +75,80 @@ export const userService = {
     const dbFields = {};
     Object.entries(PROFILE_FIELDS).forEach(([camelKey, snakeKey]) => {
       const value = profileData[camelKey];
-      // include if value exists and is not empty string
       if (value !== undefined && value !== null && value !== "") {
         dbFields[snakeKey] = value;
+      } else {
+        dbFields[snakeKey] = null;
       }
     });
-
-    dbFields.auth_user_id = authUserId;
 
     if (!dbFields.first_name || !dbFields.last_name) {
       throw new Error("Missing required fields: first_name or last_name");
     }
 
-    const columns = Object.keys(dbFields);
-    const values = Object.values(dbFields);
-
-    const columnList = columns.join(", ");
-    const valuePlaceholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-
-    // UPDATE clause for ON CONFLICT
-    const updateClauses = columns
-      .filter((col) => col !== "auth_user_id")
-      .map((col, i) => `${col} = $${columns.indexOf(col) + 1}`)
-      .join(", ");
-
     const result = await sql`
-      INSERT INTO user_info ${sql(dbFields)}
-      ON CONFLICT (auth_user_id)
-      DO UPDATE SET ${sql(
-        dbFields,
-        columns.filter((c) => c !== "auth_user_id"),
-      )}
-      RETURNING *
+      INSERT INTO user_info (
+        auth_user_id,
+        first_name, middle_name, last_name, student_number, nickname,
+        sex, civil_status, dob, birth_place, height, weight,
+        blood_type, languages, mobile, hometown, present_address,
+        classification, college, degree, year_level, year_graduated,
+        campus, designation, organization, organizations, illness,
+        arukahik_join_date, hobbies, skills, expertise, software,
+        committee1, why_committee1, committee2, why_committee2,
+        committee3, why_committee3, strengths, facebook
+      ) VALUES (
+        ${authUserId},
+        ${dbFields.first_name}, ${dbFields.middle_name}, ${dbFields.last_name}, ${dbFields.student_number}, ${dbFields.nickname},
+        ${dbFields.sex}, ${dbFields.civil_status}, ${dbFields.dob}, ${dbFields.birth_place}, ${dbFields.height}, ${dbFields.weight},
+        ${dbFields.blood_type}, ${dbFields.languages}, ${dbFields.mobile}, ${dbFields.hometown}, ${dbFields.present_address},
+        ${dbFields.classification}, ${dbFields.college}, ${dbFields.degree}, ${dbFields.year_level}, ${dbFields.year_graduated},
+        ${dbFields.campus}, ${dbFields.designation}, ${dbFields.organization}, ${dbFields.organizations}, ${dbFields.illness},
+        ${dbFields.arukahik_join_date}, ${dbFields.hobbies}, ${dbFields.skills}, ${dbFields.expertise}, ${dbFields.software},
+        ${dbFields.committee1}, ${dbFields.why_committee1}, ${dbFields.committee2}, ${dbFields.why_committee2},
+        ${dbFields.committee3}, ${dbFields.why_committee3}, ${dbFields.strengths}, ${dbFields.facebook}
+      )
+      ON CONFLICT (auth_user_id) DO UPDATE SET
+        first_name = COALESCE(EXCLUDED.first_name, user_info.first_name),
+        middle_name = COALESCE(EXCLUDED.middle_name, user_info.middle_name),
+        last_name = COALESCE(EXCLUDED.last_name, user_info.last_name),
+        student_number = COALESCE(EXCLUDED.student_number, user_info.student_number),
+        nickname = COALESCE(EXCLUDED.nickname, user_info.nickname),
+        sex = COALESCE(EXCLUDED.sex, user_info.sex),
+        civil_status = COALESCE(EXCLUDED.civil_status, user_info.civil_status),
+        dob = COALESCE(EXCLUDED.dob, user_info.dob),
+        birth_place = COALESCE(EXCLUDED.birth_place, user_info.birth_place),
+        height = COALESCE(EXCLUDED.height, user_info.height),
+        weight = COALESCE(EXCLUDED.weight, user_info.weight),
+        blood_type = COALESCE(EXCLUDED.blood_type, user_info.blood_type),
+        languages = COALESCE(EXCLUDED.languages, user_info.languages),
+        mobile = COALESCE(EXCLUDED.mobile, user_info.mobile),
+        hometown = COALESCE(EXCLUDED.hometown, user_info.hometown),
+        present_address = COALESCE(EXCLUDED.present_address, user_info.present_address),
+        classification = COALESCE(EXCLUDED.classification, user_info.classification),
+        college = COALESCE(EXCLUDED.college, user_info.college),
+        degree = COALESCE(EXCLUDED.degree, user_info.degree),
+        year_level = COALESCE(EXCLUDED.year_level, user_info.year_level),
+        year_graduated = COALESCE(EXCLUDED.year_graduated, user_info.year_graduated),
+        campus = COALESCE(EXCLUDED.campus, user_info.campus),
+        designation = COALESCE(EXCLUDED.designation, user_info.designation),
+        organization = COALESCE(EXCLUDED.organization, user_info.organization),
+        organizations = COALESCE(EXCLUDED.organizations, user_info.organizations),
+        illness = COALESCE(EXCLUDED.illness, user_info.illness),
+        arukahik_join_date = COALESCE(EXCLUDED.arukahik_join_date, user_info.arukahik_join_date),
+        hobbies = COALESCE(EXCLUDED.hobbies, user_info.hobbies),
+        skills = COALESCE(EXCLUDED.skills, user_info.skills),
+        expertise = COALESCE(EXCLUDED.expertise, user_info.expertise),
+        software = COALESCE(EXCLUDED.software, user_info.software),
+        committee1 = COALESCE(EXCLUDED.committee1, user_info.committee1),
+        why_committee1 = COALESCE(EXCLUDED.why_committee1, user_info.why_committee1),
+        committee2 = COALESCE(EXCLUDED.committee2, user_info.committee2),
+        why_committee2 = COALESCE(EXCLUDED.why_committee2, user_info.why_committee2),
+        committee3 = COALESCE(EXCLUDED.committee3, user_info.committee3),
+        why_committee3 = COALESCE(EXCLUDED.why_committee3, user_info.why_committee3),
+        strengths = COALESCE(EXCLUDED.strengths, user_info.strengths),
+        facebook = COALESCE(EXCLUDED.facebook, user_info.facebook)
+      RETURNING *;
     `;
 
     return result[0];
