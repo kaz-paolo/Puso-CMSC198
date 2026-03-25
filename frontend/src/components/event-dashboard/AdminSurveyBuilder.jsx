@@ -12,8 +12,16 @@ import {
   Title,
   CopyButton,
   Text,
+  Badge,
 } from "@mantine/core";
-import { IconTrash, IconPlus, IconCheck, IconCopy } from "@tabler/icons-react";
+import {
+  IconTrash,
+  IconPlus,
+  IconCheck,
+  IconCopy,
+  IconDeviceFloppy,
+} from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 
 export default function AdminSurveyBuilder({ eventId }) {
   const [loading, setLoading] = useState(false);
@@ -34,8 +42,14 @@ export default function AdminSurveyBuilder({ eventId }) {
   const fetchSurvey = async () => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/survey`,
+        `${import.meta.env.VITE_API_URL_BASE_URL || ""}/api/events/${eventId}/survey`,
       );
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(
+          `Failed to fetch survey: ${res.status} ${res.statusText}. ${errorText}`,
+        );
+      }
       const data = await res.json();
       if (data.success && data.data) {
         setSurvey(data.data);
@@ -49,16 +63,34 @@ export default function AdminSurveyBuilder({ eventId }) {
     setLoading(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/survey`,
+        `${import.meta.env.VITE_API_URL_BASE_URL || ""}/api/events/${eventId}/survey/update`,
         {
-          method: "PUT",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(survey),
         },
       );
-      // Handle success notification here
+      if (res.ok) {
+        notifications.show({
+          title: "Success",
+          message: "Survey data saved successfully!",
+          color: "green",
+          icon: <IconCheck />,
+        });
+      } else {
+        const errorText = await res.text();
+        throw new Error(
+          errorText || `Failed to save survey. Status: ${res.status}`,
+        );
+      }
     } catch (err) {
       console.error("Failed to save survey:", err);
+      notifications.show({
+        title: "Error Saving Survey",
+        message: err.message,
+        color: "red",
+        autoClose: 7000,
+      });
     } finally {
       setLoading(false);
     }
@@ -97,7 +129,18 @@ export default function AdminSurveyBuilder({ eventId }) {
       <Card withBorder shadow="sm">
         <Stack gap="md">
           <Group justify="space-between">
-            <Title order={3}>Survey Settings</Title>
+            <Group>
+              <Title order={3}>Survey Settings</Title>
+              {survey.accepting_responses ? (
+                <Badge color="green">
+                  Live (v{survey.current_version || 1})
+                </Badge>
+              ) : (
+                <Badge color="gray">
+                  Closed (v{survey.current_version || 1})
+                </Badge>
+              )}
+            </Group>
             <Switch
               label="Accepting Responses"
               checked={survey.accepting_responses}
@@ -122,7 +165,11 @@ export default function AdminSurveyBuilder({ eventId }) {
             </Text>
             <CopyButton value={registrationLink} timeout={2000}>
               {({ copied, copy }) => (
-                <ActionIcon color={copied ? "teal" : "gray"} onClick={copy}>
+                <ActionIcon
+                  color={copied ? "teal" : "gray"}
+                  onClick={copy}
+                  variant="light"
+                >
                   {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
                 </ActionIcon>
               )}
@@ -153,7 +200,8 @@ export default function AdminSurveyBuilder({ eventId }) {
       </Card>
 
       <Title order={4}>
-        Questions (Standard fields like Name/Email are always included)
+        Questions (Standard fields like Name/Email/Contact are automatically
+        included)
       </Title>
 
       {survey.questions.map((q, index) => (
@@ -227,7 +275,11 @@ export default function AdminSurveyBuilder({ eventId }) {
         >
           Add Question
         </Button>
-        <Button onClick={handleSave} loading={loading}>
+        <Button
+          onClick={handleSave}
+          loading={loading}
+          leftSection={<IconDeviceFloppy size={16} />}
+        >
           Save Survey Data
         </Button>
       </Group>

@@ -1,6 +1,5 @@
-// frontend/src/pages/PublicSurveyPage.jsx
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Title,
@@ -9,12 +8,19 @@ import {
   Select,
   Button,
   Paper,
+  Stack,
+  Radio,
+  Loader,
+  Center,
 } from "@mantine/core";
 
 export default function PublicSurveyPage() {
   const { eventId } = useParams();
+  const navigate = useNavigate();
   const [surveyData, setSurveyData] = useState(null);
-  const [hasCompleted, setHasCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,105 +28,191 @@ export default function PublicSurveyPage() {
     answers: {},
   });
 
-  // check local storage on mount, add other checker, in case a different device is used
   useEffect(() => {
-    const completed = localStorage.getItem(`survey_completed_${eventId}`);
-    if (completed) {
-      setHasCompleted(JSON.parse(completed)); // Contains their name and success status
-    } else {
-      // Fetch active survey questions from backend
-      // fetch(`/api/events/${eventId}/active-survey`)
-    }
+    fetchActiveSurvey();
   }, [eventId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchActiveSurvey = async () => {
     try {
-      // Submit formData to backend
-      // const res = await fetch(...)
-
-      // If successful:
-      const successData = {
-        name: formData.name,
-        date: new Date().toISOString(),
-      };
-      localStorage.setItem(
-        `survey_completed_${eventId}`,
-        JSON.stringify(successData),
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL || ""}/api/events/${eventId}/survey/active`,
       );
-      setHasCompleted(successData);
-    } catch (error) {
-      // Handle "Email already exists" error from backend
-      if (error.message.includes("already registered")) {
-        alert("This email has already registered for this event.");
+      const data = await res.json();
+      if (data.success) {
+        setSurveyData(data.data);
       }
+    } catch (error) {
+      console.error("Failed to fetch survey:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 2. Render Success State if already completed
-  if (hasCompleted) {
+  const handleAnswerChange = (questionId, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        [questionId]: value,
+      },
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL || ""}/api/events/${eventId}/survey/submit`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit registration");
+      }
+
+      const successData = {
+        name: formData.name,
+        email: formData.email,
+        date: new Date().toISOString(),
+        regId: data.data?.registrationId || encodeURIComponent(formData.email),
+      };
+
+      navigate(`/events/${eventId}/success/${successData.regId}`, {
+        state: successData,
+      });
+    } catch (error) {
+      if (error.message.toLowerCase().includes("already registered")) {
+        alert("This email has already been registered for this event.");
+      } else {
+        alert(error.message || "An error occurred while submitting.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Center style={{ minHeight: "100vh" }}>
+        <Loader size="lg" />
+      </Center>
+    );
+  }
+
+  if (!surveyData || !surveyData.accepting_responses) {
     return (
       <Container size="sm" py="xl">
         <Paper withBorder p="xl" radius="md" ta="center">
-          <Title order={2} c="green">
-            Thank you for completing the survey!
-          </Title>
-          <Text mt="md" size="lg">
-            Hello, {hasCompleted.name}.
-          </Text>
-          <Text c="dimmed">
-            Your response was recorded on{" "}
-            {new Date(hasCompleted.date).toLocaleDateString()}.
-          </Text>
-          <Text mt="lg" size="sm">
-            You can keep this page as proof of your registration.
+          <Title order={3}>Survey Unavailable</Title>
+          <Text mt="md" c="dimmed">
+            This event is not currently accepting responses.
           </Text>
         </Paper>
       </Container>
     );
   }
 
-  // 3. Render Form
   return (
     <Container size="sm" py="xl">
-      <Title>{surveyData?.title}</Title>
-      <Text>{surveyData?.description}</Text>
-      <Text size="xs" c="dimmed" mt="sm">
-        {surveyData?.privacy_notice}
-      </Text>
+      <Paper withBorder p="xl" radius="md">
+        <Title>{surveyData.title}</Title>
+        <Text mt="sm">{surveyData.description}</Text>
+        {surveyData.privacy_notice && (
+          <Text size="xs" c="dimmed" mt="md" fs="italic">
+            Privacy Notice: {surveyData.privacy_notice}
+          </Text>
+        )}
 
-      <form onSubmit={handleSubmit}>
-        {/* Static Fields */}
-        <TextInput
-          label="Full Name"
-          required
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-        <TextInput
-          label="Email"
-          type="email"
-          required
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-        <TextInput
-          label="Contact Number"
-          required
-          onChange={(e) =>
-            setFormData({ ...formData, contact_number: e.target.value })
-          }
-        />
+        <form onSubmit={handleSubmit} style={{ marginTop: "2rem" }}>
+          <Stack gap="md">
+            <TextInput
+              label="Full Name"
+              required
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
+            <TextInput
+              label="Email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
+            <TextInput
+              label="Contact Number"
+              required
+              value={formData.contact_number}
+              onChange={(e) =>
+                setFormData({ ...formData, contact_number: e.target.value })
+              }
+            />
 
-        {/* Dynamic Fields mapped from surveyData.questions */}
-        {surveyData?.questions.map((q) => (
-          <div key={q.id}>
-            {/* Conditionally render TextInput, Select, or Textarea based on q.question_type */}
-            {/* Apply HTML validation based on q.validation_type (type="number", type="email", etc.) */}
-          </div>
-        ))}
-        <Button type="submit" mt="xl">
-          Submit Registration
-        </Button>
-      </form>
+            {/* mapped from surveyData.questions */}
+            {surveyData.questions?.map((q) => {
+              const inputType =
+                q.validation_type === "none" ? "text" : q.validation_type;
+
+              if (q.question_type === "text") {
+                return (
+                  <TextInput
+                    key={q.id || q.question_text}
+                    label={q.question_text}
+                    type={inputType}
+                    required={q.is_required}
+                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                  />
+                );
+              }
+
+              if (q.question_type === "dropdown") {
+                return (
+                  <Select
+                    key={q.id || q.question_text}
+                    label={q.question_text}
+                    required={q.is_required}
+                    data={q.options || []}
+                    onChange={(val) => handleAnswerChange(q.id, val)}
+                    placeholder="Select an option"
+                  />
+                );
+              }
+
+              if (q.question_type === "choices") {
+                return (
+                  <Radio.Group
+                    key={q.id || q.question_text}
+                    label={q.question_text}
+                    required={q.is_required}
+                    onChange={(val) => handleAnswerChange(q.id, val)}
+                  >
+                    <Stack mt="xs" gap="xs">
+                      {q.options?.map((opt, idx) => (
+                        <Radio key={idx} value={opt} label={opt} />
+                      ))}
+                    </Stack>
+                  </Radio.Group>
+                );
+              }
+              return null;
+            })}
+
+            <Button type="submit" mt="xl" loading={submitting}>
+              Submit Registration
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
     </Container>
   );
 }

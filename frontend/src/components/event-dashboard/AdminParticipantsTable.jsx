@@ -8,7 +8,9 @@ import {
   Text,
   Badge,
   Group,
+  ActionIcon,
 } from "@mantine/core";
+import { IconEye } from "@tabler/icons-react";
 
 export default function AdminParticipantsTable({ eventId }) {
   const [participants, setParticipants] = useState([]);
@@ -21,8 +23,14 @@ export default function AdminParticipantsTable({ eventId }) {
   const fetchParticipants = async () => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/survey/responses`,
+        `${import.meta.env.VITE_API_URL_BASE_URL || ""}/api/events/${eventId}/survey/responses`,
       );
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(
+          `Failed to fetch participants: ${res.status} ${res.statusText}. ${errorText}`,
+        );
+      }
       const data = await res.json();
       if (data.success) {
         setParticipants(data.data);
@@ -33,31 +41,49 @@ export default function AdminParticipantsTable({ eventId }) {
   };
 
   const rows = participants.map((p) => (
-    <Table.Tr
-      key={p.id}
-      onClick={() => setSelectedParticipant(p)}
-      style={{ cursor: "pointer" }}
-    >
+    <Table.Tr key={p.id}>
+      <Table.Td>
+        <Text fw={500}>{p.registration_id || "N/A"}</Text>
+      </Table.Td>
       <Table.Td>{p.name}</Table.Td>
       <Table.Td>{p.email}</Table.Td>
       <Table.Td>{p.contact_number}</Table.Td>
+      <Table.Td>
+        <Badge color="gray" variant="light">
+          v{p.survey_version || 1}
+        </Badge>
+      </Table.Td>
       <Table.Td>{new Date(p.registered_at).toLocaleString()}</Table.Td>
+      <Table.Td>
+        <ActionIcon
+          variant="light"
+          color="blue"
+          onClick={() => setSelectedParticipant(p)}
+        >
+          <IconEye size={16} />
+        </ActionIcon>
+      </Table.Td>
     </Table.Tr>
   ));
 
   return (
     <>
       <Card withBorder shadow="sm">
-        <Title order={3} mb="md">
-          Registered Participants
-        </Title>
+        <Group justify="space-between" mb="md">
+          <Title order={3}>Registered Participants</Title>
+          <Badge size="lg">{participants.length} Participant(s)</Badge>
+        </Group>
+
         <Table highlightOnHover striped>
           <Table.Thead>
             <Table.Tr>
+              <Table.Th>Reg ID</Table.Th>
               <Table.Th>Name</Table.Th>
               <Table.Th>Email</Table.Th>
               <Table.Th>Contact Number</Table.Th>
+              <Table.Th>Version</Table.Th>
               <Table.Th>Registered At</Table.Th>
+              <Table.Th>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -65,8 +91,8 @@ export default function AdminParticipantsTable({ eventId }) {
               rows
             ) : (
               <Table.Tr>
-                <Table.Td colSpan={4} ta="center">
-                  No participants registered yet.
+                <Table.Td colSpan={7} ta="center">
+                  <Text c="dimmed">No participants registered yet.</Text>
                 </Table.Td>
               </Table.Tr>
             )}
@@ -83,6 +109,16 @@ export default function AdminParticipantsTable({ eventId }) {
       >
         {selectedParticipant && (
           <Stack gap="sm">
+            {selectedParticipant.registration_id && (
+              <Group justify="space-between">
+                <Text c="dimmed" size="sm">
+                  Registration ID:
+                </Text>
+                <Badge variant="light" color="blue">
+                  {selectedParticipant.registration_id}
+                </Badge>
+              </Group>
+            )}
             <Group justify="space-between">
               <Text fw={600} size="xl">
                 {selectedParticipant.name}
@@ -94,25 +130,29 @@ export default function AdminParticipantsTable({ eventId }) {
               </Badge>
             </Group>
             <Text c="dimmed">
-              {selectedParticipant.email} | {selectedParticipant.contact_number}
+              {selectedParticipant.email} • {selectedParticipant.contact_number}
             </Text>
 
             <Title order={5} mt="md">
-              Survey Answers
+              Custom Survey Answers
             </Title>
-            {selectedParticipant.answers?.length > 0 ? (
+
+            {selectedParticipant.answers &&
+            selectedParticipant.answers.length > 0 ? (
               selectedParticipant.answers.map((answer, idx) => (
                 <Card key={idx} withBorder shadow="xs" py="xs">
-                  <Text fw={500} size="sm">
-                    {answer.question_text}
+                  <Text fw={600} size="sm">
+                    {answer.question_text || `Question ${idx + 1}`}
                   </Text>
                   <Text mt="xs">{answer.answer_text}</Text>
                 </Card>
               ))
             ) : (
-              <Text fs="italic" c="dimmed">
-                No additional survey questions answered.
-              </Text>
+              <Card withBorder shadow="none" bg="var(--mantine-color-gray-0)">
+                <Text fs="italic" c="dimmed" ta="center">
+                  No additional survey questions answered.
+                </Text>
+              </Card>
             )}
           </Stack>
         )}
