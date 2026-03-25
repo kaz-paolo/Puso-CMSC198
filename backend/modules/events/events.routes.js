@@ -1,5 +1,6 @@
 import express from "express";
 import { eventsController } from "./events.controller.js";
+import surveyRouter from "./surveys/surveys.route.js";
 
 const router = express.Router();
 
@@ -14,6 +15,9 @@ router.post("/", eventsController.createEvent);
 
 // get event by ID
 router.get("/:id", eventsController.getEventById);
+// get event surveyy
+router.use("/:eventId/survey", surveyRouter);
+
 //
 // update event
 // TODO

@@ -38,6 +38,9 @@ import TaskBoard from "../components/event-dashboard/TaskBoard.jsx";
 import VolunteersTable from "../components/event-dashboard/VolunteersTable.jsx";
 import EventCalendar from "../components/Calendar.jsx";
 
+import AdminParticipantsTable from "../components/event-dashboard/AdminParticipantsTable.jsx";
+import AdminSurveyBuilder from "../components/event-dashboard/AdminSurveyBuilder.jsx";
+
 // DUMMY DATA for features not yet in database
 const DUMMY_ANNOUNCEMENTS = [
   {
@@ -153,7 +156,7 @@ function EventDashboard() {
                   <Text size="sm">Administrators</Text>
                 </li>
               </ul>
-              {session?.data?.user?.role !== "admin" && (
+              {userProfile?.role !== "admin" && (
                 <Text size="sm" mt="xs">
                   Please join this event first to access the dashboard.
                 </Text>
@@ -166,16 +169,18 @@ function EventDashboard() {
     );
   }
 
-  // Checker if ADMIN, then show registration tabs if yes
-  const isAdmin = session?.data?.user?.role === "admin";
-  const showRegistrationTabs = isAdmin && eventDetails?.registration_allowed;
+  // Check if ADMIN
+  const isAdmin = userProfile?.role === "admin";
+  const showRegistrationTabs = isAdmin;
 
   return (
     <Container size="xl">
       <Stack gap="xl">
         {/* Event Header */}
         <div>
-          <Title order={1}>{eventDetails.event_title}</Title>
+          <Title order={1} align="left">
+            {eventDetails.event_title}
+          </Title>
           <Group gap="xs" mt="xs">
             <Text size="sm" c="dimmed">
               {new Date(eventDetails.start_date).toLocaleDateString("en-US", {
@@ -212,21 +217,23 @@ function EventDashboard() {
               Resources
             </Tabs.Tab>
 
-            {/* TABS FOR Participants REGISTRATION */}
-            <>
-              <Tabs.Tab
-                value="participants"
-                leftSection={<IconListCheck size={16} />}
-              >
-                Participants Table
-              </Tabs.Tab>
-              <Tabs.Tab
-                value="survey"
-                leftSection={<IconFileAnalytics size={16} />}
-              >
-                Participants Survey
-              </Tabs.Tab>
-            </>
+            {/* Participants Registration */}
+            {showRegistrationTabs && (
+              <>
+                <Tabs.Tab
+                  value="participants"
+                  leftSection={<IconListCheck size={16} />}
+                >
+                  Participants Table
+                </Tabs.Tab>
+                <Tabs.Tab
+                  value="survey"
+                  leftSection={<IconFileAnalytics size={16} />}
+                >
+                  Participants Survey
+                </Tabs.Tab>
+              </>
+            )}
           </Tabs.List>
 
           {/* Overview Tab */}
@@ -268,7 +275,7 @@ function EventDashboard() {
               onVolunteersRefresh={() => {
                 fetchVolunteers();
               }}
-              isAdmin={session?.data?.user?.role === "admin"}
+              isAdmin={isAdmin}
               currentUserId={userProfile?.id}
             />
           </Tabs.Panel>
@@ -293,25 +300,14 @@ function EventDashboard() {
             />
           </Tabs.Panel>
 
-          {/* NEW TAB PANELS */}
+          {/* registration */}
           {showRegistrationTabs && (
             <>
               <Tabs.Panel value="participants" pt="md">
-                {/* Component to build:
-                  Fetch data from /api/events/:eventId/survey/responses 
-                  Show a Mantine Table with Name, Email, Contact, Registered At.
-                  Clicking a row opens a Mantine Modal showing their survey_answers.
-                */}
                 <AdminParticipantsTable eventId={eventId} />
               </Tabs.Panel>
 
               <Tabs.Panel value="survey" pt="md">
-                {/* Component to build:
-                  Admin UI to toggle "Accepting Responses"
-                  Inputs for Title, Description, Privacy Notice.
-                  Dynamic list of questions (add/edit/delete).
-                  URL generator pointing to `/event/${eventId}/register`
-                */}
                 <AdminSurveyBuilder eventId={eventId} />
               </Tabs.Panel>
             </>

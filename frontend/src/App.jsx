@@ -26,6 +26,8 @@ import Feedback from "./pages/Feedback.jsx";
 import Settings from "./pages/Settings.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
 import VolunteerApplication from "./pages/VolunteerApplication.jsx";
+import PublicSurveyPage from "./pages/PublicSurveyPage.jsx";
+import PublicSurveySuccessPage from "./pages/PublicSurveySuccessPage.jsx";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -40,6 +42,14 @@ function AppContent() {
           <Route
             path="/volunteer-application"
             element={<VolunteerApplication />}
+          />
+          <Route
+            path="/events/:eventId/register"
+            element={<PublicSurveyPage />}
+          />
+          <Route
+            path="/events/:eventId/success/:registrationId"
+            element={<PublicSurveySuccessPage />}
           />
 
           <Route element={<AppLayout />}>
