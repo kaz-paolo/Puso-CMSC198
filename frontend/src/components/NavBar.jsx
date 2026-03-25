@@ -162,6 +162,17 @@ function NavBar() {
 
         {session?.data?.user?.role === "admin" ? (
           <>
+            <NavLink
+              label="Volunteer Directory"
+              leftSection={<IconUsers size={20} />}
+              color="primary"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/volunteerdirectory");
+              }}
+            />
+
+            <Divider my="sm" />
             <Group justify="space-between" mb="xs">
               <Text size="xs" c="dimmed" fw={500} tt="uppercase">
                 Event Management

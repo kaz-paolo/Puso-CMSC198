@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-// Get all users (placeholder)
+// Get all users
 router.get("/", getAllUsers);
 
 // Get basic info by auth ID

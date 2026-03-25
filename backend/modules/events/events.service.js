@@ -27,7 +27,12 @@ export const eventsService = {
         (
           SELECT COUNT(*) FROM event_volunteers ev 
           WHERE ev.event_id = e.id
-        ) as current_volunteers
+        ) as current_volunteers,
+        (
+          SELECT COUNT(*) FROM survey_responses sr 
+          JOIN event_surveys es ON sr.survey_id = es.id
+          WHERE es.event_id = e.id
+        ) as current_participants
       FROM events e
       ORDER BY e.start_date DESC
     `;
@@ -77,7 +82,7 @@ export const eventsService = {
               INSERT INTO event_volunteer_roles
                 (event_id, role_name, capacity)
               VALUES
-                (${eventId}, ${role.role_name}, ${role.capacity})
+                (${eventId}, ${role.role_name || role.role || "Unnamed Role"}, ${role.capacity})
             `,
           ),
         );
@@ -96,7 +101,12 @@ export const eventsService = {
     const events = await sql`
       SELECT 
         e.*,
-        COUNT(DISTINCT ev.user_id) as current_volunteers
+        COUNT(DISTINCT ev.user_id) as current_volunteers,
+        (
+          SELECT COUNT(*) FROM survey_responses sr 
+          JOIN event_surveys es ON sr.survey_id = es.id
+          WHERE es.event_id = e.id
+        ) as current_participants
       FROM events e
       LEFT JOIN event_volunteers ev ON e.id = ev.event_id
       WHERE e.id = ${id}

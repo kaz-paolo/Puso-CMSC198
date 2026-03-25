@@ -1,8 +1,7 @@
 import express from "express";
 import * as SurveyController from "./surveys.controller.js";
 
-const router = express.Router({ mergeParams: true });
-get: eventId;
+const router = express.Router({ mergeParams: true }); //get eventId;
 
 // under /api/events/:eventId/survey
 router.get("/", SurveyController.getEventSurvey);

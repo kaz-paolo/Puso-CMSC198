@@ -1,5 +1,4 @@
 import { surveysService } from "./surveys.service.js";
-import { triggerZapierWebhook } from "../../../utils/webhook.js";
 
 export async function getEventSurvey(req, res) {
   try {

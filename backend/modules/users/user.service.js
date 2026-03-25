@@ -44,6 +44,26 @@ const PROFILE_FIELDS = {
 };
 
 export const userService = {
+  async getAllUsers() {
+    const users = await sql`
+      SELECT 
+        ui.id,
+        ui.first_name,
+        ui.last_name,
+        ui.arukahik_join_date,
+        ui.committee1,
+        ui.committee2,
+        ui.committee3,
+        ui.facebook,
+        ui.role,
+        u.email
+      FROM user_info ui
+      LEFT JOIN neon_auth.user u ON ui.auth_user_id = u.id::text
+      ORDER BY ui.first_name ASC
+    `;
+    return users;
+  },
+
   async getBasicInfo(authUserId) {
     const [user] = await sql`
       SELECT 

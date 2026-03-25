@@ -11,6 +11,8 @@ import {
   Badge,
   Menu,
   ActionIcon,
+  Center,
+  Loader,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -23,10 +25,10 @@ import EventCard from "../components/EventCard.jsx";
 import AddEventModal from "../components/modal/AddEventModal.jsx";
 import { getEventStatus } from "../utils/eventStatus.js";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { useSession } from "../auth.js";
 import { useEvents } from "../hooks/useEvents";
+import EventManagement from "../pages/admin/EventManagement.jsx";
 
-function Events() {
+function VolunteerEventsView() {
   const { userProfile } = useUserProfile();
   const { events, loading, error, refetchEvents } = useEvents(userProfile);
   const [searchQuery, setSearchQuery] = useState("");
@@ -343,6 +345,24 @@ function Events() {
       />
     </Container>
   );
+}
+
+function Events() {
+  const { userProfile, loading: profileLoading } = useUserProfile();
+
+  if (profileLoading) {
+    return (
+      <Center style={{ minHeight: "80vh" }}>
+        <Loader />
+      </Center>
+    );
+  }
+
+  if (userProfile?.role === "admin") {
+    return <EventManagement />;
+  }
+
+  return <VolunteerEventsView />;
 }
 
 export default Events;
