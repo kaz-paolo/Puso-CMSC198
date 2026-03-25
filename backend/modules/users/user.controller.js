@@ -1,7 +1,13 @@
 import { userService } from "./user.service.js";
 
 export const getAllUsers = async (req, res) => {
-  res.send("Get all users");
+  try {
+    const users = await userService.getAllUsers();
+    res.status(200).json({ success: true, data: users });
+  } catch (err) {
+    console.error("getAllUsers error:", err);
+    res.status(500).json({ error: "Server error fetching users" });
+  }
 };
 
 export const getBasicInfo = async (req, res) => {

@@ -213,9 +213,9 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
                   <Group key={index} grow>
                     <TextInput
                       placeholder="Role Name (e.g. Logistics)"
-                      value={role.role}
+                      value={role.role_name || role.role || ""}
                       onChange={(e) =>
-                        handleRoleChange(index, "role", e.target.value)
+                        handleRoleChange(index, "role_name", e.target.value)
                       }
                     />
                     <NumberInput

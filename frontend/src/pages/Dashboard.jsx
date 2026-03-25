@@ -27,6 +27,7 @@ import "@mantine/carousel/styles.css";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useSession } from "../hooks/useSession.js";
 import { useUpcomingEvents } from "../hooks/useUpcomingEvents";
+import AdminDashboard from "../pages/admin/AdminDashboard.jsx";
 
 const quotes = [
   "Volunteers do not necessarily have the time; they just have the heart.",
@@ -83,6 +84,10 @@ function Dashboard() {
   if (loading || profileLoading || !userProfile || isSessionLoading) {
     // add loading anim
     return null;
+  }
+
+  if (userProfile.role === "admin") {
+    return <AdminDashboard userProfile={userProfile} />;
   }
 
   const stats = [

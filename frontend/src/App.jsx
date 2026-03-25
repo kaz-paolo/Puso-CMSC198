@@ -28,6 +28,7 @@ import AppLayout from "./layouts/AppLayout.jsx";
 import VolunteerApplication from "./pages/VolunteerApplication.jsx";
 import PublicSurveyPage from "./pages/PublicSurveyPage.jsx";
 import PublicSurveySuccessPage from "./pages/PublicSurveySuccessPage.jsx";
+import VolunteerDirectory from "./pages/admin/VolunteerDirectory.jsx";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -63,6 +64,10 @@ function AppContent() {
             <Route path="/resources" element={<Resources />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/settings" element={<Settings />} />
+            <Route
+              path="/volunteerdirectory"
+              element={<VolunteerDirectory />}
+            />
           </Route>
 
           {/* Invalid URL Redirect */}
