@@ -33,6 +33,18 @@ export const eventsController = {
       res.status(500).json({ success: false, error: "Failed to fetch event" });
     }
   },
+  async getDashboardStats(req, res) {
+    try {
+      const data = await eventsService.getDashboardStats();
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Fetch dashboard stats error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to fetch dashboard stats" });
+    }
+  },
+
   async deleteEvent(req, res) {
     // TODO
     try {

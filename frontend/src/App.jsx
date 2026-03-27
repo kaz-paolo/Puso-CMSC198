@@ -22,13 +22,15 @@ import Profile from "./pages/Profile.jsx";
 import Events from "./pages/Events.jsx";
 import EventDashboard from "./pages/EventDashboard";
 import Resources from "./pages/Resources.jsx";
-import Feedback from "./pages/Feedback.jsx";
+import Evaluation from "./pages/Evaluation.jsx";
 import Settings from "./pages/Settings.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
 import VolunteerApplication from "./pages/VolunteerApplication.jsx";
 import PublicSurveyPage from "./pages/PublicSurveyPage.jsx";
 import PublicSurveySuccessPage from "./pages/PublicSurveySuccessPage.jsx";
 import VolunteerDirectory from "./pages/admin/VolunteerDirectory.jsx";
+import EvaluationManagement from "./pages/admin/EvaluationManagement.jsx";
+import EventFeedbackResults from "./pages/admin/EventFeedbackResults.jsx";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -62,11 +64,19 @@ function AppContent() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/events/:eventId" element={<EventDashboard />} />
             <Route path="/resources" element={<Resources />} />
-            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/evaluation" element={<Evaluation />} />
             <Route path="/settings" element={<Settings />} />
             <Route
               path="/volunteerdirectory"
               element={<VolunteerDirectory />}
+            />
+            <Route
+              path="/evaluation-management"
+              element={<EvaluationManagement />}
+            />
+            <Route
+              path="/evaluation-management/:eventId/results"
+              element={<EventFeedbackResults />}
             />
           </Route>
 

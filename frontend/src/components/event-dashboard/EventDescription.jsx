@@ -18,7 +18,7 @@ function EventDescription({ description }) {
       </Group>
 
       <Stack gap="md">
-        <Text size="sm" style={{ lineHeight: 1.6 }}>
+        <Text size="sm" style={{ lineHeight: 1.6 }} align="left">
           {description}
         </Text>
       </Stack>

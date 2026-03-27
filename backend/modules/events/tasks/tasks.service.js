@@ -1,4 +1,5 @@
 import { sql } from "../../../config/db.js";
+import { userStatsService } from "../../users/userStats.service.js";
 
 export const tasksService = {
   async getTasksByEventId(eventId) {
@@ -66,15 +67,15 @@ export const tasksService = {
 
   async createTask(eventId, taskData) {
     const {
-      taskTitle,
+      task_title,
       category,
       status = "To Do",
       priority,
-      deadlineDate,
-      deadlineTime,
-      taskDetails,
-      relevantLinks,
-      createdBy,
+      deadline_date,
+      deadline_time,
+      task_details,
+      relevant_links,
+      created_by,
     } = taskData;
 
     const result = await sql`
@@ -85,21 +86,21 @@ export const tasksService = {
         status,
         priority,
         deadline_date,
-        deadline_time,
-        task_details,
-        relevant_links,
-        created_by
+        deadline_time, 
+        task_details, 
+        relevant_links, 
+        created_by 
       ) VALUES (
         ${eventId},
-        ${taskTitle},
+        ${task_title}, 
         ${category},
         ${status},
         ${priority},
-        ${deadlineDate || null},
-        ${deadlineTime || null},
-        ${taskDetails || null},
-        ${relevantLinks || null},
-        ${createdBy || null}
+        ${deadline_date || null},
+        ${deadline_time || null},
+        ${task_details || null},
+        ${relevant_links || null},
+        ${created_by || null}
       )
       RETURNING *
     `;
@@ -139,12 +140,18 @@ export const tasksService = {
 
     // update assignees if provided
     if (assignees && updatedTask) {
+      // update stats
+      const oldAssignees =
+        await sql`SELECT user_id FROM task_assignees WHERE task_id = ${taskId} AND user_id IS NOT NULL`;
+
       // remove existing assignees
       await sql`DELETE FROM task_assignees WHERE task_id = ${taskId};`;
 
       // add new assignees
+      const newAssignees = [];
       for (const assignee of assignees) {
         if (assignee.type === "user") {
+          newAssignees.push({ user_id: assignee.id });
           await sql`
             INSERT INTO task_assignees (task_id, user_id)
             VALUES (${taskId}, ${assignee.id});
@@ -156,12 +163,36 @@ export const tasksService = {
           `;
         }
       }
+
+      // update stats for all involve users
+      const allAffectedUsers = new Set([
+        ...oldAssignees.map((u) => u.user_id),
+        ...newAssignees.map((u) => u.user_id),
+      ]);
+      for (const userId of allAffectedUsers) {
+        if (userId)
+          userStatsService.updateUserTaskStats(userId).catch(console.error);
+      }
+    } else if (taskData.status && updatedTask) {
+      //status change, update stats for existing assigned users
+      const existingAssignees =
+        await sql`SELECT user_id FROM task_assignees WHERE task_id = ${taskId} AND user_id IS NOT NULL`;
+      for (const assignee of existingAssignees) {
+        if (assignee.user_id)
+          userStatsService
+            .updateUserTaskStats(assignee.user_id)
+            .catch(console.error);
+      }
     }
 
     return updatedTask;
   },
 
   async deleteTask(taskId, deletedBy) {
+    // get assignees to update stats
+    const assignees =
+      await sql`SELECT user_id FROM task_assignees WHERE task_id = ${taskId} AND user_id IS NOT NULL`;
+
     const softDeleted = await sql`
       UPDATE event_tasks
       SET 
@@ -170,6 +201,16 @@ export const tasksService = {
       WHERE id = ${taskId} AND deleted_at IS NULL
       RETURNING *;
     `;
+
+    if (softDeleted[0]) {
+      // update stats for all assigned users
+      for (const assignee of assignees) {
+        if (assignee.user_id)
+          userStatsService
+            .updateUserTaskStats(assignee.user_id)
+            .catch(console.error);
+      }
+    }
     return softDeleted[0];
   },
 };

@@ -59,18 +59,18 @@ function LatestAnnouncements({ announcements }) {
                 {getIcon(announcement.icon)}
               </Avatar>
               <div style={{ flex: 1 }}>
-                <Text fw={600} size="sm">
+                <Text fw={600} size="sm" align="left">
                   {announcement.title}
                 </Text>
-                <Text size="sm" c="dimmed" mt={4}>
+                <Text size="sm" c="dimmed" mt={4} align="left">
                   {announcement.message}
                 </Text>
                 <Group gap={4} mt="xs">
                   <Avatar size="xs" radius="xl" />
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" c="dimmed" align="left">
                     Posted by {announcement.author}
                   </Text>
-                  <Text size="xs" c="dimmed">
+                  <Text size="xs" c="dimmed" align="left">
                     • {announcement.timestamp}
                   </Text>
                 </Group>

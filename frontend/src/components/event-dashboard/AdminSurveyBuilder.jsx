@@ -199,9 +199,8 @@ export default function AdminSurveyBuilder({ eventId }) {
         </Stack>
       </Card>
 
-      <Title order={4}>
-        Questions (Standard fields like Name/Email/Contact are automatically
-        included)
+      <Title order={4} align="left">
+        Questions
       </Title>
 
       {survey.questions.map((q, index) => (

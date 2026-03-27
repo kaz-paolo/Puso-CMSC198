@@ -250,7 +250,7 @@ function EventDashboard() {
                   <LatestAnnouncements announcements={announcements} />
                 </Stack>
               </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 4 }}>
+              <Grid.Col span={{ md: 4 }}>
                 <Stack gap="md">
                   <EventCalendar
                     markedDates={[

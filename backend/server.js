@@ -8,6 +8,7 @@ import eventsRoutes from "./modules/events/events.routes.js";
 import tasksRoutes from "./modules/events/tasks/tasks.routes.js";
 import resourcesRoutes from "./modules/events/resources/resources.routes.js";
 import volunteersRoutes from "./modules/events/volunteers/volunteers.routes.js";
+import evaluationRoutes from "./modules/evaluation/evaluation.routes.js";
 import { initDb } from "./schema/initDb.js";
 import path from "path";
 
@@ -32,6 +33,7 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/events", tasksRoutes);
 app.use("/api/events", resourcesRoutes);
 app.use("/api/events", volunteersRoutes);
+app.use("/api/evaluation", evaluationRoutes);
 // Example test route (optional)
 // app.get("/api/products", (req, res) => {
 //   res.status(200).json({

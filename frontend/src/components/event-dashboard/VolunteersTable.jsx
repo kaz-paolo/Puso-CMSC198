@@ -187,6 +187,10 @@ function VolunteersTable({
             onChange={(e) => setSearch(e.target.value)}
             style={{ flex: 1, maxWidth: 300 }}
           />
+          <Text size="xs" c="dimmed">
+            Showing {filteredVolunteers.length} out of {volunteers.length} total
+            volunteers
+          </Text>
           <Group gap="xs">
             <Select
               placeholder="Role"
@@ -213,11 +217,6 @@ function VolunteersTable({
           </Group>
         </Group>
 
-        <Text size="xs" c="dimmed" mb="md">
-          Showing {filteredVolunteers.length} out of {volunteers.length} total
-          volunteers
-        </Text>
-
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
@@ -228,7 +227,7 @@ function VolunteersTable({
               <Table.Th>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>
+          <Table.Tbody align="left">
             {rows.length > 0 ? (
               rows
             ) : (

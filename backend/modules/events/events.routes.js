@@ -4,6 +4,7 @@ import surveyRouter from "./surveys/surveys.route.js";
 
 const router = express.Router();
 
+router.get("/dashboard-stats", eventsController.getDashboardStats);
 // get all events
 router.get("/", eventsController.getAllEvents);
 // OUTPUT data: event_id, event_title, volunteer_roles(role_name, capacity, current_count), current_volunteer

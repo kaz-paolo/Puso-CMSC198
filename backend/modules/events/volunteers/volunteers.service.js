@@ -1,4 +1,5 @@
 import { sql } from "../../../config/db.js";
+import { userStatsService } from "../../users/userStats.service.js";
 
 export const volunteersService = {
   async getUserIdByAuthId(authUserId) {
@@ -41,6 +42,14 @@ export const volunteersService = {
         deleted_by = NULL
       RETURNING *;
     `;
+
+    if (registration[0] && registration[0].volunteer_status === "CONFIRMED") {
+      //  update user stats
+      userStatsService.updateUserEventStats(userId).catch(console.error);
+      userStatsService
+        .recalculateTotalIndividualsReached(userId)
+        .catch(console.error);
+    }
     return registration[0];
   },
 
@@ -51,6 +60,14 @@ export const volunteersService = {
       WHERE user_id = ${userId} AND event_id = ${eventId}
       RETURNING *;
     `;
+
+    if (updated[0]) {
+      // update user stats
+      userStatsService.updateUserEventStats(userId).catch(console.error);
+      userStatsService
+        .recalculateTotalIndividualsReached(userId)
+        .catch(console.error);
+    }
     return updated[0];
   },
 
@@ -64,11 +81,19 @@ export const volunteersService = {
       WHERE user_id = ${userId} AND event_id = ${eventId} AND deleted_at IS NULL
       RETURNING *;
     `;
+
+    if (softDeleted[0]) {
+      // update user stats
+      userStatsService.updateUserEventStats(userId).catch(console.error);
+      userStatsService
+        .recalculateTotalIndividualsReached(userId)
+        .catch(console.error);
+    }
     return softDeleted[0];
   },
 
   async getStats(eventId) {
-    // Overall stats
+    // overall stats
     const [stats] = await sql`
         SELECT
           COUNT(*) FILTER (WHERE volunteer_status = 'CONFIRMED') as confirmed_count,

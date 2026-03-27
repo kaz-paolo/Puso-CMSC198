@@ -86,7 +86,7 @@ export default function AdminParticipantsTable({ eventId }) {
               <Table.Th>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
-          <Table.Tbody>
+          <Table.Tbody align="left">
             {rows.length > 0 ? (
               rows
             ) : (
