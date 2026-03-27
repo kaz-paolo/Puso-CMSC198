@@ -1,4 +1,5 @@
 import { sql } from "../../../config/db.js";
+import { userStatsService } from "../../users/userStats.service.js";
 import crypto from "crypto";
 
 export const surveysService = {

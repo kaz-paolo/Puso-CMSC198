@@ -133,17 +133,6 @@ export async function initDb() {
       );
     `;
 
-    // remove status column
-    try {
-      await sql.unsafe(`
-        ALTER TABLE events 
-        DROP COLUMN IF EXISTS status;
-      `);
-      console.log("Removed status column from events table");
-    } catch (error) {
-      console.error("Error removing status column:", error);
-    }
-
     try {
       await sql.unsafe(`
         ALTER TABLE event_volunteers 
@@ -230,7 +219,90 @@ export async function initDb() {
       );
     `;
 
-    console.log("Soft delete columns added successfully.");
+    // Evaluation and Feedback
+
+    // General Feedback
+    await sql`
+      CREATE TABLE IF NOT EXISTS general_feedback (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES user_info(id) ON DELETE CASCADE,
+        topic VARCHAR(255) NOT NULL,
+        subject VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    // Event Evaluations
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_evaluations (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER UNIQUE NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        status VARCHAR(50) DEFAULT 'draft', -- 'draft', 'open', 'closed'
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    // Event Evaluation Questions
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_evaluation_questions (
+        id SERIAL PRIMARY KEY,
+        evaluation_id INTEGER NOT NULL REFERENCES event_evaluations(id) ON DELETE CASCADE,
+        question_text TEXT NOT NULL,
+        question_type VARCHAR(50) DEFAULT 'text',
+        order_index INTEGER
+      );
+    `;
+
+    // Event Evaluation Responses
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_evaluation_responses (
+        id SERIAL PRIMARY KEY,
+        evaluation_id INTEGER NOT NULL REFERENCES event_evaluations(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES user_info(id) ON DELETE CASCADE,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(evaluation_id, user_id)
+      );
+    `;
+
+    // Event Evaluation Answers
+    await sql`
+      CREATE TABLE IF NOT EXISTS event_evaluation_answers (
+        id SERIAL PRIMARY KEY,
+        response_id INTEGER NOT NULL REFERENCES event_evaluation_responses(id) ON DELETE CASCADE,
+        question_id INTEGER NOT NULL REFERENCES event_evaluation_questions(id) ON DELETE CASCADE,
+        answer_text TEXT
+      );
+    `;
+
+    // Volunteer Performance Ratings
+    await sql`
+      CREATE TABLE IF NOT EXISTS volunteer_performance_ratings (
+        id SERIAL PRIMARY KEY,
+        event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES user_info(id) ON DELETE CASCADE,
+        rating DECIMAL(3,1) CHECK (rating >= 1.0 AND rating <= 5.0),
+        note TEXT,
+        rated_by INTEGER REFERENCES user_info(id) ON DELETE SET NULL,
+        rated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(event_id, user_id)
+      );
+    `;
+
+    // User Statistics
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_stats (
+        user_id INTEGER PRIMARY KEY REFERENCES user_info(id) ON DELETE CASCADE,
+        total_hours_volunteered DECIMAL(10, 2) DEFAULT 0,
+        ongoing_events_joined INTEGER DEFAULT 0,
+        total_events_joined INTEGER DEFAULT 0,
+        total_individuals_reached INTEGER DEFAULT 0,
+        pending_tasks INTEGER DEFAULT 0,
+        average_rating DECIMAL(3, 2),
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     console.log("Database initialized successfully.");
   } catch (error) {
     console.error("Database initialization error:", error);

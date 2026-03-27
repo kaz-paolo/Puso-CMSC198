@@ -20,6 +20,7 @@ import {
   IconSettings,
   IconChevronRight,
   IconChevronDown,
+  IconDatabase,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -172,6 +173,16 @@ function NavBar() {
               }}
             />
 
+            <NavLink
+              label="Analytics"
+              leftSection={<IconDatabase size={20} />}
+              color="primary"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/volunteerdirectory");
+              }}
+            />
+
             <Divider my="sm" />
             <Group justify="space-between" mb="xs">
               <Text size="xs" c="dimmed" fw={500} tt="uppercase">
@@ -245,7 +256,7 @@ function NavBar() {
               </Text>
             )}
 
-            {joinedEvents.slice(0, 3).map((event) => (
+            {joinedEvents.slice(0, 10).map((event) => (
               <NavLink
                 key={event.id}
                 label={event.event_title}
@@ -254,7 +265,7 @@ function NavBar() {
               />
             ))}
 
-            {joinedEvents.length > 3 && (
+            {joinedEvents.length > 10 && (
               <NavLink
                 label="More"
                 leftSection={<IconChevronRight size={20} />}
@@ -266,7 +277,7 @@ function NavBar() {
 
         <Divider my="md" />
 
-        <NavLink
+        {/* <NavLink
           label="Resources"
           leftSection={<IconBook size={20} />}
           color="primary"
@@ -274,17 +285,21 @@ function NavBar() {
             e.preventDefault();
             navigate("/resources");
           }}
-        />
+        /> */}
         <NavLink
-          label="Feedback"
+          label="Evaluations"
           leftSection={<IconMessageCircle size={20} />}
           color="primary"
           onClick={(e) => {
             e.preventDefault();
-            navigate("/feedback");
+            navigate(
+              session?.data?.user?.role === "admin"
+                ? "/evaluation-management"
+                : "/evaluation",
+            );
           }}
         />
-        <NavLink
+        {/* <NavLink
           label="Settings"
           leftSection={<IconSettings size={20} />}
           color="primary"
@@ -292,7 +307,7 @@ function NavBar() {
             e.preventDefault();
             navigate("/settings");
           }}
-        />
+        /> */}
       </Stack>
 
       {/* Volunteer Form Prompt */}

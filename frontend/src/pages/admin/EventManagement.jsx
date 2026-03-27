@@ -67,17 +67,19 @@ export default function EventManagement() {
   const rows = filteredEvents.map((event) => (
     <Table.Tr key={event.id}>
       <Table.Td>
-        <Text fw={500}>{event.event_title}</Text>
+        <Text fw={500} align="left">
+          {event.event_title}
+        </Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td align="left">
         {new Date(event.start_date).toLocaleDateString()} @{" "}
         {new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}
       </Table.Td>
-      <Table.Td>{event.location}</Table.Td>
-      <Table.Td>
+      <Table.Td align="left">{event.location}</Table.Td>
+      <Table.Td align="left">
         <Badge
           color={statusColors[getEventStatus(event.start_date, event.end_date)]}
           variant="light"
@@ -85,9 +87,9 @@ export default function EventManagement() {
           {getEventStatus(event.start_date, event.end_date)}
         </Badge>
       </Table.Td>
-      <Table.Td>
+      <Table.Td align="left">
         {event.volunteer_roles && event.volunteer_roles.length > 0 ? (
-          <HoverCard width={280} shadow="md" position="top" withArrow>
+          <HoverCard width={160} shadow="md" position="top" withArrow>
             <HoverCard.Target>
               <Text size="sm" td="underline" style={{ cursor: "pointer" }}>
                 {event.current_volunteers || 0} /{" "}
@@ -115,7 +117,7 @@ export default function EventManagement() {
           </Text>
         )}
       </Table.Td>
-      <Table.Td>
+      <Table.Td align="left">
         {event.registration_allowed ? (
           <Text size="sm">{event.current_participants || 0}</Text>
         ) : (
@@ -207,7 +209,7 @@ export default function EventManagement() {
               <Menu.Item onClick={() => setTypeFilter("Medical Mission")}>
                 Medical Mission
               </Menu.Item>
-              {/* Add more filter? */}
+              {/* Add more filter?b */}
             </Menu.Dropdown>
           </Menu>
         </Group>

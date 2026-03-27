@@ -18,6 +18,7 @@ import {
   IconClipboardCheck,
   IconArrowRight,
 } from "@tabler/icons-react";
+import { Loader, useMantineColorScheme } from "@mantine/core";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import EventCalendar from "../components/Calendar.jsx";
@@ -26,6 +27,7 @@ import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useSession } from "../hooks/useSession.js";
+import { useUserStats } from "../hooks/useUserStats.js";
 import { useUpcomingEvents } from "../hooks/useUpcomingEvents";
 import AdminDashboard from "../pages/admin/AdminDashboard.jsx";
 
@@ -38,6 +40,7 @@ const quotes = [
 ];
 
 function StatCard({ icon, value, label, color }) {
+  const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
   const Icon = icon;
   return (
@@ -45,14 +48,17 @@ function StatCard({ icon, value, label, color }) {
       <Group>
         <Icon
           size={32}
-          color={theme.colors[color]?.[6] || theme.colors.gray[6]}
+          color={
+            theme.colors[color]?.[colorScheme === "dark" ? 4 : 6] ||
+            theme.colors.gray[6]
+          }
         />
         <div>
-          <Text size="xl" fw={700}>
-            {value}
-          </Text>
           <Text size="xs" c="dimmed">
             {label}
+          </Text>
+          <Text size="xl" fw={700} align="left">
+            {value}
           </Text>
         </div>
       </Group>
@@ -65,7 +71,16 @@ function Dashboard() {
   const { session, loading: isSessionLoading } = useSession();
   const navigate = useNavigate();
   const { userProfile, loading: profileLoading } = useUserProfile();
-  const { upcomingEvents, loading, error } = useUpcomingEvents(userProfile);
+  const {
+    upcomingEvents,
+    loading: loadingEvents,
+    error: eventsError,
+  } = useUpcomingEvents(userProfile);
+  const {
+    userStats,
+    loading: loadingUserStats,
+    error: userStatsError,
+  } = useUserStats();
 
   const randomQuote = useMemo(
     () => quotes[Math.floor(Math.random() * quotes.length)],
@@ -81,9 +96,21 @@ function Dashboard() {
     }
   }, [session, isSessionLoading, navigate]);
 
-  if (loading || profileLoading || !userProfile || isSessionLoading) {
+  if (loadingEvents || profileLoading || isSessionLoading || loadingUserStats) {
     // add loading anim
-    return null;
+    return (
+      <Container
+        size="xl"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "80vh",
+        }}
+      >
+        <Loader size="xl" />
+      </Container>
+    );
   }
 
   if (userProfile.role === "admin") {
@@ -93,28 +120,33 @@ function Dashboard() {
   const stats = [
     {
       icon: IconUsers,
-      value: "310",
+      value: userStats?.total_individuals_reached?.toLocaleString() || "0",
       label: "Individuals Reached",
       color: "primary",
     },
     {
       icon: IconClipboardCheck,
-      value: "8",
+      value: userStats?.total_events_joined?.toLocaleString() || "0",
       label: "Events Joined",
       color: "blue",
     },
     {
       icon: IconCalendar,
-      value: "2",
+      value: userStats?.ongoing_events_joined?.toLocaleString() || "0",
       label: "Currently Joined",
       color: "teal",
     },
-    { icon: IconClock, value: "124h", label: "Total Hours", color: "green" },
     {
       icon: IconListCheck,
-      value: "3",
+      value: userStats?.pending_tasks?.toLocaleString() || "0",
       label: "Pending Tasks",
       color: "yellow",
+    },
+    {
+      icon: IconClock,
+      value: `${(Number(userStats?.total_hours_volunteered) || 0).toFixed(1)}h`,
+      label: "Total Hours",
+      color: "green",
     },
   ];
 
@@ -123,8 +155,12 @@ function Dashboard() {
       <Stack gap="xl">
         {/* Welcome Section */}
         <div>
-          <Title order={2}>Welcome Back, {userProfile.first_name}!</Title>
-          <Text c="dimmed">"{randomQuote}"</Text>
+          <Title order={2} align="left">
+            Welcome Back, {userProfile.first_name}!
+          </Title>
+          <Text c="dimmed" align="left">
+            "{randomQuote}"
+          </Text>
         </div>
 
         {/* Stats Grid */}

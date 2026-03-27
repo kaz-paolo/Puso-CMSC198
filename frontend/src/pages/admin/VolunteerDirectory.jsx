@@ -143,8 +143,12 @@ export default function VolunteerDirectory() {
     <Container size="xl">
       <Stack gap="lg">
         <div>
-          <Title order={2}>Volunteer Directory</Title>
-          <Text c="dimmed">Manage and view all registered volunteers.</Text>
+          <Title order={2} align="left">
+            Volunteer Directory
+          </Title>
+          <Text c="dimmed" align="left">
+            Manage and view all registered volunteers.
+          </Text>
         </div>
 
         <Group justify="space-between">
@@ -184,6 +188,10 @@ export default function VolunteerDirectory() {
               }}
               style={{ flex: 1, maxWidth: 400 }}
             />
+            <Text size="sm" c="dimmed">
+              Showing {filteredVolunteers.length} out of {volunteers.length}{" "}
+              volunteers
+            </Text>
           </Group>
 
           {/* Filter Button */}
@@ -191,11 +199,6 @@ export default function VolunteerDirectory() {
             Filter
           </Button>
         </Group>
-
-        <Text size="sm" c="dimmed">
-          Showing {filteredVolunteers.length} out of {volunteers.length}{" "}
-          volunteers
-        </Text>
 
         {/* Main Table */}
         <Paper withBorder radius="md" p="0">
@@ -218,7 +221,7 @@ export default function VolunteerDirectory() {
                 </Table.Tr>
               ) : paginatedVolunteers.length > 0 ? (
                 paginatedVolunteers.map((vol) => (
-                  <Table.Tr key={vol.id}>
+                  <Table.Tr key={vol.id} align="left">
                     {visibleColumns.includes("name") && (
                       <Table.Td fw={500}>{vol.name || "No Data"}</Table.Td>
                     )}

@@ -9,6 +9,7 @@ import {
   Stack,
   Box,
   rem,
+  Loader,
   Grid,
   Paper,
   SimpleGrid,
@@ -38,6 +39,7 @@ import {
   IconHeartHandshake,
 } from "@tabler/icons-react";
 
+import { useSession } from "../hooks/useSession";
 import heroBg from "../assets/hero-image.png";
 import event1 from "../assets/hero-image.png";
 
@@ -232,6 +234,49 @@ export default function Home() {
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
   const [themeOpened, setThemeOpened] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { session } = useSession();
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    async function fetchDashboardStats() {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/dashboard-stats`,
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setDashboardStats(data.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+        // Optionally set an error state to display an error message
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function fetchEvents() {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setEvents(data.data);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    }
+
+    fetchDashboardStats();
+    fetchEvents();
+  }, [session]);
 
   return (
     <Box
@@ -259,10 +304,10 @@ export default function Home() {
       >
         <Container size="md">
           <Title order={1} style={{ fontSize: rem(56), lineHeight: 1.1 }}>
-            Makibahagi. Maglingkod. Magpahinungod.
+            Welcome to PULSO
           </Title>
           <Text size="lg" mt="xl" maw={600} mx="auto">
-            Enter tagline here.
+            UPV Ugnayan ng Pahinungod Unified Lingkod System for Operations
           </Text>
           <Group justify="center" mt={rem(40)} gap="md">
             <Button size="lg" leftSection={<IconCalendar size={20} />}>
@@ -285,59 +330,78 @@ export default function Home() {
         size="lg"
         style={{ marginTop: rem(-60), position: "relative" }}
       >
-        <Paper shadow="md" p="xl" radius="md">
-          <Grid align="center">
-            <Grid.Col span={4}>
-              <Group justify="center" gap="sm">
-                <IconActivity color={theme.colors.primary[6]} size={32} />
-                <div>
-                  {/* To Change With Syncing Data Auto */}
-                  <Text size="xs" c="dimmed">
-                    TOTAL IMPACT
-                  </Text>
-                  <Text fw={700} size={rem(28)}>
-                    15,000+
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Hours Served
-                  </Text>
-                </div>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <Group justify="center" gap="sm">
-                <IconTarget color={theme.colors.primary[6]} size={32} />
-                <div>
-                  <Text size="xs" c="dimmed">
-                    REACH
-                  </Text>
-                  <Text fw={700} size={rem(28)}>
-                    50+
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Partner Communities
-                  </Text>
-                </div>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <Group justify="center" gap="sm">
-                <IconUsers color={theme.colors.primary[6]} size={32} />
-                <div>
-                  <Text size="xs" c="dimmed">
-                    FORCE
-                  </Text>
-                  <Text fw={700} size={rem(28)}>
-                    1,200
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Active Student Volunteers
-                  </Text>
-                </div>
-              </Group>
-            </Grid.Col>
-          </Grid>
-        </Paper>
+        {loading ? (
+          <Container
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "20vh",
+            }}
+          >
+            <Loader size="sm" />
+          </Container>
+        ) : (
+          <Paper shadow="md" p="xl" radius="md">
+            <Grid align="center">
+              <Grid.Col span={4}>
+                <Group justify="center" gap="sm">
+                  <IconActivity color={theme.colors.primary[6]} size={32} />
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      TOTAL IMPACT
+                    </Text>
+                    <Text fw={700} size={rem(28)}>
+                      {dashboardStats?.totalImpactHours !== undefined &&
+                      dashboardStats.totalImpactHours !== null
+                        ? `${Number(dashboardStats.totalImpactHours).toFixed(0)}+`
+                        : "0+"}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      Hours Served
+                    </Text>
+                  </div>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <Group justify="center" gap="sm">
+                  <IconTarget color={theme.colors.primary[6]} size={32} />
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      REACH
+                    </Text>
+                    <Text fw={700} size={rem(28)}>
+                      {dashboardStats?.partnerCommunities
+                        ? `${dashboardStats.partnerCommunities}+`
+                        : "0+"}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      Partner Communities
+                    </Text>
+                  </div>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={4}>
+                <Group justify="center" gap="sm">
+                  <IconUsers color={theme.colors.primary[6]} size={32} />
+                  <div>
+                    <Text size="xs" c="dimmed">
+                      FORCE
+                    </Text>
+                    <Text fw={700} size={rem(28)}>
+                      {dashboardStats?.totalVolunteers
+                        ? `${dashboardStats.totalVolunteers}+`
+                        : "0+"}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      Active Student Volunteers
+                    </Text>
+                  </div>
+                </Group>
+              </Grid.Col>
+            </Grid>
+          </Paper>
+        )}
       </Container>
 
       {/* Highlights and News Section */}
@@ -349,16 +413,20 @@ export default function Home() {
           Enter another sentence about this chuchuchu.
         </Text>
         <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="xl">
-          {mockEvents.map((event) => (
+          {events.map((event) => (
             <Card
-              key={event.title}
+              key={event.id}
               shadow="sm"
               padding="lg"
               radius="md"
               withBorder
             >
               <Card.Section>
-                <Image src={event.image} height={160} alt={event.title} />
+                <Image
+                  src={event.image || heroBg}
+                  height={160}
+                  alt={event.event_title}
+                />
               </Card.Section>
               <Badge
                 color="yellow"
@@ -369,13 +437,13 @@ export default function Home() {
                   right: rem(10),
                 }}
               >
-                {event.date}
+                {event.start_date}
               </Badge>
               <Text fw={500} size="xs" c="primary" mt="md">
-                {event.category}
+                {event.event_type}
               </Text>
               <Text fw={600} size="lg" mt="xs">
-                {event.title}
+                {event.event_title}
               </Text>
               <Text size="sm" c="dimmed" mt="sm" lineClamp={3}>
                 {event.description}

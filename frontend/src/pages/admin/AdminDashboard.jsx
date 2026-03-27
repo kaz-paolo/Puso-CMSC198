@@ -61,9 +61,11 @@ export default function AdminDashboard({ userProfile }) {
     <Container size="xl">
       <Stack gap="xl">
         <div>
-          <Title order={2}>Admin Dashboard</Title>
-          <Text c="dimmed">
-            Welcome back, {userProfile?.first_name || "Admin"}! Ari imo oh.
+          <Title order={2} align="left">
+            Admin Dashboard
+          </Title>
+          <Text c="dimmed" align="left">
+            Welcome back, {userProfile?.first_name || "Admin"}!
           </Text>
         </div>
 
@@ -84,7 +86,7 @@ export default function AdminDashboard({ userProfile }) {
                   <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
                     {stat.label}
                   </Text>
-                  <Text fw={700} size="xl">
+                  <Text fw={700} size="xl" align="left">
                     {stat.value}
                   </Text>
                 </div>
@@ -111,7 +113,7 @@ export default function AdminDashboard({ userProfile }) {
               }}
             >
               <Text c="dimmed" fs="italic">
-                [ Placeholder: Line graph data of volunteer engagements ]
+                placeholder
               </Text>
             </Box>
           </Paper>
@@ -191,10 +193,10 @@ export default function AdminDashboard({ userProfile }) {
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="xl">
           {/* Recent Activity */}
           <Paper withBorder p="xl" radius="md">
-            <Title order={4} mb="md">
+            <Title order={4} mb="md" align="left">
               Recent Activity
             </Title>
-            <Stack gap="sm">
+            <Stack gap="sm" align="left">
               {[
                 {
                   time: "2 hours ago",
@@ -214,8 +216,10 @@ export default function AdminDashboard({ userProfile }) {
                 },
               ].map((activity, i) => (
                 <Card key={i} withBorder padding="sm" radius="md">
-                  <Text size="sm">{activity.text}</Text>
-                  <Text size="xs" c="dimmed" mt={4}>
+                  <Text size="sm" align="left">
+                    {activity.text}
+                  </Text>
+                  <Text size="xs" c="dimmed" mt={4} align="left">
                     {activity.time}
                   </Text>
                 </Card>
@@ -225,7 +229,7 @@ export default function AdminDashboard({ userProfile }) {
 
           {/* Quick Actions */}
           <Paper withBorder p="xl" radius="md">
-            <Title order={4} mb="md">
+            <Title order={4} mb="md" align="left">
               Quick Actions
             </Title>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">

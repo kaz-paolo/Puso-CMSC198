@@ -7,11 +7,16 @@ import {
   getUserJoinedEvents,
   checkExistingMember,
 } from "./user.controller.js";
+import userStatsRoutes from "./userStats.routes.js";
 
 const router = express.Router();
 
-// Get all users
 router.get("/", getAllUsers);
+router.post("/complete-profile", completeProfile);
+router.post("/check-existing", checkExistingMember);
+
+// User stats routes
+router.use("/:userId/stats", userStatsRoutes);
 
 // Get basic info by auth ID
 router.get("/:id/basic-info", getBasicInfo);
@@ -19,13 +24,7 @@ router.get("/:id/basic-info", getBasicInfo);
 // Get complete info by auth ID
 router.get("/:id/complete-info", getCompleteInfo);
 
-// Update/Complete profile
-router.post("/complete-profile", completeProfile);
-
 // Get joined events
 router.get("/:id/joined-events", getUserJoinedEvents);
-
-// Check existing member
-router.post("/check-existing/", checkExistingMember);
 
 export default router;

@@ -141,4 +141,24 @@ export const eventsService = {
     // TODO
     return;
   },
+
+  async getDashboardStats() {
+    const [stats] = await sql`
+      SELECT
+        COALESCE(SUM(CASE WHEN e.end_date < CURRENT_DATE THEN EXTRACT(EPOCH FROM (e.end_date + e.end_time) - (e.start_date + e.start_time)) / 3600 ELSE 0 END), 0)::numeric AS total_impact_hours,
+        COUNT(DISTINCT e.location) AS partner_communities,
+        COALESCE(COUNT(DISTINCT ev.user_id), 0)::int AS total_volunteers
+      FROM events e
+      LEFT JOIN event_volunteers ev ON e.id = ev.event_id
+        AND ev.volunteer_status = 'CONFIRMED'
+        AND ev.deleted_at IS NULL
+      ;
+    `;
+
+    return {
+      totalImpactHours: stats.total_impact_hours,
+      partnerCommunities: stats.partner_communities,
+      totalVolunteers: stats.total_volunteers,
+    };
+  },
 };

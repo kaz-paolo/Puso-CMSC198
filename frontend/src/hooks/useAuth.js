@@ -53,6 +53,7 @@ export function useAuth() {
         if (error) throw error;
 
         localStorage.removeItem("justSignedUp");
+        localStorage.setItem("justLoggedIn", "true");
         navigate("/dashboard");
       } else {
         const { error } = await authClient.signUp.email({

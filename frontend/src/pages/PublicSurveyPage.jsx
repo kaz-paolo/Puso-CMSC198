@@ -158,7 +158,7 @@ export default function PublicSurveyPage() {
               }
             />
 
-            {/* mapped from surveyData.questions */}
+            {/* mapped from questions */}
             {surveyData.questions?.map((q) => {
               const inputType =
                 q.validation_type === "none" ? "text" : q.validation_type;
@@ -196,7 +196,7 @@ export default function PublicSurveyPage() {
                     required={q.is_required}
                     onChange={(val) => handleAnswerChange(q.id, val)}
                   >
-                    <Stack mt="xs" gap="xs">
+                    <Stack mt="xs" gap="xs" align="baseline">
                       {q.options?.map((opt, idx) => (
                         <Radio key={idx} value={opt} label={opt} />
                       ))}
