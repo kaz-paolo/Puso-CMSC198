@@ -23,6 +23,8 @@
   "homepage": "https://github.com/kaz-paolo/Puso-CMSC198#readme",
   "dependencies": {
     "@arcjet/node": "^1.0.0-beta.15",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

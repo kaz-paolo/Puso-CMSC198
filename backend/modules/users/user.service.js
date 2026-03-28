@@ -55,10 +55,10 @@ export const userService = {
         ui.committee2,
         ui.committee3,
         ui.facebook,
-        ui.role,
-        u.email
+        u.email,
+        u.role -- get role from users table
       FROM user_info ui
-      LEFT JOIN neon_auth.user u ON ui.auth_user_id = u.id::text
+      LEFT JOIN users u ON ui.auth_user_id = u.id
       ORDER BY ui.first_name ASC
     `;
     return users;
@@ -67,25 +67,26 @@ export const userService = {
   async getBasicInfo(authUserId) {
     const [user] = await sql`
       SELECT 
-        id, 
-        auth_user_id,
-        first_name, 
-        last_name, 
-        dob, 
-        mobile, 
-        present_address, 
-        student_number, 
-        degree, 
-        role 
-      FROM user_info 
-      WHERE auth_user_id = ${authUserId}
+        ui.id, 
+        ui.auth_user_id,
+        ui.first_name, 
+        ui.last_name, 
+        ui.dob, 
+        ui.mobile, 
+        ui.present_address, 
+        ui.student_number, 
+        ui.degree, 
+        u.role
+      FROM user_info ui
+      LEFT JOIN users u ON ui.auth_user_id = u.id
+      WHERE ui.auth_user_id = ${authUserId}
     `;
     return user;
   },
 
   async verifyAuthUser(authUserId) {
     const [userExists] = await sql`
-      SELECT 1 FROM neon_auth.user WHERE id = ${authUserId}
+      SELECT 1 FROM users WHERE id = ${authUserId}
     `;
     return !!userExists;
   },

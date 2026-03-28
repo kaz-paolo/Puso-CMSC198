@@ -6,7 +6,6 @@ export async function initDb() {
       CREATE TABLE IF NOT EXISTS user_info (
         id SERIAL PRIMARY KEY,
         auth_user_id VARCHAR(255) UNIQUE,
-        role VARCHAR(100) DEFAULT 'volunteer',
         first_name VARCHAR(255) NOT NULL,
         middle_name VARCHAR(255),
         last_name VARCHAR(255) NOT NULL,
@@ -306,5 +305,52 @@ export async function initDb() {
     console.log("Database initialized successfully.");
   } catch (error) {
     console.error("Database initialization error:", error);
+  }
+
+  // Auth, general table for users
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        first_name TEXT,
+        middle_name TEXT,
+        last_name TEXT,
+        email TEXT UNIQUE NOT NULL,
+        email_verified TIMESTAMPTZ,
+        image TEXT,
+        role VARCHAR(100) DEFAULT 'volunteer',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    // for provider used, password hashed
+    await sql`
+      CREATE TABLE IF NOT EXISTS accounts (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        provider TEXT NOT NULL,
+        provider_account_id TEXT NOT NULL,
+        password TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (provider, provider_account_id)
+      );
+    `;
+
+    // for OTPs
+    await sql`
+      CREATE TABLE IF NOT EXISTS verifications (
+        id TEXT PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        value TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    console.log("Authentication tables initialized successfully.");
+  } catch (error) {
+    console.error("Authentication tables initialization error:", error);
   }
 }
