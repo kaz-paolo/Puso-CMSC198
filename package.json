@@ -23,13 +23,15 @@
   "homepage": "https://github.com/kaz-paolo/Puso-CMSC198#readme",
   "dependencies": {
     "@arcjet/node": "^1.0.0-beta.15",
-    "@neondatabase/serverless": "^1.0.2",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "postgres": "^3.4.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

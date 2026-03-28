@@ -34,7 +34,9 @@ import { ThemeSettings } from "../components/ThemeSettings";
 function Auth() {
   const [view, setView] = useState("login");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleInitial, setMiddleInitial] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -122,44 +124,44 @@ function Auth() {
     if (loading || isNavigating.current) return;
 
     setLoading(true);
-    isNavigating.current = true;
 
     try {
       if (view === "login") {
+        isNavigating.current = true;
         const { data, error } = await authClient.signIn.email({
           email,
           password,
         });
 
         if (error) throw error;
-
-        // clear flags
         localStorage.removeItem("justSignedUp");
-
         window.location.replace("/dashboard");
       } else {
         // Sign up
+        const formattedMi = middleInitial.replace(/\./g, "").trim();
+
         const { data, error } = await authClient.signUp.email({
           email,
           password,
-          name: name || email.split("@")[0],
+          firstName: firstName.trim(),
+          middleName: formattedMi,
+          lastName: lastName.trim(),
         });
 
         if (error) throw error;
 
-        // localStorage.setItem("justSignedUp", "true");
-        // window.location.replace("/volunteer-form");
-        if (data?.user && !data.user.emailVerified) {
-          isNavigating.current = false;
-          setLoading(false);
-          // setMessage("Check your email for the verification code.");
-          setView("verify");
+        if (data.verificationCode) {
+          notifications.show({
+            title: "Verification Code (for testing)",
+            message: `Your code is: ${data.verificationCode}`,
+            color: "blue",
+            autoClose: false,
+          });
         }
+        setVerifiedEmail(email);
+        setView("verify");
       }
     } catch (err) {
-      // reset flag on error
-      isNavigating.current = false;
-
       const errorMessage = err.message || err.error?.message;
       if (errorMessage) {
         if (
@@ -167,17 +169,7 @@ function Auth() {
           errorMessage.includes("password")
         ) {
           setError("Incorrect email or password. Please try again.");
-        }
-
-        // to be implemented
-
-        // else if (errorMessage.includes("not verified")) {
-        //   setError(
-        //     "Your email is not verified. Enter the verification code sent to your email.",
-        //   );
-        //   setView("verify");
-        // }
-        else if (errorMessage.includes("email")) {
+        } else if (errorMessage.includes("email")) {
           setError("Please enter a valid email address.");
         } else if (errorMessage.includes("already exists")) {
           setError("An account with this email already exists. Please log in.");
@@ -187,6 +179,8 @@ function Auth() {
       } else {
         setError("Authentication failed. Please try again.");
       }
+    } finally {
+      isNavigating.current = false;
       setLoading(false);
     }
   };
@@ -252,26 +246,15 @@ function Auth() {
 
       if (error) throw error;
 
-      await authClient.signIn.email({
+      const { error: signInError } = await authClient.signIn.email({
         email,
         password,
       });
 
+      if (signInError) throw signInError;
+
       localStorage.setItem("justSignedUp", "true");
       window.location.replace("/volunteer-form");
-
-      // if (data?.session) {
-      //   localStorage.setItem("justSignedUp", "true");
-      //   // window.location.replace("/volunteer-form");
-      //   console.log("if");
-      //   navigate("/volunteer-form");
-      // } else {
-      //   // setMessage("Email verified! You can now sign in.");
-      //   // setStep("auth");
-      //   console.log("else");
-      //   // setView("signup");
-      //   setCode("");
-      // }
     } catch (err) {
       setError(err?.message || "Verification failed.");
     } finally {
@@ -319,15 +302,14 @@ function Auth() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Group justify="space-between" align="center">
-            {/* Commented out for prod */}
-            {/* <Anchor
+            <Anchor
               component="button"
               type="button"
               size="xs"
               onClick={() => setView("signup")}
             >
               Create an account
-            </Anchor> */}
+            </Anchor>
           </Group>
           <Button
             type="submit"
@@ -431,14 +413,33 @@ function Auth() {
 
       <form onSubmit={handleEmailAuth}>
         <Stack gap="md">
-          {/* Need to add name on better auth */}
           <TextInput
-            label="Full Name"
-            placeholder="John Doe"
+            label="First Name"
+            placeholder="Juan"
             required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
           />
+          <Group grow>
+            <TextInput
+              label="Middle Initial (Optional)"
+              placeholder="D"
+              value={middleInitial}
+              onChange={(e) =>
+                setMiddleInitial(
+                  e.target.value.replace(/\./g, "").toUpperCase(),
+                )
+              }
+              maxLength={1}
+            />
+            <TextInput
+              label="Last Name"
+              placeholder="Dela Cruz"
+              required
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </Group>
           <TextInput
             label="Email"
             placeholder="your@email.com"

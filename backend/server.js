@@ -9,6 +9,7 @@ import tasksRoutes from "./modules/events/tasks/tasks.routes.js";
 import resourcesRoutes from "./modules/events/resources/resources.routes.js";
 import volunteersRoutes from "./modules/events/volunteers/volunteers.routes.js";
 import evaluationRoutes from "./modules/evaluation/evaluation.routes.js";
+import authRoutes from "./auth/auth.routes.js";
 import { initDb } from "./schema/initDb.js";
 import path from "path";
 
@@ -28,6 +29,8 @@ app.use(
 app.use(morgan("dev")); // logs requests to console
 
 // Mount API routes
+app.use("/api/auth", authRoutes);
+
 app.use("/api/users", usersRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/events", tasksRoutes);

@@ -1,10 +1,10 @@
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// creates SQL connection
-const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD } = process.env;
-export const sql = neon(
-  `postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}/${PGDATABASE}?sslmode=require&channel_binding=require`
+const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
+
+export const sql = postgres(
+  `postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}`,
 );

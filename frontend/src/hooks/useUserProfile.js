@@ -22,7 +22,10 @@ export function useUserProfile() {
         );
         const result = await res.json();
         if (result.success) {
-          setUserProfile(result.data);
+          setUserProfile({
+            ...result.data,
+            role: user.role,
+          });
         }
       } catch (err) {
         console.error("Failed to fetch user profile:", err);

@@ -1,14 +1,14 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "better-auth";
+import { useSession } from "./hooks/useSession";
 import { Center, Loader } from "@mantine/core";
 
 // Use to authenticate protected routes
 // If user is not logged in when accessing pages, redirect to /auth
 
 function ProtectRoute({ children }) {
-  const { user, isLoading } = useAuth();
+  const { session, loading } = useSession();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Center style={{ minHeight: "100vh" }}>
         <Loader size="lg" />
@@ -16,7 +16,7 @@ function ProtectRoute({ children }) {
     );
   }
 
-  if (!user) {
+  if (!session?.user) {
     return <Navigate to="/auth" replace />;
   }
 

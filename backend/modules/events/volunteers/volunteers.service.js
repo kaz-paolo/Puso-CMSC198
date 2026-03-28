@@ -121,8 +121,6 @@ export const volunteersService = {
   },
 
   async getVolunteers(eventId) {
-    // Note: Joining with neon_auth."user" assumes the schema is accessible
-    // If this fails, remove the join and email field
     const volunteers = await sql`
       SELECT
         ui.id,
@@ -138,7 +136,7 @@ export const volunteersService = {
         ev.user_id as ev_user_id
       FROM event_volunteers ev
       LEFT JOIN user_info ui ON ev.user_id = ui.id
-      LEFT JOIN neon_auth."user" au ON ui.auth_user_id::uuid = au.id
+      LEFT JOIN users au ON ui.auth_user_id = au.id
       LEFT JOIN event_volunteer_roles evr ON ev.role_id = evr.id
       WHERE ev.event_id = ${eventId}
         AND ev.deleted_at IS NULL
