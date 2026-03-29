@@ -23,9 +23,10 @@ router.use("/:eventId/survey", surveyRouter);
 // update event
 // TODO
 // router.get("");
+
 // (soft) delete event
-// TODO
-// router.get("");
+router.delete("/:eventId", eventsController.deleteEvent);
+
 // archive event
 // TODO
 // router.get("");

@@ -46,9 +46,22 @@ export const eventsController = {
   },
 
   async deleteEvent(req, res) {
-    // TODO
     try {
-    } catch {}
+      const { eventId } = req.params;
+      const { deletedBy } = req.body;
+
+      const data = await eventsService.deleteEvent(eventId, deletedBy);
+
+      if (!data) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Event not deleted" });
+      }
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Delete event error:", error);
+      res.status(500).json({ success: false, error: "Failed to delete event" });
+    }
   },
   async archiveEvent(req, res) {
     // TODO

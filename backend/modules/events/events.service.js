@@ -133,9 +133,16 @@ export const eventsService = {
       volunteer_roles: roles,
     };
   },
-  async deleteEvent() {
-    // TODO
-    return;
+  async deleteEvent(eventId, deletedBy) {
+    const softDeleted = await sql`
+      UPDATE events
+      SET 
+        deleted_at = CURRENT_TIMESTAMP,
+        deleted_by = ${deletedBy}
+      WHERE id = ${eventId} AND deleted_at IS NULL
+      RETURNING *;
+    `;
+    return softDeleted[0];
   },
   async archiveEvent() {
     // TODO

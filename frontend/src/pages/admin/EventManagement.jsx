@@ -15,6 +15,7 @@ import {
   Center,
   Loader,
   HoverCard,
+  Modal,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -30,6 +31,7 @@ import { getEventStatus } from "../../utils/eventStatus.js";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useEvents } from "../../hooks/useEvents";
 import { useNavigate } from "react-router-dom";
+import { useEventMutation } from "../../hooks/useEventMutation.js";
 
 export default function EventManagement() {
   const { userProfile } = useUserProfile();
@@ -41,8 +43,27 @@ export default function EventManagement() {
   const [typeFilter, setTypeFilter] = useState(null);
   const [addEventOpened, setAddEventOpened] = useState(false);
 
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const { deleteEvent } = useEventMutation(userProfile?.auth_user_id);
+
+  const handleDeleteEvent = async () => {
+    if (!selectedEventId) return;
+
+    await deleteEvent(selectedEventId);
+
+    setSelectedEventId(null);
+    setIsDeleteModalOpen(false);
+  };
+
   const filteredEvents = events
     .filter((event) => {
+      // exclude deleted events
+      if (event.deleted_at) {
+        return false;
+      }
+
       const eventStatus = getEventStatus(event.start_date, event.end_date);
       if (statusFilter && eventStatus !== statusFilter) {
         return false;
@@ -143,7 +164,14 @@ export default function EventManagement() {
             <Menu.Item leftSection={<IconPencil size={14} />}>
               Edit Event
             </Menu.Item>
-            <Menu.Item color="red" leftSection={<IconTrash size={14} />}>
+            <Menu.Item
+              onClick={() => {
+                setSelectedEventId(event.id);
+                setIsDeleteModalOpen(true);
+              }}
+              color="red"
+              leftSection={<IconTrash size={14} />}
+            >
               Delete Event
             </Menu.Item>
           </Menu.Dropdown>
@@ -265,6 +293,28 @@ export default function EventManagement() {
         onClose={() => setAddEventOpened(false)}
         onEventCreated={refetchEvents}
       />
+
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Delete Event"
+        centered
+      >
+        <Text size="sm">Are you sure you want to delete this event?</Text>
+        <Stack gap="md" mt="md">
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button color="red" onClick={handleDeleteEvent}>
+              Delete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 }
