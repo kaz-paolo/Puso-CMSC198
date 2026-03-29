@@ -1,6 +1,7 @@
 import { sql } from "../config/db.js";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { sendOTP } from "../config/mailer.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -82,7 +83,10 @@ export const signUp = async (req, res) => {
       VALUES (${verificationId}, ${email}, ${otp}, ${expiresAt})
     `;
 
-    res.status(200).json({ verificationCode: otp });
+    // sending OTP to email
+    await sendOTP(email, otp);
+
+    res.status(200).json({ success: true, verificationCode: otp }); // TODO:remove otp from alert
   } catch (err) {
     console.error("Signup error:", err);
     res.status(500).json({ error: "Server error during signup" });
