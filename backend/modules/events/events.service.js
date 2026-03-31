@@ -43,7 +43,7 @@ export const eventsService = {
 
   // Insert event data to events table
   async createEvent(eventData) {
-    const {
+    let {
       event_title,
       description,
       event_type,
@@ -59,6 +59,14 @@ export const eventsService = {
       volunteer_roles,
       created_by,
     } = eventData;
+
+    if (typeof volunteer_roles === "string") {
+      try {
+        volunteer_roles = JSON.parse(volunteer_roles);
+      } catch (err) {
+        volunteer_roles = [];
+      }
+    }
 
     try {
       // create event
