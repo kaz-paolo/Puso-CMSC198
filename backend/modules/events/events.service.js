@@ -43,7 +43,7 @@ export const eventsService = {
 
   // Insert event data to events table
   async createEvent(eventData) {
-    const {
+    let {
       event_title,
       description,
       event_type,
@@ -60,38 +60,45 @@ export const eventsService = {
       created_by,
     } = eventData;
 
-    await sql`BEGIN`;
+    if (typeof volunteer_roles === "string") {
+      try {
+        volunteer_roles = JSON.parse(volunteer_roles);
+      } catch (err) {
+        volunteer_roles = [];
+      }
+    }
+
     try {
       // create event
-      const [newEvent] = await sql`
-        INSERT INTO events
-          (event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity, created_by)
-        VALUES
-          (${event_title}, ${description}, ${event_type}, ${location}, ${start_date}, ${start_time}, ${end_date}, ${end_time}, ${registration_allowed}, ${approval_required}, ${publish_event}, ${volunteer_capacity}, ${created_by})
-        RETURNING *;
-      `;
+      return await sql.begin(async (sql) => {
+        const [newEvent] = await sql`
+          INSERT INTO events
+            (event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity, created_by)
+          VALUES
+            (${event_title}, ${description}, ${event_type}, ${location}, ${start_date}, ${start_time}, ${end_date}, ${end_time}, ${registration_allowed}, ${approval_required}, ${publish_event}, ${volunteer_capacity}, ${created_by})
+          RETURNING *;
+        `;
 
-      // add volunteer roles if provided
-      if (volunteer_roles && volunteer_roles.length > 0) {
-        const eventId = newEvent.id;
+        // add volunteer roles if provided
+        if (volunteer_roles && volunteer_roles.length > 0) {
+          const eventId = newEvent.id;
 
-        await Promise.all(
-          volunteer_roles.map(
-            (role) =>
-              sql`
-              INSERT INTO event_volunteer_roles
-                (event_id, role_name, capacity)
-              VALUES
-                (${eventId}, ${role.role_name || role.role || "Unnamed Role"}, ${role.capacity})
-            `,
-          ),
-        );
-      }
+          await Promise.all(
+            volunteer_roles.map(
+              (role) =>
+                sql`
+                INSERT INTO event_volunteer_roles
+                  (event_id, role_name, capacity)
+                VALUES
+                  (${eventId}, ${role.role_name || role.role || "Unnamed Role"}, ${role.capacity})
+              `,
+            ),
+          );
+        }
 
-      await sql`COMMIT`;
-      return newEvent;
+        return newEvent;
+      });
     } catch (error) {
-      await sql`ROLLBACK`;
       throw error;
     }
   },

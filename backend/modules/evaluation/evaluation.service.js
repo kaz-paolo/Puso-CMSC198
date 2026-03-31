@@ -40,8 +40,7 @@ export const evaluationService = {
   },
 
   async submitEvaluation(eventId, userId, answers) {
-    await sql`BEGIN`;
-    try {
+    return await sql.begin(async (sql) => {
       const [evaluation] =
         await sql`SELECT id FROM event_evaluations WHERE event_id = ${eventId}`;
       if (!evaluation) throw new Error("Evaluation not found");
@@ -58,12 +57,8 @@ export const evaluationService = {
           VALUES (${response.id}, ${answer.question_id}, ${answer.answer_text})
         `;
       }
-      await sql`COMMIT`;
       return { success: true };
-    } catch (err) {
-      await sql`ROLLBACK`;
-      throw err;
-    }
+    });
   },
 
   async submitGeneralFeedback(data) {
@@ -89,22 +84,23 @@ export const evaluationService = {
   },
 
   async launchEvaluation(eventId, questions) {
-    await sql`BEGIN`;
-    try {
+    return await sql.begin(async (sql) => {
       let evaluation =
         await sql`SELECT id, status FROM event_evaluations WHERE event_id = ${eventId}`;
 
+      let evaluationId;
       if (evaluation.length === 0) {
-        evaluation = await sql`
+        const [newEval] = await sql`
           INSERT INTO event_evaluations (event_id, status)
           VALUES (${eventId}, 'open')
           RETURNING id
         `;
+        evaluationId = newEval.id;
       } else {
         await sql`UPDATE event_evaluations SET status = 'open' WHERE id = ${evaluation[0].id}`;
+        evaluationId = evaluation[0].id;
       }
 
-      const evaluationId = evaluation[0].id;
       await sql`DELETE FROM event_evaluation_questions WHERE evaluation_id = ${evaluationId}`;
 
       for (let i = 0; i < questions.length; i++) {
@@ -113,12 +109,8 @@ export const evaluationService = {
           VALUES (${evaluationId}, ${questions[i].text}, ${i})
         `;
       }
-      await sql`COMMIT`;
       return { success: true };
-    } catch (err) {
-      await sql`ROLLBACK`;
-      throw err;
-    }
+    });
   },
 
   async closeEvaluation(eventId) {
