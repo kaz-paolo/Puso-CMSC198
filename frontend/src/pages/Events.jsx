@@ -99,8 +99,13 @@ function VolunteerEventsView() {
     return event >= range.start && event < range.end;
   };
 
-  const filterEvents = (events) => {
-    let filtered = events;
+  // filter deleted and archived events
+  const visibleEvents = events.filter(
+    (event) => !event.deleted_at && !event.is_archived,
+  );
+
+  const filterEvents = (visibleEvents) => {
+    let filtered = visibleEvents;
 
     // filter by status
     filtered = filtered.map((event) => ({
@@ -141,7 +146,7 @@ function VolunteerEventsView() {
     return filtered;
   };
 
-  const filteredEvents = filterEvents(events);
+  const filteredEvents = filterEvents(visibleEvents);
 
   const statusColors = {
     ongoing: "green",
@@ -312,7 +317,7 @@ function VolunteerEventsView() {
 
         {/* Results Count */}
         <Text size="sm" c="dimmed" align="left">
-          Showing {filteredEvents.length} out of {events.length} results
+          Showing {filteredEvents.length} out of {visibleEvents.length} results
         </Text>
 
         {/* Events Grid */}

@@ -141,7 +141,7 @@ export const eventsService = {
     };
   },
   async deleteEvent(eventId, deletedBy) {
-    const softDeleted = await sql`
+    const [deletedEvent] = await sql`
       UPDATE events
       SET 
         deleted_at = CURRENT_TIMESTAMP,
@@ -149,11 +149,17 @@ export const eventsService = {
       WHERE id = ${eventId} AND deleted_at IS NULL
       RETURNING *;
     `;
-    return softDeleted[0];
+    return deletedEvent;
   },
-  async archiveEvent() {
-    // TODO
-    return;
+
+  async archiveEvent(eventId) {
+    const [archivedEvent] = await sql`
+    UPDATE events
+    SET is_archived = NOT COALESCE(is_archived, FALSE)
+    WHERE id = ${eventId}
+    RETURNING *;
+  `;
+    return archivedEvent;
   },
 
   async getDashboardStats() {

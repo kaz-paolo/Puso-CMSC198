@@ -2,7 +2,6 @@ import { notifications } from "@mantine/notifications";
 
 export function useEventMutation(userId) {
   const deleteEvent = async (eventId) => {
-    console.log(`deleting event ${eventId}`);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}`,
@@ -38,5 +37,36 @@ export function useEventMutation(userId) {
     }
   };
 
-  return { deleteEvent };
+  const archiveEvent = async (eventId, isArchived) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL_BASE_URL}/api/events/${eventId}/archive`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to archive event");
+      }
+
+      notifications.show({
+        title: "Success",
+        message: `Event ${isArchived ? "unarchived" : "archived"} successfully`,
+        color: "green",
+      });
+    } catch (error) {
+      console.error("Archive event error:", error);
+      notifications.show({
+        title: "Error",
+        message: error.message || "Failed to archive event",
+        color: "red",
+      });
+    }
+  };
+
+  return { deleteEvent, archiveEvent };
 }

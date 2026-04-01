@@ -25,6 +25,8 @@ import {
   IconPencil,
   IconTrash,
   IconEye,
+  IconArchive,
+  IconArchiveOff,
 } from "@tabler/icons-react";
 import AddEventModal from "../../components/modal/AddEventModal.jsx";
 import { getEventStatus } from "../../utils/eventStatus.js";
@@ -46,7 +48,9 @@ export default function EventManagement() {
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const { deleteEvent } = useEventMutation(userProfile?.auth_user_id);
+  const { deleteEvent, archiveEvent } = useEventMutation(
+    userProfile?.auth_user_id,
+  );
 
   const handleDeleteEvent = async () => {
     if (!selectedEventId) return;
@@ -55,14 +59,21 @@ export default function EventManagement() {
 
     setSelectedEventId(null);
     setIsDeleteModalOpen(false);
+    refetchEvents();
+  };
+
+  const handleArchiveEvent = async (eventId, isArchived) => {
+    if (!eventId) return;
+
+    await archiveEvent(eventId, isArchived);
+
+    refetchEvents();
   };
 
   const filteredEvents = events
     .filter((event) => {
       // exclude deleted events
-      if (event.deleted_at) {
-        return false;
-      }
+      if (event.deleted_at) return false;
 
       const eventStatus = getEventStatus(event.start_date, event.end_date);
       if (statusFilter && eventStatus !== statusFilter) {
@@ -85,100 +96,115 @@ export default function EventManagement() {
     completed: "gray",
   };
 
-  const rows = filteredEvents.map((event) => (
-    <Table.Tr key={event.id}>
-      <Table.Td>
-        <Text fw={500} align="left">
-          {event.event_title}
-        </Text>
-      </Table.Td>
-      <Table.Td align="left">
-        {new Date(event.start_date).toLocaleDateString()} @{" "}
-        {new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </Table.Td>
-      <Table.Td align="left">{event.location}</Table.Td>
-      <Table.Td align="left">
-        <Badge
-          color={statusColors[getEventStatus(event.start_date, event.end_date)]}
-          variant="light"
-        >
-          {getEventStatus(event.start_date, event.end_date)}
-        </Badge>
-      </Table.Td>
-      <Table.Td align="left">
-        {event.volunteer_roles && event.volunteer_roles.length > 0 ? (
-          <HoverCard width={160} shadow="md" position="top" withArrow>
-            <HoverCard.Target>
-              <Text size="sm" td="underline" style={{ cursor: "pointer" }}>
-                {event.current_volunteers || 0} /{" "}
-                {event.volunteer_roles.reduce((acc, r) => acc + r.capacity, 0)}
-              </Text>
-            </HoverCard.Target>
-            {/* // Hovering role to show specifics */}
-            <HoverCard.Dropdown>
-              <Text size="sm" fw={500} mb="xs">
-                Role Breakdown
-              </Text>
-              {event.volunteer_roles.map((role) => (
-                <Group justify="space-between" key={role.id}>
-                  <Text size="xs">{role.role_name || "Unnamed Role"}</Text>
-                  <Text size="xs">
-                    {role.current_count || 0} / {role.capacity}
-                  </Text>
-                </Group>
-              ))}
-            </HoverCard.Dropdown>
-          </HoverCard>
-        ) : (
-          <Text size="sm">
-            {event.current_volunteers || 0} / {event.volunteer_capacity || 0}
+  const rows = filteredEvents.map((event) => {
+    const eventStatus = getEventStatus(event.start_date, event.end_date);
+
+    return (
+      <Table.Tr key={event.id}>
+        <Table.Td>
+          <Text fw={500} align="left">
+            {event.event_title}
           </Text>
-        )}
-      </Table.Td>
-      <Table.Td align="left">
-        {event.registration_allowed ? (
-          <Text size="sm">{event.current_participants || 0}</Text>
-        ) : (
-          <Text size="sm" c="dimmed">
-            N/A
-          </Text>
-        )}
-      </Table.Td>
-      <Table.Td>
-        <Menu shadow="md" width={200} position="bottom-end">
-          <Menu.Target>
-            <ActionIcon variant="subtle" color="gray">
-              <IconDotsVertical size={16} />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconEye size={14} />}
-              onClick={() => navigate(`/events/${event.id}`)}
-            >
-              View Dashboard
-            </Menu.Item>
-            <Menu.Item leftSection={<IconPencil size={14} />}>
-              Edit Event
-            </Menu.Item>
-            <Menu.Item
-              onClick={() => {
-                setSelectedEventId(event.id);
-                setIsDeleteModalOpen(true);
-              }}
-              color="red"
-              leftSection={<IconTrash size={14} />}
-            >
-              Delete Event
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-      </Table.Td>
-    </Table.Tr>
-  ));
+        </Table.Td>
+        <Table.Td align="left">
+          {new Date(event.start_date).toLocaleDateString()} @{" "}
+          {new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </Table.Td>
+        <Table.Td align="left">{event.location}</Table.Td>
+        <Table.Td align="left">
+          <Badge color={statusColors[eventStatus]} variant="light">
+            {eventStatus}
+          </Badge>
+        </Table.Td>
+        <Table.Td align="left">
+          {event.volunteer_roles && event.volunteer_roles.length > 0 ? (
+            <HoverCard width={160} shadow="md" position="top" withArrow>
+              <HoverCard.Target>
+                <Text size="sm" td="underline" style={{ cursor: "pointer" }}>
+                  {event.current_volunteers || 0} /{" "}
+                  {event.volunteer_roles.reduce(
+                    (acc, r) => acc + r.capacity,
+                    0,
+                  )}
+                </Text>
+              </HoverCard.Target>
+              {/* // Hovering role to show specifics */}
+              <HoverCard.Dropdown>
+                <Text size="sm" fw={500} mb="xs">
+                  Role Breakdown
+                </Text>
+                {event.volunteer_roles.map((role) => (
+                  <Group justify="space-between" key={role.id}>
+                    <Text size="xs">{role.role_name || "Unnamed Role"}</Text>
+                    <Text size="xs">
+                      {role.current_count || 0} / {role.capacity}
+                    </Text>
+                  </Group>
+                ))}
+              </HoverCard.Dropdown>
+            </HoverCard>
+          ) : (
+            <Text size="sm">
+              {event.current_volunteers || 0} / {event.volunteer_capacity || 0}
+            </Text>
+          )}
+        </Table.Td>
+        <Table.Td align="left">
+          {event.registration_allowed ? (
+            <Text size="sm">{event.current_participants || 0}</Text>
+          ) : (
+            <Text size="sm" c="dimmed">
+              N/A
+            </Text>
+          )}
+        </Table.Td>
+        <Table.Td>
+          <Menu shadow="md" width={200} position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray">
+                <IconDotsVertical size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<IconEye size={14} />}
+                onClick={() => navigate(`/events/${event.id}`)}
+              >
+                View Dashboard
+              </Menu.Item>
+              <Menu.Item leftSection={<IconPencil size={14} />}>Edit</Menu.Item>
+              <Menu.Item
+                leftSection={
+                  event.is_archived ? (
+                    <IconArchiveOff size={14} />
+                  ) : (
+                    <IconArchive size={14} />
+                  )
+                }
+                onClick={() => handleArchiveEvent(event.id, event.is_archived)}
+              >
+                {event.is_archived ? "Unarchive" : "Archive"}
+              </Menu.Item>
+
+              <Menu.Item
+                onClick={() => {
+                  setSelectedEventId(event.id);
+                  setIsDeleteModalOpen(true);
+                }}
+                color="red"
+                leftSection={<IconTrash size={14} />}
+              >
+                Delete
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Table.Td>
+      </Table.Tr>
+    );
+  });
 
   return (
     <Container size="xl">

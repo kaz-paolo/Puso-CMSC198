@@ -64,8 +64,22 @@ export const eventsController = {
     }
   },
   async archiveEvent(req, res) {
-    // TODO
     try {
-    } catch {}
+      const { eventId } = req.params;
+
+      const data = await eventsService.archiveEvent(eventId);
+
+      if (!data) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Event not archived" });
+      }
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Archive event error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to archive event" });
+    }
   },
 };

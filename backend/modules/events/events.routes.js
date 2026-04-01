@@ -28,7 +28,6 @@ router.use("/:eventId/survey", surveyRouter);
 router.delete("/:eventId", eventsController.deleteEvent);
 
 // archive event
-// TODO
-// router.get("");
+router.patch("/:eventId/archive", eventsController.archiveEvent);
 
 export default router;
