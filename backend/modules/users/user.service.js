@@ -47,19 +47,11 @@ export const userService = {
   async getAllUsers() {
     const users = await sql`
       SELECT 
-        ui.id,
-        ui.first_name,
-        ui.last_name,
-        ui.arukahik_join_date,
-        ui.committee1,
-        ui.committee2,
-        ui.committee3,
-        ui.facebook,
+        ui.*, 
         u.email,
-        u.role -- get role from users table
+        u.image 
       FROM user_info ui
-      LEFT JOIN users u ON ui.auth_user_id = u.id
-      ORDER BY ui.first_name ASC
+      JOIN users u ON ui.auth_user_id = u.id
     `;
     return users;
   },
@@ -67,19 +59,19 @@ export const userService = {
   async getBasicInfo(authUserId) {
     const [user] = await sql`
       SELECT 
-        ui.id, 
-        ui.auth_user_id,
-        ui.first_name, 
-        ui.last_name, 
+        u.id as auth_user_id,
+        COALESCE(ui.first_name, u.first_name) as first_name, 
+        COALESCE(ui.last_name, u.last_name) as last_name, 
         ui.dob, 
         ui.mobile, 
         ui.present_address, 
         ui.student_number, 
         ui.degree, 
-        u.role
-      FROM user_info ui
-      LEFT JOIN users u ON ui.auth_user_id = u.id
-      WHERE ui.auth_user_id = ${authUserId}
+        u.role,
+        u.image
+      FROM users u
+      LEFT JOIN user_info ui ON ui.auth_user_id = u.id
+      WHERE u.id = ${authUserId}
     `;
     return user;
   },

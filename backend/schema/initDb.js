@@ -63,7 +63,8 @@ export async function initDb() {
         publish_event BOOLEAN NOT NULL DEFAULT false,
         volunteer_capacity INTEGER NOT NULL DEFAULT 0,
         approval_required BOOLEAN NOT NULL DEFAULT true,
-        created_by INTEGER REFERENCES user_info(id)
+        created_by INTEGER REFERENCES user_info(id),
+        image TEXT
       );
     `;
 

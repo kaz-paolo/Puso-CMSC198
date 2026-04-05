@@ -28,6 +28,7 @@ import PublicSurveySuccessPage from "./pages/PublicSurveySuccessPage.jsx";
 import VolunteerDirectory from "./pages/admin/VolunteerDirectory.jsx";
 import EvaluationManagement from "./pages/admin/EvaluationManagement.jsx";
 import EventFeedbackResults from "./pages/admin/EventFeedbackResults.jsx";
+import AttendanceHub from "./pages/AttendanceHub.jsx";
 
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 
@@ -78,6 +79,7 @@ function AppContent() {
                 path="/evaluation-management/:eventId/results"
                 element={<EventFeedbackResults />}
               />
+              <Route path="/attendancehub" element={<AttendanceHub />} />
             </Route>
 
             {/* Invalid URL Redirect */}

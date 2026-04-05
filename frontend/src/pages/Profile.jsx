@@ -145,7 +145,11 @@ function Profile() {
           <Avatar
             size={100}
             radius={100}
-            src={null}
+            src={
+              userProfile?.image
+                ? `${import.meta.env.VITE_API_URL_BASE_URL}/${userProfile.image}`
+                : null
+            }
             color="primary"
             style={{
               border: `4px solid ${

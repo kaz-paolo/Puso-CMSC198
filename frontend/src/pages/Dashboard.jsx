@@ -87,6 +87,13 @@ function Dashboard() {
     [],
   );
 
+  console.log("Dashboard loading states:", {
+    loadingEvents,
+    profileLoading,
+    isSessionLoading,
+    loadingUserStats,
+  });
+
   useEffect(() => {
     if (isSessionLoading) return;
 

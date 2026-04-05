@@ -1,6 +1,7 @@
 import express from "express";
 import { eventsController } from "./events.controller.js";
 import surveyRouter from "./surveys/surveys.route.js";
+import { uploadEvent } from "../../config/upload.js";
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.get("/", eventsController.getAllEvents);
 // OUTPUT data: event_id, event_title, volunteer_roles(role_name, capacity, current_count), current_volunteer
 
 // create an event
-router.post("/", eventsController.createEvent);
+router.post("/", uploadEvent.single("image"), eventsController.createEvent);
 // INPUT data: events table: event_title, description, event_type, location, start_date, start_time, end_date, end_time, registration_allowed, approval_required, publish_event, volunteer_capacity
 // INPUT data: event_volunteer_roles table: event_id, role_name, capacity
 

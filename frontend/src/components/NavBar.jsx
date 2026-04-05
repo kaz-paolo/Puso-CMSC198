@@ -183,6 +183,26 @@ function NavBar() {
               }}
             />
 
+            <NavLink
+              label="Attendance Hub"
+              leftSection={<IconDatabase size={20} />}
+              color="primary"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/attendancehub");
+              }}
+            />
+
+            <NavLink
+              label="Arukahik"
+              leftSection={<IconDatabase size={20} />}
+              color="primary"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/attendancehub");
+              }}
+            />
+
             <Divider my="sm" />
             <Group justify="space-between" mb="xs">
               <Text size="xs" c="dimmed" fw={500} tt="uppercase">
@@ -348,18 +368,29 @@ function NavBar() {
             }}
             onClick={() => navigate("/profile")}
           >
-            <Avatar radius="xl" size="md" color="primary">
-              {userInitials}
-            </Avatar>
-            <Stack gap={0} style={{ flex: 1 }}>
-              <Text size="sm" fw={500}>
-                {userName}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {userEmail}
-              </Text>
-            </Stack>
-            <IconChevronRight size={16} stroke={1.5} />
+            <Group justify="space-between" align="center" wrap="nowrap">
+              <Avatar
+                radius="xl"
+                size="md"
+                color="primary"
+                src={
+                  userProfile?.image
+                    ? `${import.meta.env.VITE_API_URL_BASE_URL}/${userProfile.image}`
+                    : null
+                }
+              >
+                {userInitials}
+              </Avatar>
+              <Stack gap={0} style={{ flex: 1 }}>
+                <Text size="sm" fw={500}>
+                  {userName}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {userEmail}
+                </Text>
+              </Stack>
+              <IconChevronRight size={16} stroke={1.5} />
+            </Group>
           </Group>
           <Button
             color="red"

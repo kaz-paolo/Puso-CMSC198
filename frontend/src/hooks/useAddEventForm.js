@@ -69,7 +69,7 @@ export function useAddEventForm({ onEventCreated, onClose }) {
       );
       const userData = await userRes.json();
 
-      if (!userData.success) {
+      if (!userData.success || !userData.data?.id) {
         throw new Error("Failed to get user information for event creation.");
       }
 
@@ -82,23 +82,39 @@ export function useAddEventForm({ onEventCreated, onClose }) {
         return `${year}-${month}-${day}`;
       };
 
-      const submissionData = {
-        ...formData,
-        start_date: formatDate(formData.start_date),
-        end_date: formatDate(formData.end_date),
-        volunteer_capacity:
-          capacityType === "simple" ? formData.volunteer_capacity : 0,
-        volunteer_roles:
-          capacityType === "roles" ? formData.volunteer_roles : [],
-        created_by: userData.data.id,
-      };
+      const finalRoles =
+        capacityType === "roles" ? formData.volunteer_roles : [];
+      const finalCapacity =
+        capacityType === "simple" ? formData.volunteer_capacity : 0;
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("event_title", formData.event_title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("event_type", formData.event_type);
+      formDataToSend.append("location", formData.location);
+      formDataToSend.append("start_date", formatDate(formData.start_date));
+      formDataToSend.append("start_time", formData.start_time);
+      formDataToSend.append("end_date", formatDate(formData.end_date));
+      formDataToSend.append("end_time", formData.end_time);
+      formDataToSend.append(
+        "registration_allowed",
+        formData.registration_allowed,
+      );
+      formDataToSend.append("approval_required", formData.approval_required);
+      formDataToSend.append("publish_event", formData.publish_event);
+      formDataToSend.append("volunteer_capacity", finalCapacity);
+      formDataToSend.append("volunteer_roles", JSON.stringify(finalRoles));
+      formDataToSend.append("created_by", userData.data.id);
+
+      // if (formData.image) {
+      //   formDataToSend.append("image", formData.image);
+      // }
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL_BASE_URL}/api/events`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(submissionData),
+          body: formDataToSend,
         },
       );
 

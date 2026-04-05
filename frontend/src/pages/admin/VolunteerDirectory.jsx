@@ -14,6 +14,7 @@ import {
   Checkbox,
   Pagination,
   Loader,
+  Avatar,
 } from "@mantine/core";
 import {
   IconSearch,
@@ -59,6 +60,7 @@ export default function VolunteerDirectory() {
         const mapped = data.data.map((user) => ({
           id: user.id,
           name: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+          image: user.image,
           arukahikBatch: user.arukahik_join_date,
           committees: [user.committee1, user.committee2, user.committee3]
             .filter(Boolean)
@@ -223,7 +225,22 @@ export default function VolunteerDirectory() {
                 paginatedVolunteers.map((vol) => (
                   <Table.Tr key={vol.id} align="left">
                     {visibleColumns.includes("name") && (
-                      <Table.Td fw={500}>{vol.name || "No Data"}</Table.Td>
+                      <Table.Td>
+                        <Group gap="sm">
+                          <Avatar
+                            size="sm"
+                            radius="xl"
+                            src={
+                              vol.image
+                                ? `${import.meta.env.VITE_API_URL_BASE_URL}/${vol.image}`
+                                : null
+                            }
+                          />
+                          <Text size="sm" fw={500}>
+                            {vol.name}
+                          </Text>
+                        </Group>
+                      </Table.Td>
                     )}
                     {visibleColumns.includes("arukahikBatch") && (
                       <Table.Td>{vol.arukahikBatch || "No Data"}</Table.Td>

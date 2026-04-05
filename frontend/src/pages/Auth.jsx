@@ -16,6 +16,10 @@ import {
   useMantineTheme,
   Loader,
   Center,
+  ThemeIcon,
+  FileInput,
+  Avatar,
+  FileButton,
 } from "@mantine/core";
 import { useMantineColorScheme } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +45,7 @@ function Auth() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [themeOpened, setThemeOpened] = useState(false);
+  const [image, setImage] = useState(null);
 
   const [code, setCode] = useState("");
   // const [message, setMessage] = useState("");
@@ -140,13 +145,15 @@ function Auth() {
         // Sign up
         const formattedMi = middleInitial.replace(/\./g, "").trim();
 
-        const { data, error } = await authClient.signUp.email({
-          email,
-          password,
-          firstName: firstName.trim(),
-          middleName: formattedMi,
-          lastName: lastName.trim(),
-        });
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("firstName", firstName.trim());
+        formData.append("middleName", formattedMi);
+        formData.append("lastName", lastName.trim());
+        if (image) formData.append("image", image);
+
+        const { data, error } = await authClient.signUp.email(formData);
 
         if (error) throw error;
 
@@ -413,6 +420,43 @@ function Auth() {
 
       <form onSubmit={handleEmailAuth}>
         <Stack gap="md">
+          {/* Enhanced Profile Photo UI */}
+          <Group justify="center" mb="sm">
+            <Stack align="center" gap="xs">
+              <Avatar
+                src={image ? URL.createObjectURL(image) : null}
+                size={120}
+                radius={120}
+                color="primary"
+                style={{ border: `2px solid ${theme.colors.gray[3]}` }}
+              >
+                {!image && <IconUserPlus size={48} />}
+              </Avatar>
+
+              <FileButton
+                onChange={(file) => {
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    setError("Image exceeds the 5MB size limit.");
+                    setImage(null);
+                  } else {
+                    setError("");
+                    setImage(file);
+                  }
+                }}
+                accept="image/png,image/jpeg,image/webp"
+              >
+                {(props) => (
+                  <Button {...props} variant="light" size="xs" radius="xl">
+                    {image ? "Change Photo" : "Upload Profile Photo"}
+                  </Button>
+                )}
+              </FileButton>
+              <Text size="xs" c="dimmed">
+                Max 5MB (1:1 ideal)
+              </Text>
+            </Stack>
+          </Group>
+
           <TextInput
             label="First Name"
             placeholder="Juan"

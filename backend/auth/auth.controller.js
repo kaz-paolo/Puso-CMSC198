@@ -47,6 +47,8 @@ export const signUp = async (req, res) => {
   try {
     const { email, password, firstName, middleName, lastName } = req.body;
 
+    const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : null;
+
     // if email exists
     const [existing] = await sql`SELECT id FROM users WHERE email = ${email}`;
     if (existing)
@@ -54,10 +56,9 @@ export const signUp = async (req, res) => {
 
     const userId = generateId();
 
-    // insert new user profile details
     await sql`
-      INSERT INTO users (id, first_name, middle_name, last_name, email)
-      VALUES (${userId}, ${firstName}, ${middleName || null}, ${lastName}, ${email})
+      INSERT INTO users (id, first_name, middle_name, last_name, email, image)
+      VALUES (${userId}, ${firstName}, ${middleName || null}, ${lastName}, ${email}, ${imagePath})
     `;
 
     // generate ID and hashed password
@@ -185,7 +186,7 @@ export const getSession = async (req, res) => {
 
     // use decrypted ID to get detail
     const [user] =
-      await sql`SELECT id, email, first_name, role, email_verified FROM users WHERE id = ${payload.id}`;
+      await sql`SELECT id, email, first_name, role, email_verified, image FROM users WHERE id = ${payload.id}`;
     if (!user) return res.status(401).json({ error: "User not found" });
 
     res.status(200).json({
@@ -195,6 +196,7 @@ export const getSession = async (req, res) => {
         name: user.first_name,
         role: user.role,
         email_verified: user.email_verified,
+        image: user.image,
       },
     });
   } catch (err) {

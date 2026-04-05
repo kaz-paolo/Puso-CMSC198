@@ -12,6 +12,7 @@ import {
   ActionIcon,
   Alert,
   Text,
+  FileInput,
 } from "@mantine/core";
 import { DatePickerInput, TimeInput } from "@mantine/dates";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
@@ -59,6 +60,21 @@ function AddEventModal({ opened, onClose, onEventCreated }) {
       )}
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
+          {/* <FileInput
+            label="Event Cover Image (Max 15MB)"
+            placeholder="Upload event image"
+            accept="image/*"
+            value={formData.image || null}
+            onChange={(file) => {
+              if (file && file.size > 15 * 1024 * 1024) {
+                setError("Image exceeds the 15MB size limit.");
+              } else {
+                setError(null);
+                setFormData({ ...formData, image: file });
+              }
+            }}
+          /> */}
+
           <TextInput
             label="Event Title"
             placeholder="Enter event title"

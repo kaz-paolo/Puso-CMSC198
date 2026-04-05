@@ -31,17 +31,10 @@ export const authClient = {
   },
   signUp: {
     //register new user
-    email: async ({ email, password, firstName, middleName, lastName }) => {
+    email: async (formData) => {
       const res = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          firstName,
-          middleName,
-          lastName,
-        }),
+        body: formData,
       });
       const data = await res.json();
 

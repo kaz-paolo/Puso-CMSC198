@@ -24,6 +24,7 @@ app.use(cors());
 app.use(
   helmet({
     contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
 app.use(morgan("dev")); // logs requests to console
@@ -37,6 +38,8 @@ app.use("/api/events", tasksRoutes);
 app.use("/api/events", resourcesRoutes);
 app.use("/api/events", volunteersRoutes);
 app.use("/api/evaluation", evaluationRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Example test route (optional)
 // app.get("/api/products", (req, res) => {
 //   res.status(200).json({

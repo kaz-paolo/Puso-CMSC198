@@ -64,6 +64,8 @@ export function useUserStats() {
       // Not logged in or no profile
       setLoading(false);
       setUserStats(null);
+    } else {
+      setLoading(false);
     }
   }, [userProfile, profileLoading, profileError, fetchStats]);
 
